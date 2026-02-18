@@ -15,72 +15,34 @@ class FolderSeeder extends Seeder
      */
     public function run()
     {
-        $folders = [
-            [
-                'name' => 'Profit Maximizers',
-                'parent_id' => null,
-                'visibility' => 'public',
-                'background_color' => '#ffcc00',
-                'foreground_color' => '#000000',
-                'categories' => ['Status', 'Document'],
-                'tags' => ['New', 'Toapprove', 'Approved']
-            ],
-            [
-                'name' => 'Invoices',
-                'parent_id' => null,
-                'visibility' => 'public',
-                'background_color' => '#0099ff',
-                'foreground_color' => '#ffffff',
-                'categories' => ['Billing', 'Finance'],
-                'tags' => ['Paid', 'TobePaid']
-            ],
-            [
-                'name' => 'Reports',
-                'parent_id' => null,
-                'visibility' => 'public',
-                'background_color' => '#00cc66',
-                'foreground_color' => '#ffffff',
-                'categories' => ['analysis', 'finance'],
-                'tags' => ['Paid-1', 'TobePaid-2']
-            ],
-            [
-                'name' => 'Contracts',
-                'parent_id' => null,
-                'visibility' => 'public',
-                'background_color' => '#ff6666',
-                'foreground_color' => '#ffffff',
-                'categories' => ['legal', 'agreements'],
-                'tags' => ['Paid-3', 'TobePaid-4']
-            ],
-            [
-                'name' => 'Projects',
-                'parent_id' => null,
-                'visibility' => 'public',
-                'background_color' => '#9933ff',
-                'foreground_color' => '#ffffff',
-                'categories' => ['management', 'development'],
-                'tags' => ['Paid-5', 'TobePaid-5']
-            ],
+        $folderNames = [
+            "Minister's Registry",
+            'PS CSS Registry',
+            'HOS Registry',
+            'Budget & Treasury Registry',
         ];
 
-        foreach ($folders as $folderData) {
+        $allCategories = Category::all();
+        $allTags = Tag::all();
+
+        foreach ($folderNames as $folderName) {
             $folder = Folder::create([
-                'name' => $folderData['name'],
-                'parent_id' => $folderData['parent_id'],
-                'visibility' => $folderData['visibility'],
-                'background_color' => $folderData['background_color'],
-                'foreground_color' => $folderData['foreground_color']
+                'name' => $folderName,
+                'parent_id' => null,
+                'visibility' => 'public',
+                'background_color' => sprintf('#%06X', mt_rand(0, 0xFFFFFF)),
+                'foreground_color' => '#ffffff',
             ]);
 
-            // Attach categories and tags to the folder
-            foreach ($folderData['categories'] as $categoryName) {
-                $category = Category::firstOrCreate(['name' => $categoryName]);
+            // Pick 4 random categories for this folder
+            $categories = $allCategories->random(min(4, $allCategories->count()));
+            foreach ($categories as $category) {
                 $folder->categories()->attach($category);
 
-                // Attach tags to the category
-                foreach ($folderData['tags'] as $tagName) {
-                    $tag = Tag::firstOrCreate(['name' => $tagName]);
-                    $category->tags()->attach($tag);
+                // Pick 4 random tags for this category
+                $tags = $allTags->random(min(4, $allTags->count()));
+                foreach ($tags as $tag) {
+                    $category->tags()->syncWithoutDetaching([$tag->id]);
                 }
             }
         }

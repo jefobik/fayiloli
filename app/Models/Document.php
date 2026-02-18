@@ -7,11 +7,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+use Illuminate\Support\Str;
+
 class Document extends Model
 {
     use HasFactory;
     use SoftDeletes;
-
 
     protected static function boot()
     {
@@ -26,12 +27,16 @@ class Document extends Model
             if (!isset($document->position)) {
                 $document->position = static::max('position') + 1;
             }
+            $document->slug = Str::slug($document->name);
+        });
+        static::updating(function ($document) {
+            $document->slug = Str::slug($document->name);
         });
     }
 
     protected $fillable = [
-        'name', 'original_name', 'file_path', 'size', 'extension', 'folder_id', 'visibility', 'share', 'download', 'email',
-        'url', 'contact', 'owner', 'tags', 'date', 'emojies', 'position'
+        'name', 'slug', 'original_name', 'file_path', 'size', 'extension', 'folder_id', 'visibility', 'share', 'download', 'email',
+        'url', 'contact', 'owner', 'date', 'emojies', 'position'
     ];
 
     public function getFileIcon()
@@ -56,6 +61,11 @@ class Document extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function folder()
+    {
+        return $this->belongsTo(Folder::class);
     }
 
     // Method to delete associated file from public path

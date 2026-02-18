@@ -14,8 +14,9 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('position')->default(0);
+            $table->bigInteger('position')->default(0);
             $table->string('name')->nullable();
+            $table->string('slug')->nullable()->index();
             $table->string('original_name')->nullable();
             $table->string('file_path')->nullable();
             $table->bigInteger('size')->nullable();
@@ -25,7 +26,8 @@ return new class extends Migration
                 ->constrained()
                 ->onDelete('cascade') // or 'set null' depending on your requirements
                 ->onUpdate('cascade'); // or 'set null' depending on your requirements
-
+            // `tag_id` removed: documents use many-to-many `document_tag` pivot table
+            // Tags are attached via the pivot table `document_tag` created separately.
             $table->string('visibility')->default('public');
             $table->bigInteger('share')->default(0);
             $table->bigInteger('download')->default(0);

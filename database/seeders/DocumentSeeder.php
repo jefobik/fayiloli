@@ -8,72 +8,10 @@ use App\Models\Document;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents; // Kept for potential future use
 
 class DocumentSeeder extends Seeder
 {
-
-
-    // public function run()
-    // {
-    //     $rootDirectory = public_path('documents');
-    //     $directories = ['folder1', 'folder2', 'folder3'];
-
-    //     // Create directories if they don't exist
-    //     foreach ($directories as $directory) {
-    //         $folderPath = $rootDirectory . '/' . $directory;
-
-    //         if (!File::exists($folderPath)) {
-    //             File::makeDirectory($folderPath, 0777, true);
-    //         }
-    //     }
-
-    //     // Get files from the documents directory
-    //     $directoryFiles = File::allFiles($rootDirectory);
-
-    //     // Shuffle files and limit to 30
-    //     shuffle($directoryFiles);
-    //     $files = array_slice($directoryFiles, 0, 30);
-
-    //     foreach ($files as $file) {
-    //         $name = pathinfo($file->getFilename(), PATHINFO_FILENAME);
-    //         $filePath = 'documents/' . $file->getFilename();
-    //         $size = $file->getSize();
-    //         $extension = $file->getExtension();
-    //         $folder = pathinfo($file->getPath(), PATHINFO_FILENAME);
-    //         $visibility = 'public';
-    //         $share = true;
-    //         $download = true;
-    //         $email = 'example@example.com';
-    //         $url = 'https://example.com';
-    //         $contact = 'phone';
-    //         $owner = 'admin';
-    //         $tags = 'tag1,tag2,tag3';
-    //         $date = now();
-    //         $emojies = '😊😍🎉';
-
-    //         $document = new Document();
-    //         $document->name = $name;
-    //         $document->file_path = $filePath;
-    //         $document->size = $size;
-    //         $document->extension = $extension;
-    //         $document->folder = $folder;
-    //         $document->visibility = $visibility;
-    //         $document->share = $share;
-    //         $document->download = $download;
-    //         $document->email = $email;
-    //         $document->url = $url;
-    //         $document->contact = $contact;
-    //         $document->owner = $owner;
-    //         $document->tags = $tags;
-    //         $document->date = $date;
-    //         $document->emojies = $emojies;
-
-    //         $document->save();
-    //     }
-    // }
-
     public function run()
     {
         // Get folders and tags
@@ -83,12 +21,13 @@ class DocumentSeeder extends Seeder
         // Path to the directory containing document files
         $directory = public_path('documents');
 
-        // Get all files from the directory
-        // $files = scandir($directory);
-        $files = File::allFiles($directory);
+        // Ensure directory exists
+        if (!File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
 
-        // Remove "." and ".." from the file list
-        // $files = array_diff($files, ['.', '..']);
+        // Get all files from the directory
+        $files = File::allFiles($directory);
 
         // Shuffle the file array
         shuffle($files);
@@ -96,25 +35,37 @@ class DocumentSeeder extends Seeder
         // Limit to 30 files
         $files = array_slice($files, 0, 30);
 
-        // $files = array_slice($directoryFiles, 0, 30);
+        if ($folders->isEmpty()) {
+            $this->command->info('No folders found. Skipping document seeding.');
+            return;
+        }
+
+        if ($tags->isEmpty()) {
+            $this->command->info('No tags found. Skipping document seeding.');
+            return;
+        }
 
         // Iterate through each file and create a corresponding record in the database
         foreach ($files as $file) {
             // Get file information
-            $name = pathinfo($file, PATHINFO_FILENAME);
-            $extension = pathinfo($file, PATHINFO_EXTENSION);
-            $filePath = 'documents/' . $file;
+            $name = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+            $extension = $file->getExtension();
+            $relativePath = 'documents/' . $file->getRelativePathname();
             $size = $file->getSize();
-            $folderId = $folders->random()->id; // Assign random folder
-            $tagsArray = $tags->random(2)->pluck('name')->toArray(); // Assign two random tags
+
+            // Assign random folder and tags
+            $folder = $folders->random();
+            // Attach 1 to 3 random tags from the production-ready set
+            $tagsToAttach = $tags->random(min(rand(1, 3), $tags->count()));
+
             $visibility = rand(0, 1) ? 'public' : 'private';
             $share = rand(0, 1);
             $download = rand(0, 1);
-            $email = 'example@example.com';
-            $url = 'https://example.com';
-            $contact = 'phone';
+            $email = 'admin@nectarmetrics.com.ng';
+            $url = 'https://nectarmetrics.com.ng';
+            $contact = '+2348034567890';
             $owner = 'admin';
-            $tagsString = implode(',', $tagsArray);
+
             $date = Carbon::now();
             $emojies = '😊😍🎉';
 
@@ -127,12 +78,12 @@ class DocumentSeeder extends Seeder
             }
 
             // Create document record in the database
-            Document::create([
+            $document = Document::create([
                 'name' => $name,
-                'file_path' => $filePath,
+                'file_path' => $relativePath,
                 'size' => $size,
                 'extension' => $extension,
-                'folder' => $folderId,
+                'folder_id' => $folder->id,
                 'visibility' => $visibility,
                 'share' => $share,
                 'download' => $download,
@@ -140,10 +91,12 @@ class DocumentSeeder extends Seeder
                 'url' => $url,
                 'contact' => $contact,
                 'owner' => $owner,
-                'tags' => $tagsString,
                 'date' => $date,
                 'emojies' => $emojies,
             ]);
+
+            // Attach tags using the relationship
+            $document->tags()->sync($tagsToAttach->pluck('id'));
         }
     }
 }

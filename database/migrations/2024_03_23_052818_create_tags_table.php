@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('tags', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('slug')->unique();
+            $table->char('code',10)->nullable();
             $table->string('background_color')->nullable();
             $table->string('foreground_color')->nullable();
             $table->foreignId('category_id')

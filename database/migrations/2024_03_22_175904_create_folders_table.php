@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->unsignedBigInteger('parent_id')->nullable();
+            $table->unsignedBigInteger('position')->default(0);
             $table->foreign('parent_id')->references('id')->on('folders')->onDelete('cascade');
             $table->enum('visibility', ['public', 'private'])->default('public');
             $table->string('background_color')->nullable();
