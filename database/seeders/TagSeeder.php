@@ -51,11 +51,12 @@ class TagSeeder extends Seeder
                     $base = substr($base, 0, 7); // ensure max 7 chars
                     $uniqueCode = $base;
                     $suffix = 0;
-                    // Ensure code is unique and <= 7 chars
+                    // Ensure code is unique and <= 10 chars
                     while (in_array($uniqueCode, $usedCodes) || Tag::where('code', $uniqueCode)->exists()) {
                         $suffix++;
-                        $uniqueCode = substr($base, 0, 7 - strlen((string)$suffix)) . $suffix;
+                        $uniqueCode = substr($base, 0, 10 - strlen((string)$suffix)) . $suffix;
                     }
+                    $uniqueCode = substr($uniqueCode, 0, 10);
                     $usedCodes[] = $uniqueCode;
 
                 // Generate random background color (pastel for readability)

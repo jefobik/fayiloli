@@ -119,10 +119,13 @@ class CategorySeeder extends Seeder
 
         // Use transaction for bulk insert (PostgreSQL best practice)
         DB::transaction(function () use ($categoriesData) {
+
             $usedCodes = [];
             foreach ($categoriesData as $categoryData) {
                 $name = $categoryData['name'];
-                // 3-3 smart code: first 3 of first word, underscore, first 3 of second word, or first 6 of one word
+                // TEMPORARILY SUSPENDED: Code assignment logic is disabled until approach is finalized.
+                // To re-enable, uncomment the code assignment and 'code' field below.
+                // Category code assignment logic, now limited to 10 chars max:
                 $words = preg_split('/[\s-]+/', strtoupper($name));
                 $first = isset($words[0]) ? substr($words[0], 0, 3) : '';
                 $second = isset($words[1]) ? substr($words[1], 0, 3) : '';
@@ -131,15 +134,15 @@ class CategorySeeder extends Seeder
                 } else {
                     $base = substr($first, 0, 6);
                 }
-                $base = substr($base, 0, 7);
+                $base = substr($base, 0, 10);
                 $uniqueCode = $base;
                 $suffix = 0;
                 while (in_array($uniqueCode, $usedCodes) || Category::where('code', $uniqueCode)->exists()) {
                     $suffix++;
-                    $uniqueCode = substr($base, 0, 7 - strlen((string)$suffix)) . $suffix;
+                    $uniqueCode = substr($base, 0, 10 - strlen((string)$suffix)) . $suffix;
                 }
+                $uniqueCode = substr($uniqueCode, 0, 10);
                 $usedCodes[] = $uniqueCode;
-
 
                 $category = Category::create([
                     'name' => $name,
@@ -150,27 +153,28 @@ class CategorySeeder extends Seeder
                 $tagUsedCodes = [];
                 for ($i = 1; $i <= 3; $i++) {
                     $tagName = "{$category->name} - Tag $i";
-                    // 3-3 smart code for tag, max 7 chars
-                    $words = preg_split('/[\s-]+/', strtoupper($tagName));
-                    $first = isset($words[0]) ? substr($words[0], 0, 3) : '';
-                    $second = isset($words[1]) ? substr($words[1], 0, 3) : '';
-                    if ($second !== '') {
-                        $base = $first . '_' . $second;
-                    } else {
-                        $base = substr($first, 0, 6);
-                    }
-                    $base = substr($base, 0, 7);
-                    $uniqueCode = $base;
-                    $suffix = 0;
-                    while (in_array($uniqueCode, $tagUsedCodes) || Tag::where('code', $uniqueCode)->exists()) {
-                        $suffix++;
-                        $uniqueCode = substr($base, 0, 7 - strlen((string)$suffix)) . $suffix;
-                    }
-                    $tagUsedCodes[] = $uniqueCode;
+                    // TEMPORARILY SUSPENDED: Tag code assignment logic is disabled until approach is finalized.
+                    // To re-enable, uncomment the code assignment and 'code' field below.
+                    // $words = preg_split('/[\s-]+/', strtoupper($tagName));
+                    // $first = isset($words[0]) ? substr($words[0], 0, 3) : '';
+                    // $second = isset($words[1]) ? substr($words[1], 0, 3) : '';
+                    // if ($second !== '') {
+                    //     $base = $first . '_' . $second;
+                    // } else {
+                    //     $base = substr($first, 0, 6);
+                    // }
+                    // $base = substr($base, 0, 7);
+                    // $uniqueCode = $base;
+                    // $suffix = 0;
+                    // while (in_array($uniqueCode, $tagUsedCodes) || Tag::where('code', $uniqueCode)->exists()) {
+                    //     $suffix++;
+                    //     $uniqueCode = substr($base, 0, 7 - strlen((string)$suffix)) . $suffix;
+                    // }
+                    // $tagUsedCodes[] = $uniqueCode;
                     Tag::create([
                         'name' => $tagName,
                         'category_id' => $category->id,
-                        // 'code' => $uniqueCode,
+                        // 'code' => $uniqueCode, // SUSPENDED
                     ]);
                 }
             }
