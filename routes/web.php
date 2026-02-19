@@ -5,17 +5,45 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FolderController;
+use App\Http\Controllers\TenantController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FileRequestController;
 use App\Http\Controllers\ShareDocumentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserManagementController;
 
-// ─── User Management (tenant-scoped) ─────────────────────────────────────────
-Route::middleware(['auth', 'tenant'])->group(function () {
+// ═══════════════════════════════════════════════════════════════════════════
+//  CENTRAL-DOMAIN ROUTES  (localhost / 127.0.0.1)
+//  All routes here run against the central PostgreSQL database.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── Authentication ────────────────────────────────────────────────────────
+Auth::routes();
+
+// ─── Tenant Management (Super-Admin) ──────────────────────────────────────
+//  Full CRUD for tenants; database provisioning fires automatically via
+//  TenancyServiceProvider event listeners.
+Route::middleware('auth')->prefix('admin/tenants')->name('tenants.')->group(function () {
+    Route::get('/',                             [TenantController::class, 'index'])->name('index');
+    Route::get('/create',                       [TenantController::class, 'create'])->name('create');
+    Route::post('/',                            [TenantController::class, 'store'])->name('store');
+    Route::get('/{tenant}',                     [TenantController::class, 'show'])->name('show');
+    Route::get('/{tenant}/edit',                [TenantController::class, 'edit'])->name('edit');
+    Route::put('/{tenant}',                     [TenantController::class, 'update'])->name('update');
+    Route::delete('/{tenant}',                  [TenantController::class, 'destroy'])->name('destroy');
+    Route::post('/{tenant}/domains',            [TenantController::class, 'addDomain'])->name('domains.add');
+    Route::delete('/{tenant}/domains',          [TenantController::class, 'removeDomain'])->name('domains.remove');
+    Route::patch('/{tenant}/toggle-active',     [TenantController::class, 'toggleActive'])->name('toggle_active');
+});
+
+// ─── User Management (tenant-scoped) ──────────────────────────────────────
+//  The 'tenant.initialized' guard aborts 403 if tenancy is not active, so
+//  this group is only useful when accessed from a tenant domain.
+Route::middleware(['auth', 'tenant.initialized'])->group(function () {
     Route::resource('users', UserManagementController::class);
 });
 
+// ─── EDMS Application Routes ───────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
 
     // ─── Documents ────────────────────────────────────────────────────────
@@ -63,8 +91,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/contacts', fn() => view('contacts.index'))->name('contacts.index');
 });
 
-Auth::routes();
-
-// ─── Share Documents (public) ─────────────────────────────────────────────
+// ─── Share Documents (public — no auth required) ──────────────────────────
 Route::get('/{slug?}/share/{id?}/{token?}', [ShareDocumentController::class, 'getSharedDocuments'])->name('getSharedDocuments');
 Route::post('/share-document', [ShareDocumentController::class, 'sharedDocuments'])->name('sharedDocuments');

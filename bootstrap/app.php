@@ -12,7 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'tenant' => \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+            // Initialise tenancy from the request hostname → domains table lookup.
+            // Applied on every route inside routes/tenant.php.
+            'tenant'              => \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+
+            // Reject requests originating from a central domain on tenant routes.
+            'tenant.central_deny' => \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+
+            // Guard: abort 403 if tenancy has not been initialised yet.
+            'tenant.initialized'  => \App\Http\Middleware\EnsureTenantInitialized::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

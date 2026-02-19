@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
-use Stancl\Contracts\Tenancy\Tenant as TenantContract;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
 
-class Tenant extends BaseTenant implements TenantContract
+class Tenant extends BaseTenant
 {
     use HasDatabase, HasDomains;
 
