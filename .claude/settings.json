@@ -21,7 +21,8 @@
       "Bash(sudo chown:*)",
       "Bash(sudo systemctl start:*)",
       "Bash(systemctl is-active:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(php /var/www/laravel/fayiloli/artisan config:show:*)"
     ],
     "additionalDirectories": [
       "/"

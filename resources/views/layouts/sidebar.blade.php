@@ -10,7 +10,7 @@
 </div>
 
 {{-- ── Main Navigation ──────────────────────────────────────────────── --}}
-<nav class="sidebar-nav">
+<nav class="sidebar-nav" style="font-family: 'Inter', system-ui, sans-serif; font-size: 0.93rem;">
     <div class="sidebar-section-label">Main</div>
 
     <a href="{{ route('home') }}"
@@ -31,8 +31,8 @@
 
     {{-- ── Workspaces / Folder Tree ──────────────────────────────────── --}}
     @if (Route::is('documents.index'))
-        <div class="sidebar-section-label" style="margin-top:0.75rem">Workspaces</div>
-        <ul class="folders">
+        <div class="sidebar-section-label" style="margin-top:0.75rem;display:flex;align-items:center;">Workspaces</div>
+        <ul class="folders" style="scroll-behavior:smooth;max-height:38vh;overflow-y:auto;">
             @if (isset($folders))
                 {!! $folders !!}
             @else
@@ -43,6 +43,11 @@
     @endif
 
     <div class="sidebar-section-label" style="margin-top:0.75rem">Modules</div>
+
+    <a href="{{ route('users.index') }}"
+       class="sidebar-link {{ Route::is('users.*') ? 'active' : '' }}">
+        <i class="fas fa-users"></i> Users
+    </a>
 
     <a href="{{ route('projects.index') }}"
        class="sidebar-link {{ Route::is('projects.*') ? 'active' : '' }}">
@@ -56,7 +61,7 @@
 </nav>
 
 {{-- ── Sidebar Footer ───────────────────────────────────────────────── --}}
-<div class="sidebar-footer">
+<div class="sidebar-footer" style="font-family: 'Inter', system-ui, sans-serif;">
     <div style="display:flex;align-items:center;gap:0.6rem">
         <div class="avatar" style="width:28px;height:28px;font-size:0.7rem;background:linear-gradient(135deg,#4f46e5,#7c3aed)">
             {{ strtoupper(substr(Auth::user()?->name ?? 'U', 0, 1)) }}{{ strtoupper(substr(explode(' ', Auth::user()?->name ?? 'U ')[1] ?? '', 0, 1)) }}
@@ -95,7 +100,42 @@
 .category { margin-left: 0.5rem; margin-bottom: 3px; font-size:0.78rem; color:#94a3b8; }
 .category-tags { margin-left: 1rem; display: block; }
 .tags hr { margin: 0.3em 0.5em; border-color: rgba(255,255,255,0.06); }
+
+/* Sidebar drag-and-drop ghost */
+.sortable-ghost { opacity: 0.6; background: #a78bfa !important; }
+
+/* Sidebar sort button */
+.sidebar-sort-btn { margin-left: 0.5rem; background: none; border: none; cursor: pointer; color: #7c3aed; font-size: 1rem; }
+.sidebar-sort-btn:focus { outline: none; }
+
+/* Sidebar dark mode */
+body.dark-mode {
+    background: #0f172a !important;
+    color: #cbd5e1 !important;
+}
+body.dark-mode .edms-sidebar, body.dark-mode .sidebar-footer, body.dark-mode .sidebar-logo {
+    background: #0f172a !important;
+    color: #cbd5e1 !important;
+}
+body.dark-mode .sidebar-link, body.dark-mode .folders li a {
+    color: #cbd5e1 !important;
+}
+body.dark-mode .sidebar-link.active, body.dark-mode .folders li a.active {
+    background: #312e81 !important;
+    color: #a78bfa !important;
+}
+body.dark-mode .sidebar-section-label {
+    color: #a78bfa !important;
+}
+body.dark-mode .sidebar-sort-btn, body.dark-mode .sidebar-dark-btn {
+    color: #a78bfa !important;
+}
+.sidebar-dark-btn { margin-left: 0.5rem; background: none; border: none; cursor: pointer; color: #7c3aed; font-size: 1.1rem; }
+.sidebar-dark-btn:focus { outline: none; }
 </style>
+
+<!-- Sidebar enhancements -->
+<script src="/custom-js/sidebar-enhancements.js"></script>
 
 {{-- ── Copyright Footer ──────────────────────────────────────────── --}}
 <div style="border-top:1px solid rgba(255,255,255,0.05);padding:0.5rem 1.25rem 0.7rem;flex-shrink:0;margin-top:auto">

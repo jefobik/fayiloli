@@ -85,7 +85,7 @@ class FolderController extends Controller
     function deleteSelecetdFolder(Request $request)
     {
         // Retrieve folder instance
-        $folders = Folder::findOrFail($request->folder_ids);
+        $folders = Folder::whereIn('id', $request->folder_ids ?? [])->get();
 
         foreach ($folders as $key => $folder) {
             $folder->deleteFolder();

@@ -43,7 +43,8 @@ class FolderHelper
         $menu = '';
 
         foreach ($folders as $folder) {
-            $menu .= '<li class="folder-item" data-folder-id="' . $folder->id . '">';
+            $menu .= '<li class="folder-item" data-folder-id="' . $folder->id . '" data-id="' . $folder->id . '">';
+            $menu .= '<span class="drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></span>';
             $menu .= '<a href="#" data-url="' . route('getFiles', $folder) . '" onclick="fetchFiles(\'' . route('getFiles', $folder) . '\', \'folder\')">';
             $menu .= '<span class="folder-content">';
             $menu .= '<i class="fas fa-folder folder-icon"></i>';

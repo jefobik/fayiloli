@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Support\Carbon;
-use PhpParser\Node\Expr\Cast\Bool_;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -41,20 +39,13 @@ class ShareDocument extends Model
     }
 
 
-    function scopeIsPublic(): bool
+    public function scopeIsPublic($query)
     {
-        return $this->visibility === 'public' ? true : false;
+        return $query->where('visibility', 'public');
     }
 
-    public function scopeHasExpired()
+    public function scopeHasExpired($query)
     {
-        $currentDateTime = Carbon::now();
-
-        $date = $this->valid_until;
-
-        // Convert input date to Carbon instance if it's a string
-        $expirationDate = $date instanceof Carbon ? $date : Carbon::parse($date);
-
-        return $currentDateTime->gt($expirationDate);
+        return $query->whereNotNull('valid_until')->where('valid_until', '<', now());
     }
 }

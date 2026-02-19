@@ -21,6 +21,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/trix/1.1.1/trix.css">
     {{-- Custom document CSS (legacy) --}}
     <link rel="stylesheet" href="{{ asset('custom-css/documents12.css') }}">
+
+    {{-- SortableJS (needed in <head> so sidebar-enhancements.js finds it) --}}
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    {{-- Dark mode FOUC prevention: apply class before first paint --}}
+    <script>
+        (function () {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.documentElement.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', function () {
+                    document.body.classList.add('dark-mode');
+                    var icon = document.getElementById('darkModeIcon');
+                    if (icon) { icon.classList.replace('fa-moon', 'fa-sun'); }
+                });
+            }
+        })();
+    </script>
 </head>
 
 <body class="h-full" style="overflow:hidden">
@@ -98,6 +115,17 @@
 
 @auth
 <script>
+// ─── Dark mode toggle ──────────────────────────────────────────────────────
+function edmsDarkModeToggle() {
+    var isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    var icon = document.getElementById('darkModeIcon');
+    if (icon) {
+        icon.classList.toggle('fa-moon', !isDark);
+        icon.classList.toggle('fa-sun',  isDark);
+    }
+}
+
 // ─── Sidebar toggle — bridge Alpine.js ↔ existing JS ──────────────────────
 document.addEventListener('alpine:init', () => {
     Alpine.effect(() => {

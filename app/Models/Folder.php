@@ -45,7 +45,7 @@ class Folder extends Model
 
     public function tags()
     {
-        return $this->hasMany(Tag::class, 'id', 'tag_id');
+        return $this->belongsToMany(Tag::class);
     }
 
     public function categories()
@@ -95,13 +95,8 @@ class Folder extends Model
                 $category->delete();
             }
         }
-        // Detach related tags
-        if ($this->relationLoaded('tags')) {
-            $this->tags()->delete();
-        } else {
-            $this->load('tags');
-            $this->tags()->delete();
-        }
+        // Detach related tags from pivot table
+        $this->tags()->detach();
 
         // Check if the subfolders relationship is loaded
         if ($this->relationLoaded('subfolders')) {

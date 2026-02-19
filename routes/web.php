@@ -9,6 +9,12 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FileRequestController;
 use App\Http\Controllers\ShareDocumentController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\UserManagementController;
+
+// ─── User Management (tenant-scoped) ─────────────────────────────────────────
+Route::middleware(['auth', 'tenant'])->group(function () {
+    Route::resource('users', UserManagementController::class);
+});
 
 Route::middleware('auth')->group(function () {
 

@@ -36,6 +36,11 @@
             </button>
         @endif
 
+        {{-- Dark mode toggle --}}
+        <button class="header-icon-btn" id="darkModeToggle" title="Toggle dark mode" onclick="edmsDarkModeToggle()">
+            <i class="fas fa-moon" id="darkModeIcon" style="font-size:1rem"></i>
+        </button>
+
         {{-- Config dropdown --}}
         <div class="relative" x-data="{ open: false }" @click.outside="open = false">
             <button class="header-icon-btn" @click="open = !open" title="Configuration">

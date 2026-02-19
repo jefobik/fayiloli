@@ -207,7 +207,7 @@
         /* border-radius: 10px; */
         /* padding: 20px; */
         /* box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); */
-        background-image: url('{{ asset('img/bg-audio.jpg') }}');
+        background-image: url("{{ asset('img/bg-audio.jpg') }}");
 
     }
 
@@ -239,7 +239,7 @@
 
         // Send AJAX request
         $.ajax({
-            url: '{{ route('send.email') }}', // Replace 'send.email' with your actual route name
+            url: '{{ route('send.email') }}',
             type: 'POST',
             data: formData,
             headers: {
@@ -248,7 +248,7 @@
             success: function(response) {
                 // Handle success response
                 console.log('Email sent successfully!');
-                $('#renderDocumentCommentHtml').html(response.html)
+                $('#renderDocumentCommentHtml').html(response.html);
             },
             error: function(xhr, status, error) {
                 // Handle error response
