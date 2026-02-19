@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('folders', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->unsignedBigInteger('parent_id')->nullable();
-            $table->unsignedBigInteger('position')->default(0);
+            $table->bigInteger('parent_id')->nullable();
+            $table->bigInteger('position')->default(0);
             $table->foreign('parent_id')->references('id')->on('folders')->onDelete('cascade');
             $table->enum('visibility', ['public', 'private'])->default('public');
             $table->string('background_color')->nullable();

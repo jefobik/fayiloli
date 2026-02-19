@@ -2,20 +2,24 @@
 
 namespace Database\Seeders;
 
-use App\Models\Tag;
 use App\Models\Category;
+use App\Models\Tag;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Support\Facades\DB;
 
 class CategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        // Only models using the Searchable trait (Tag, Document, Folder) have
+        // withoutSyncingToSearch(). Category does not. We disable sync only on
+        // Tag here; rebuild indexes afterwards with `php artisan scout:import`.
+        // Seeders must never fail because MeiliSearch is unavailable.
+        Tag::withoutSyncingToSearch(fn () => $this->seed());
+    }
 
+    private function seed(): void
+    {
         $categoriesData = [
             ['name' => 'Birth Records'],
             ['name' => 'Death Records'],
@@ -114,70 +118,76 @@ class CategorySeeder extends Seeder
             ['name' => 'Ethics & Compliance Corporate Records'],
             ['name' => 'Investor Relations Corporate Records'],
             ['name' => 'Public Relations Corporate Records'],
-            ['name' => 'Corporate Social Responsibility Corporate Records']
+            ['name' => 'Corporate Social Responsibility Corporate Records'],
         ];
 
-        // Use transaction for bulk insert (PostgreSQL best practice)
         DB::transaction(function () use ($categoriesData) {
-
             $usedCodes = [];
+
             foreach ($categoriesData as $categoryData) {
                 $name = $categoryData['name'];
-                // TEMPORARILY SUSPENDED: Code assignment logic is disabled until approach is finalized.
-                // To re-enable, uncomment the code assignment and 'code' field below.
-                // Category code assignment logic, now limited to 10 chars max:
-                $words = preg_split('/[\s-]+/', strtoupper($name));
-                $first = isset($words[0]) ? substr($words[0], 0, 3) : '';
-                $second = isset($words[1]) ? substr($words[1], 0, 3) : '';
-                if ($second !== '') {
-                    $base = $first . '_' . $second;
-                } else {
-                    $base = substr($first, 0, 6);
+                $slug = \Illuminate\Support\Str::slug($name);
+
+                // Skip if this category already exists (idempotent re-runs).
+                $existing = Category::where('slug', $slug)->first();
+                if ($existing) {
+                    // Ensure its tags also exist before moving on.
+                    $this->seedTagsForCategory($existing);
+                    continue;
                 }
-                $base = substr($base, 0, 10);
-                $uniqueCode = $base;
-                $suffix = 0;
-                while (in_array($uniqueCode, $usedCodes) || Category::where('code', $uniqueCode)->exists()) {
-                    $suffix++;
-                    $uniqueCode = substr($base, 0, 10 - strlen((string)$suffix)) . $suffix;
-                }
-                $uniqueCode = substr($uniqueCode, 0, 10);
-                $usedCodes[] = $uniqueCode;
+
+                $base        = $this->buildCode($name, 10);
+                $code        = $this->uniquifyCode($base, $usedCodes, 10, 'categories', 'code');
+                $usedCodes[] = $code;
 
                 $category = Category::create([
                     'name' => $name,
-                    'code' => $uniqueCode,
+                    'code' => $code,
                 ]);
 
-                // Create tags for each category (example: 3 tags per category)
-                $tagUsedCodes = [];
-                for ($i = 1; $i <= 3; $i++) {
-                    $tagName = "{$category->name} - Tag $i";
-                    // TEMPORARILY SUSPENDED: Tag code assignment logic is disabled until approach is finalized.
-                    // To re-enable, uncomment the code assignment and 'code' field below.
-                    // $words = preg_split('/[\s-]+/', strtoupper($tagName));
-                    // $first = isset($words[0]) ? substr($words[0], 0, 3) : '';
-                    // $second = isset($words[1]) ? substr($words[1], 0, 3) : '';
-                    // if ($second !== '') {
-                    //     $base = $first . '_' . $second;
-                    // } else {
-                    //     $base = substr($first, 0, 6);
-                    // }
-                    // $base = substr($base, 0, 7);
-                    // $uniqueCode = $base;
-                    // $suffix = 0;
-                    // while (in_array($uniqueCode, $tagUsedCodes) || Tag::where('code', $uniqueCode)->exists()) {
-                    //     $suffix++;
-                    //     $uniqueCode = substr($base, 0, 7 - strlen((string)$suffix)) . $suffix;
-                    // }
-                    // $tagUsedCodes[] = $uniqueCode;
-                    Tag::create([
-                        'name' => $tagName,
-                        'category_id' => $category->id,
-                        // 'code' => $uniqueCode, // SUSPENDED
-                    ]);
-                }
+                $this->seedTagsForCategory($category);
             }
         });
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private function seedTagsForCategory(Category $category): void
+    {
+        for ($i = 1; $i <= 3; $i++) {
+            $tagName = "{$category->name} - Tag $i";
+            Tag::firstOrCreate(
+                ['name' => $tagName, 'category_id' => $category->id],
+            );
+        }
+    }
+
+    private function buildCode(string $name, int $maxLen): string
+    {
+        $words  = preg_split('/[\s\-&\/]+/', strtoupper($name), -1, PREG_SPLIT_NO_EMPTY);
+        $first  = isset($words[0]) ? substr($words[0], 0, 3) : '';
+        $second = isset($words[1]) ? substr($words[1], 0, 3) : '';
+        $base   = $second !== '' ? "{$first}_{$second}" : $first;
+
+        return substr($base, 0, $maxLen);
+    }
+
+    private function uniquifyCode(
+        string $base,
+        array  $usedCodes,
+        int    $maxLen,
+        string $table,
+        string $column
+    ): string {
+        $code   = $base;
+        $suffix = 0;
+
+        while (in_array($code, $usedCodes) || DB::table($table)->where($column, $code)->exists()) {
+            $suffix++;
+            $sfx  = (string) $suffix;
+            $code = substr($base, 0, $maxLen - strlen($sfx)) . $sfx;
+        }
+
+        return substr($code, 0, $maxLen);
     }
 }

@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+use Laravel\Scout\Searchable;
 
 class Folder extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity, Searchable;
 
     protected $fillable = ['name', 'parent_id', 'visibility', 'background_color', 'foreground_color', 'category_id', 'position'];
 
@@ -154,5 +157,23 @@ class Folder extends Model
         }
         // After deleting all contents, remove the directory itself
         rmdir($dirPath);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id'          => $this->id,
+            'name'        => $this->name,
+            'parent_name' => $this->parent?->name,
+        ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'parent_id', 'visibility'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('folder');
     }
 }

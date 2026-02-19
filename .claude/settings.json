@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/var/www/laravel/fayiloli/resources/css/app.css:*)",
+      "Bash(/var/www/laravel/fayiloli/app/Models/Tenant.php:*)",
+      "Bash(/var/www/laravel/fayiloli/app/Livewire/NotificationBell.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/livewire/notification-bell.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/livewire/dashboard-stats.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/.env:*)",
+      "Bash(/var/www/laravel/fayiloli/routes/web.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/layouts/header.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/layouts/navbar-search.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/home.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/auth/login.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/layouts/sidebar.blade.php:*)",
+      "Bash(npm run build:*)",
+      "Bash(php -l:*)",
+      "Bash(mongosh:*)",
+      "Bash(systemctl status:*)",
+      "Bash(journalctl:*)",
+      "Bash(sudo chown:*)",
+      "Bash(sudo systemctl start:*)",
+      "Bash(systemctl is-active:*)",
+      "Bash(grep:*)"
+    ],
+    "additionalDirectories": [
+      "/"
+    ]
+  }
+}

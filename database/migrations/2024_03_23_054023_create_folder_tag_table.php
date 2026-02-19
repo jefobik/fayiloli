@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('folder_tag', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('folder_id');
-            $table->unsignedBigInteger('tag_id');
+            $table->bigInteger('folder_id');
+            $table->bigInteger('tag_id');
             $table->timestamps();
 
             // Add foreign key constraints

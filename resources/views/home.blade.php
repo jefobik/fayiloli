@@ -1,107 +1,59 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container-fluid purple-background">
-        <div class="module-container gap-4 justify-content-center">
-            <div class="">
-                <a href="{{ route('contacts.index') }}">
-                    <div class="card module-card red-bg">
-                        <div class="card-body">
-                            <img src="{{ asset('img/contacts.png') }}" width="80" alt="">
-                        </div>
-                    </div>
-                    <h5 class="card-title">Contacts</h5>
-                </a>
-            </div>
 
-            <div class="">
-                <a href="{{ route('documents.index') }}">
-                    <div class="card module-card gray-bg">
-                        <div class="card-body">
-                            <img src="{{ asset('img/document.png') }}" width="80" alt="">
-                        </div>
-                    </div>
-                    <h5 class="card-title">Documents</h5>
-                </a>
-            </div>
-            <div class="">
-                <a href="{{ route('projects.index') }}">
-                    <div class="card module-card blue-bg">
-                        <div class="card-body">
-                            <img src="{{ asset('img/project.png') }}" width="80" alt="">
-                        </div>
-                    </div>
-                    <h5 class="card-title">Projects</h5>
-                </a>
-            </div>
+<div class="dashboard-wrap">
 
+    {{-- ── Page Title + Quick Actions ────────────────────────────────── --}}
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+        <div>
+            <h1 style="font-size:1.4rem;font-weight:800;color:#1e293b;margin:0">
+                Welcome back, {{ Auth::user()?->name ?? 'User' }} 👋
+            </h1>
+            <p style="color:#64748b;font-size:0.875rem;margin:0.25rem 0 0">
+                {{ now()->format('l, F j, Y') }} &nbsp;·&nbsp;
+                <span class="tenant-badge">
+                    <i class="fas fa-shield-alt" style="font-size:0.6rem"></i>
+                    @if(!empty($userRoles))
+                        {{ ucfirst($userRoles[0]) }}
+                    @else
+                        Member
+                    @endif
+                </span>
+            </p>
+        </div>
+
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            <a href="{{ route('documents.index') }}" class="toolbar-btn toolbar-btn-primary">
+                <i class="fas fa-file-alt"></i> Documents
+            </a>
+            <button class="toolbar-btn toolbar-btn-outline" onclick="uploadFiles()">
+                <i class="fas fa-upload"></i> Upload
+            </button>
+            <a href="{{ route('tags.index') }}" class="toolbar-btn toolbar-btn-outline">
+                <i class="fas fa-tags"></i> Tags
+            </a>
         </div>
     </div>
 
-    <style>
-        .page-content {
-            padding: 0%;
-            margin: 0%;
-        }
+    {{-- ── Live Dashboard Stats (Livewire with charts + activity) ─────── --}}
+    <livewire:dashboard-stats />
 
-        .purple-background {
-            background-color: #6a0dadba;
-            /* Purple background color */
-            color: #fff;
-            /* White text color */
-            height: 100vh;
-        }
+</div>
 
-        .module-container {
-            display: flex;
-        }
+{{-- ── Make page-content visible immediately for home page ─────────────── --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var content = document.querySelector('.page-content');
+        if (content) content.style.display = 'block';
+        var overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.style.display = 'none';
+    });
+</script>
 
-        .module-container h5 {
-            text-align: center;
-        }
+<style>
+    .dashboard-wrap { padding: 1.5rem; }
+    @media (max-width: 640px) { .dashboard-wrap { padding: 1rem; } }
+</style>
 
-        .module-card {
-            margin-bottom: 20px;
-            text-align: center;
-            width: 120px;
-            margin-top: 2rem;
-            cursor: pointer;
-        }
-
-        .module-container>* a {
-            text-decoration: none;
-            color: white;
-
-        }
-
-        .module-card.gray-bg {
-            background-color: #919090;
-            /* Orange background color */
-        }
-
-        .module-card.red-bg {
-            background-color: #d16c6c;
-            /* Orange background color */
-        }
-
-        .module-card.blue-bg {
-            background-color: #43cddf;
-            /* Orange background color */
-        }
-
-
-        .module-card .card-body {
-            padding: 20px;
-        }
-
-        .module-card .card-body i {
-            color: #fff;
-            /* White icon color */
-        }
-
-        .module-card .card-title {
-            margin-top: 10px;
-            font-size: 18px;
-        }
-    </style>
 @endsection

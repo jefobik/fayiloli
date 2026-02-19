@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name')->nullable();
             $table->string('request_to')->nullable();
-            $table->unsignedBigInteger('folder_id')->nullable();
-            $table->unsignedBigInteger('tag_id')->nullable();
-            $table->unsignedBigInteger('due_date_in_number')->nullable();
+            $table->bigInteger('folder_id')->nullable();
+            $table->bigInteger('tag_id')->nullable();
+            $table->bigInteger('due_date_in_number')->nullable();
             $table->string('due_date_in_word')->nullable();
             $table->longText('note')->nullable();
             $table->timestamps();

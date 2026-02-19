@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Support\Str;
+use Laravel\Scout\Searchable;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Tag extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable, LogsActivity;
 
     protected $fillable = ['name', 'slug', 'code', 'background_color', 'foreground_color'];
 
@@ -34,5 +36,19 @@ class Tag extends Model
     public function categories()
     {
         return $this->belongsToMany(Category::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return ['id' => $this->id, 'name' => $this->name, 'code' => $this->code];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('tag');
     }
 }

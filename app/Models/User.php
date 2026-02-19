@@ -6,10 +6,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -20,6 +23,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'supervisor_id',
+        'user_name',
+        'phone',
+        'is_admin',
+        'is_active',
+        'is_locked',
+        'is_2fa_enabled',
     ];
 
     /**
@@ -42,6 +52,26 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
+            'is_active' => 'boolean',
+            'is_locked' => 'boolean',
+            'is_2fa_enabled' => 'boolean',
         ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'email'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('user');
+    }
+
+    public function getAvatarInitialsAttribute(): string
+    {
+        $words = explode(' ', $this->name);
+        $initials = collect($words)->take(2)->map(fn($w) => strtoupper($w[0]))->implode('');
+        return $initials ?: 'U';
     }
 }

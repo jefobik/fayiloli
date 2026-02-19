@@ -6,13 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+use Laravel\Scout\Searchable;
 
 class Document extends Model
 {
-    use HasFactory;
-    use SoftDeletes;
+    use HasFactory, SoftDeletes, LogsActivity, Searchable;
 
     protected static function boot()
     {
@@ -75,5 +76,26 @@ class Document extends Model
         if (file_exists($filePath)) {
             unlink($filePath);
         }
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id'            => $this->id,
+            'name'          => $this->name,
+            'original_name' => $this->original_name,
+            'extension'     => $this->extension,
+            'folder_name'   => $this->folder?->name,
+            'tags'          => $this->tags->pluck('name')->implode(' '),
+        ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'folder_id', 'visibility', 'extension'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('document');
     }
 }
