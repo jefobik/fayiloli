@@ -43,9 +43,9 @@ class TenantController extends Controller
         $validated = $request->validate([
             'organization_name' => ['required', 'string', 'max:255'],
             'admin_email'       => ['required', 'email', 'max:255'],
-            'plan'              => ['required', 'in:starter,business,enterprise'],
+            'plan'              => ['required', 'in:government,agency,department,secretariat,unit'],
             'domain'            => ['required', 'string', 'max:255',
-                                    'regex:/^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z]{2,})+$/',
+                                    'regex:/^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z0-9-]{2,})+$/',
                                     'unique:domains,domain'],
         ]);
 
@@ -88,7 +88,7 @@ class TenantController extends Controller
         $validated = $request->validate([
             'organization_name' => ['required', 'string', 'max:255'],
             'admin_email'       => ['required', 'email', 'max:255'],
-            'plan'              => ['required', 'in:starter,business,enterprise'],
+            'plan'              => ['required', 'in:government,agency,department,secretariat,unit'],
             'is_active'         => ['boolean'],
         ]);
 
@@ -120,7 +120,7 @@ class TenantController extends Controller
     {
         $validated = $request->validate([
             'domain' => ['required', 'string', 'max:255',
-                         'regex:/^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z]{2,})+$/',
+                         'regex:/^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z0-9-]{2,})+$/',
                          'unique:domains,domain'],
         ]);
 

@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('documents', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->bigInteger('position')->default(0);
             $table->string('name')->nullable();
             $table->string('slug')->nullable()->index();
@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('file_path')->nullable();
             $table->bigInteger('size')->nullable();
             $table->string('extension')->nullable();
-            $table->foreignId('folder_id')
+            $table->foreignUuid('folder_id')
                 ->nullable()
                 ->constrained()
                 ->onDelete('cascade')
@@ -35,6 +35,12 @@ return new class extends Migration
             $table->string('emojies')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            // Indexes
+            $table->index('created_at', 'indx_documents_created_at');
+            $table->index(['name', 'slug'], 'indx_documents_name_slug');
+            $table->index('visibility', 'indx_documents_visibility');
+            $table->index('folder_id', 'indx_documents_folder_id');
         });
     }
 

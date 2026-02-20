@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('share_documents', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name')->nullable();
             $table->string('slug')->nullable();
             $table->string('token')->unique();
@@ -25,6 +25,10 @@ return new class extends Migration
             $table->morphs('user');
             $table->morphs('share');
             $table->timestamps();
+
+            // Add indexes for faster lookups
+            $table->index('name', 'idx_share_documents_name');
+            $table->index('slug', 'idx_share_documents_slug');
         });
     }
 

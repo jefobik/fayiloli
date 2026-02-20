@@ -12,6 +12,7 @@ use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
 use Stancl\Tenancy\Middleware;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 
 class TenancyServiceProvider extends ServiceProvider
 {
@@ -27,7 +28,7 @@ class TenancyServiceProvider extends ServiceProvider
                 JobPipeline::make([
                     Jobs\CreateDatabase::class,
                     Jobs\MigrateDatabase::class,
-                    // Jobs\SeedDatabase::class,
+                    Jobs\SeedDatabase::class,
 
                     // Your own jobs to prepare the tenant.
                     // Provision API keys, create S3 buckets, anything you want!
@@ -101,8 +102,36 @@ class TenancyServiceProvider extends ServiceProvider
     {
         $this->bootEvents();
         $this->mapRoutes();
+        $this->configureTenancyMiddleware();
 
         $this->makeTenancyMiddlewareHighestPriority();
+    }
+
+    /**
+     * Configure middleware behaviour for the global-web-group strategy.
+     *
+     * InitializeTenancyByDomain is prepended to the global 'web' group in
+     * bootstrap/app.php so that a single set of Auth routes (in web.php) can
+     * serve both the central admin domain AND every tenant domain.
+     *
+     * The middleware itself has NO built-in logic to skip central domains —
+     * it always tries to resolve a tenant from the request host. We must
+     * supply an $onFail callback that passes through silently when the host
+     * is listed in tenancy.central_domains, and re-throws for all other
+     * unknown domains (which would indicate a misconfigured request).
+     */
+    protected function configureTenancyMiddleware(): void
+    {
+        InitializeTenancyByDomain::$onFail = function ($exception, $request, $next) {
+            if (in_array($request->getHost(), config('tenancy.central_domains'), true)) {
+                // Central domain — tenancy is intentionally not initialized.
+                // Let the request continue so that central admin + auth routes work.
+                return $next($request);
+            }
+
+            // Unknown tenant domain — surface as a proper 404.
+            abort(404);
+        };
     }
 
     protected function bootEvents()

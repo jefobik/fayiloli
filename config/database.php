@@ -50,8 +50,8 @@ return [
             'url'            => env('DATABASE_URL'),               // Heroku-style full DSN (optional)
             'host'           => env('PGSQL_HOST', env('DB_HOST', '127.0.0.1')),
             'port'           => env('PGSQL_PORT', env('DB_PORT', '5432')),
-            'database'       => env('PGSQL_DATABASE', env('DB_DATABASE', 'ict_edms')),
-            'username'       => env('PGSQL_USERNAME', env('DB_USERNAME', 'postgres')),
+            'database'       => env('PGSQL_DATABASE', env('DB_DATABASE', 'fayiloli_central')),
+            'username'       => env('PGSQL_USERNAME', env('DB_USERNAME', 'edms_user')),
             'password'       => env('PGSQL_PASSWORD', env('DB_PASSWORD', '')), // never hard-code a default password
             'charset'        => 'utf8',
             'prefix'         => '',
@@ -62,24 +62,62 @@ return [
 
         // ── Secondary: MongoDB ───────────────────────────────────────────────
         // Stores high-volume, schema-flexible data (notifications, audit logs,
-        // document analytics).  Requires `mongodb/laravel-mongodb` package.
-        // Uses DSN-style config so authentication works across all MongoDB
-        // deployment types (standalone, replica set, Atlas, sharded cluster).
-
-        // ── Secondary: MongoDB ───────────────────────────────────────────────
-        // Stores high-volume, schema-flexible data (notifications, audit logs,
-        // document analytics).  Requires `mongodb/laravel-mongodb` package.
+        // document analytics).  Requires `mongodb/laravel-mongodb` ^5.6.
         //
-        // Auth credentials MUST be embedded in MONGODB_URI — the v5.x driver
-        // uses the DSN directly and does not merge separate username/password
-        // keys.  Format: mongodb://user:pass@host:port/db?authSource=db
+        // Uses individual config keys (NOT a raw DSN) so that authSource can
+        // be set independently of the target database.  This is necessary
+        // because the `edms_app` MongoDB user was created in the `edms_nosql`
+        // administrative database (authSource), while the application writes
+        // to the `fayiloli_edms` database.  Embedding both in a single URI
+        // string conflates the two concerns and makes one wrong.
         //
-        // The `edms_app` user has readWrite on `edms_nosql` only.
+        // When the `dsn` key is absent, laravel-mongodb v5.x builds the
+        // connection URI from the individual keys below.
+        //
+        // Env vars:
+        //   MONGODB_HOST          — default 127.0.0.1
+        //   MONGODB_PORT          — default 27017
+        //   MONGODB_USERNAME      — app user (edms_app)
+        //   MONGODB_PASSWORD      — app user password
+        //   MONGODB_DATABASE      — target database (fayiloli_edms)
+        //   MONGODB_AUTH_SOURCE   — database the user was created in (edms_nosql)
+        //
+        // MONGODB_URI is intentionally NOT used here; keep it in .env only as
+        // a human-readable reference / for external tooling (Compass, etc.).
 
         'mongodb' => [
             'driver'   => 'mongodb',
-            'dsn'      => env('MONGODB_URI', 'mongodb://127.0.0.1:27017'),
-            'database' => env('MONGODB_DATABASE', 'edms_nosql'),
+            'host'     => env('MONGODB_HOST', '127.0.0.1'),
+            'port'     => (int) env('MONGODB_PORT', 27017),
+            'database' => env('MONGODB_DATABASE', 'fayiloli_edms'),
+            'username' => env('MONGODB_USERNAME', 'edms_app'),
+            'password' => env('MONGODB_PASSWORD'),
+            'options'  => [
+                // The database in which the user was created — distinct from
+                // the target database above.  SCRAM-SHA-256 is the default
+                // negotiated mechanism for MongoDB 4.0+; explicit is clearer.
+                'authSource'     => env('MONGODB_AUTH_SOURCE', 'edms_nosql'),
+                'authMechanism'  => 'SCRAM-SHA-256',
+            ],
+        ],
+
+        // ── Admin: PostgreSQL superuser (setup / privilege grants only) ──────
+        // Used exclusively by the `db:grant-privileges` Artisan command.
+        // Set DB_ADMIN_USERNAME / DB_ADMIN_PASSWORD in .env, run the command
+        // once, then you may remove the variables.
+
+        'pgsql_admin' => [
+            'driver'         => 'pgsql',
+            'host'           => env('PGSQL_HOST', env('DB_HOST', '127.0.0.1')),
+            'port'           => env('PGSQL_PORT', env('DB_PORT', '5432')),
+            'database'       => env('PGSQL_DATABASE', env('DB_DATABASE', 'fayiloli_central')),
+            'username'       => env('DB_ADMIN_USERNAME', 'postgres'),
+            'password'       => env('DB_ADMIN_PASSWORD', ''),
+            'charset'        => 'utf8',
+            'prefix'         => '',
+            'prefix_indexes' => true,
+            'search_path'    => 'public',
+            'sslmode'        => env('PGSQL_SSLMODE', 'prefer'),
         ],
 
     ],

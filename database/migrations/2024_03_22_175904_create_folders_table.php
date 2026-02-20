@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('folders', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name');
-            $table->bigInteger('parent_id')->nullable();
+            $table->uuid('parent_id')->nullable();
             $table->bigInteger('position')->default(0);
             $table->foreign('parent_id')->references('id')->on('folders')->onDelete('cascade');
             $table->enum('visibility', ['public', 'private'])->default('public');
@@ -23,6 +23,17 @@ return new class extends Migration
             $table->string('tags')->nullable();
             $table->timestamps();
             $table->softDeletes();
+        });
+
+        // ==================== FOREIGN KEY CONSTRAINTS ====================
+        // Separate schema call to avoid circular dependencies
+        Schema::table('tenants', function (Blueprint $table) {
+            // Self-referencing foreign key for parent-child relationship
+            $table->foreign('parent_id')
+                ->references('id')
+                ->on('tenants')
+                ->onDelete('set null')
+                ->onUpdate('cascade');
         });
     }
 

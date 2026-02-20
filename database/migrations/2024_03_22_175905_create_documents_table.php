@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('documents', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->bigInteger('position')->default(0);
             $table->string('name')->nullable();
             $table->string('slug')->nullable()->index();
@@ -21,9 +21,9 @@ return new class extends Migration
             $table->string('file_path')->nullable();
             $table->bigInteger('size')->nullable();
             $table->string('extension')->nullable();
-            $table->foreignId('folder_id')
+            $table->foreignUuid('folder_id')
                 ->nullable()
-                ->constrained()
+                ->constrained('folders')
                 ->onDelete('cascade') // or 'set null' depending on your requirements
                 ->onUpdate('cascade'); // or 'set null' depending on your requirements
             // `tag_id` removed: documents use many-to-many `document_tag` pivot table

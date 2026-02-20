@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('category_folder', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('category_id');
-            $table->unsignedBigInteger('folder_id');
+            $table->uuid('id')->primary();
+            $table->uuid('category_id');
+            $table->uuid('folder_id');
 
             $table->timestamps();
 
@@ -24,6 +24,10 @@ return new class extends Migration
 
             // Add unique constraint to ensure each tag is associated with a folder only once
             $table->unique(['category_id', 'folder_id']);
+
+            // Add indexes for faster lookups
+            $table->index('category_id', 'idx_category_folder_category_id');
+            $table->index('folder_id', 'idx_category_folder_folder_id');
         });
     }
 

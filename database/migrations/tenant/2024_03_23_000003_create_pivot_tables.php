@@ -18,29 +18,29 @@ return new class extends Migration
     {
         // folder <-> tag
         Schema::create('folder_tag', function (Blueprint $table) {
-            $table->foreignId('folder_id')->constrained()->onDelete('cascade');
-            $table->foreignId('tag_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('folder_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('tag_id')->constrained()->onDelete('cascade');
             $table->primary(['folder_id', 'tag_id']);
         });
 
         // document <-> tag
         Schema::create('document_tag', function (Blueprint $table) {
-            $table->foreignId('document_id')->constrained()->onDelete('cascade');
-            $table->foreignId('tag_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('document_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('tag_id')->constrained()->onDelete('cascade');
             $table->primary(['document_id', 'tag_id']);
         });
 
         // category <-> folder
         Schema::create('category_folder', function (Blueprint $table) {
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
-            $table->foreignId('folder_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('category_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('folder_id')->constrained()->onDelete('cascade');
             $table->primary(['category_id', 'folder_id']);
         });
 
         // category <-> tag
         Schema::create('category_tag', function (Blueprint $table) {
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
-            $table->foreignId('tag_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('category_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('tag_id')->constrained()->onDelete('cascade');
             $table->primary(['category_id', 'tag_id']);
         });
     }

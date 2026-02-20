@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('file_requests', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name')->nullable();
             $table->string('request_to')->nullable();
-            $table->bigInteger('folder_id')->nullable();
-            $table->bigInteger('tag_id')->nullable();
+            $table->uuid('folder_id')->nullable();
+            $table->uuid('tag_id')->nullable();
             $table->bigInteger('due_date_in_number')->nullable();
             $table->string('due_date_in_word')->nullable();
             $table->longText('note')->nullable();
@@ -24,6 +24,12 @@ return new class extends Migration
 
             $table->foreign('folder_id')->references('id')->on('folders')->onDelete('cascade');
             $table->foreign('tag_id')->references('id')->on('tags')->onDelete('cascade');
+
+            //indexes for faster lookups
+            $table->index('name', 'idx_file_requests_name');
+            $table->index('folder_id', 'idx_file_requests_folder_id');
+            $table->index('tag_id', 'idx_file_requests_tag_id');
+            $table->index('created_at', 'idx_file_requests_created_at');
         });
     }
 

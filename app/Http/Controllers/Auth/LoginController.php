@@ -23,9 +23,14 @@ class LoginController extends Controller
     /**
      * Where to redirect users after login.
      *
-     * @var string
+     * Returns the EDMS home ('/') on a tenant domain (tenancy is already
+     * initialised by the global InitializeTenancyByDomain middleware), or
+     * the central super-admin portal ('/admin/tenants') on the central domain.
      */
-    protected $redirectTo = '/home';
+    protected function redirectTo(): string
+    {
+        return tenancy()->initialized ? '/' : '/admin/tenants';
+    }
 
     /**
      * Create a new controller instance.

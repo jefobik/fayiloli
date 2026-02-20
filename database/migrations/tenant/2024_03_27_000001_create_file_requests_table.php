@@ -11,11 +11,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('file_requests', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name')->nullable();
             $table->string('request_to')->nullable();
-            $table->bigInteger('folder_id')->nullable();
-            $table->bigInteger('tag_id')->nullable();
+            $table->foreignUuid('folder_id')->nullable()->constrained('folders')->onDelete('cascade');
+            $table->foreignUuid('tag_id')->nullable()->constrained('tags')->onDelete('cascade');
             $table->bigInteger('due_date_in_number')->nullable();
             $table->string('due_date_in_word')->nullable();
             $table->longText('note')->nullable();

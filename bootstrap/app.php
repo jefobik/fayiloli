@@ -12,16 +12,28 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            // Initialise tenancy from the request hostname → domains table lookup.
-            // Applied on every route inside routes/tenant.php.
+            // Named alias used explicitly in routes/tenant.php.
             'tenant'              => \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
 
-            // Reject requests originating from a central domain on tenant routes.
+            // Reject requests originating from a central domain on tenant-only routes.
             'tenant.central_deny' => \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
 
             // Guard: abort 403 if tenancy has not been initialised yet.
             'tenant.initialized'  => \App\Http\Middleware\EnsureTenantInitialized::class,
         ]);
+
+        // Prepend InitializeTenancyByDomain to the global web middleware group.
+        //
+        // This lets a SINGLE set of auth routes (Auth::routes in web.php) serve
+        // BOTH the central admin domain AND every tenant domain — the middleware
+        // self-skips for central domains (127.0.0.1, localhost) via the
+        // tenancy.central_domains config, so there is zero overhead on the
+        // super-admin side.  On tenant domains it switches the DB connection
+        // before any controller or auth guard runs.
+        $middleware->prependToGroup(
+            'web',
+            \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

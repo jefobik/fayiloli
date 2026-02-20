@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tags', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->string('slug')->unique();
             $table->char('code',10)->nullable();
             $table->string('background_color')->nullable();
             $table->string('foreground_color')->nullable();
-            $table->foreignId('category_id')
+            $table->foreignUuid('category_id')
                 ->nullable()
-                ->constrained()
+                ->constrained('categories')
                 ->onDelete('cascade')
                 ->onUpdate('cascade');
             $table->timestamps();

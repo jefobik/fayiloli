@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('document_tag', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('document_id');
-            $table->bigInteger('tag_id');
+            $table->uuid('id')->primary();
+            $table->uuid('document_id');
+            $table->uuid('tag_id');
             $table->foreign('document_id')->references('id')->on('documents')->onDelete('cascade');
             $table->foreign('tag_id')->references('id')->on('tags')->onDelete('cascade');
             $table->timestamps();

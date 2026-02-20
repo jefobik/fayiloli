@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('folder_tag', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('folder_id');
-            $table->bigInteger('tag_id');
+            $table->uuid('id')->primary();
+            $table->uuid('folder_id');
+            $table->uuid('tag_id');
             $table->timestamps();
 
             // Add foreign key constraints

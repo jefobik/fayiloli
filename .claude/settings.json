@@ -22,10 +22,37 @@
       "Bash(sudo systemctl start:*)",
       "Bash(systemctl is-active:*)",
       "Bash(grep:*)",
-      "Bash(php /var/www/laravel/fayiloli/artisan config:show:*)"
+      "Bash(php /var/www/laravel/fayiloli/artisan config:show:*)",
+      "Bash(php:*)",
+      "Bash(composer show:*)",
+      "Bash(psql:*)",
+      "Bash(PGPASSWORD='1Q2W3E4R5Tz' psql:*)",
+      "Bash(PGPASSWORD=\"1Q2W3E4R5Tz\" psql:*)",
+      "Bash(then)",
+      "Bash(echo:*)",
+      "Bash(break)",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(find:*)",
+      "Bash(PGPASSWORD=1Q2W3E4R5Tz psql:*)",
+      "Bash(curl:*)",
+      "Read(//var/www/laravel/fayiloli/**)",
+      "Bash(# Login page might use a different token field name - check the actual HTML curl -s http://127.0.0.1:8000/login)",
+      "Bash(php-fpm8.3:*)",
+      "Bash(php-fpm8.2:*)",
+      "Bash(service nginx status:*)",
+      "Bash(sudo tee:*)",
+      "Bash(/dev/null:*)",
+      "Bash(__NEW_LINE_ec4d80d8d80c610c__ sudo ln -sf /etc/nginx/sites-available/fayiloli /etc/nginx/sites-enabled/fayiloli)",
+      "Bash(sudo nginx:*)",
+      "Bash(# Check if there''s a sudoers rule that allows specific commands without password sudo -l)",
+      "Bash(# Check /etc/sudoers.d for any passwordless rules ls /etc/sudoers.d/ && cat /etc/sudoers.d/*)",
+      "Bash(__NEW_LINE_f85b3474a5444979__ rm -f \"$COOKIE_JAR\")",
+      "Bash(ss:*)"
     ],
     "additionalDirectories": [
-      "/"
+      "/",
+      "/var/www/laravel/fayiloli"
     ]
   }
 }

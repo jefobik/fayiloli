@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tags', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->string('slug')->unique();
             $table->char('code', 10)->nullable();
@@ -23,6 +23,9 @@ return new class extends Migration
                 ->onDelete('cascade')
                 ->onUpdate('cascade');
             $table->timestamps();
+
+            // Indexes
+            $table->index('name', 'indx_tags_name');
         });
     }
 

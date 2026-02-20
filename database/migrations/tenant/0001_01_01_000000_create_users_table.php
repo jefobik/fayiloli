@@ -18,8 +18,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('supervisor_id')->nullable();
+            $table->uuid('id')->primary();
+            $table->uuid('supervisor_id')->nullable();
             $table->string('name');
             $table->string('user_name', 50)->unique();
             $table->string('email')->unique();
@@ -38,6 +38,14 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
+
+            //indexes
+            $table->index('supervisor_id', 'indx_users_supervisor_id');
+            $table->index('email', 'indx_users_email');
+            $table->index('name', 'indx_users_name');
+            $table->index('user_name', 'indx_users_user_name');
+            $table->index('is_active', 'indx_users_is_active');
+            $table->index('created_at', 'indx_users_created_at');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

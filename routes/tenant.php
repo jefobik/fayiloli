@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
@@ -12,7 +11,6 @@ use App\Http\Controllers\FileRequestController;
 use App\Http\Controllers\ShareDocumentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserManagementController;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
@@ -20,26 +18,27 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 | Tenant Routes
 |--------------------------------------------------------------------------
 |
-| Every request arriving on a registered tenant domain passes through:
-|  1. InitializeTenancyByDomain  — resolves the tenant from the hostname,
-|                                   switches the active DB connection.
-|  2. PreventAccessFromCentralDomains — rejects central-domain requests.
+| These routes are served exclusively from tenant domains.
 |
-| The full EDMS application runs here so that each organisation gets its
-| own completely isolated database context.
+| InitializeTenancyByDomain is NOT listed here because it is already
+| prepended to the global 'web' middleware group in bootstrap/app.php.
+| It self-skips for central domains (127.0.0.1, localhost) so auth and
+| central-admin routes in routes/web.php are completely unaffected.
+|
+| Auth::routes() is also NOT repeated here; the single registration in
+| routes/web.php covers both central and tenant auth.  On a tenant domain,
+| the global InitializeTenancyByDomain switches the DB connection before
+| the auth guard runs, so credentials are validated against the correct
+| tenant database.
+|
+| PreventAccessFromCentralDomains is applied only to EDMS routes so that
+| the super-admin on 127.0.0.1 cannot accidentally browse tenant data.
 |
 */
 
-Route::middleware([
-    'web',
-    InitializeTenancyByDomain::class,
-    PreventAccessFromCentralDomains::class,
-])->group(function () {
+Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(function () {
 
-    // ─── Authentication ────────────────────────────────────────────────────
-    Auth::routes();
-
-    // ─── User Management ──────────────────────────────────────────────────
+    // ─── User Management (tenant-admin only) ──────────────────────────────
     Route::middleware('auth')->group(function () {
         Route::resource('users', UserManagementController::class);
     });
