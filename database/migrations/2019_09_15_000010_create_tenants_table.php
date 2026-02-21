@@ -21,8 +21,9 @@ class CreateTenantsTable extends Migration
             $table->uuid('id')->primary();
 
             // your custom columns may go here
-            $table->string('organization_name')->nullable()->after('id');
-            $table->string('admin_email')->nullable()->after('organization_name');
+            $table->string('organization_name')->unique()->after('id');
+            $table->string('short_name',30)->unique()->after('organization_name');
+            $table->string('admin_email')->nullable()->after('short_name');
             $table->boolean('is_active')->default(true)->after('admin_email');
             $table->uuid('parent_id')->nullable()->comment('Parent tenant for multi-level hierarchy');
             $table->integer('level')->default(0)->comment('Hierarchy level (0=root, 1=child, etc.)');
@@ -35,7 +36,8 @@ class CreateTenantsTable extends Migration
             $table->jsonb('settings')->nullable()->comment('Tenant-specific settings');
 
             // Indexes
-
+            $table->index('organization_name', 'indx_tenants_organization_name');
+            $table->index('short_name', 'indx_tenants_short_name');
             $table->index('admin_email', 'indx_tenants_admin_email');
             $table->index('is_active', 'indx_tenants_is_active');
             $table->index('parent_id', 'indx_tenants_parent_id');

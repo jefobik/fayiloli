@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->uuid('supervisor_id')->nullable()->before('name');
-            $table->string('user_name',50)->unique()->before('email');
-            $table->string('phone',15)->nullable()->after('email');
+            // $table->string('user_name',50)->unique()->before('email');
+            // $table->string('phone',15)->nullable()->after('email');
             $table->timestamp('phone_verified_at')->nullable()->after('phone');
             $table->integer('failed_login_attempts')->default(0);
             $table->timestamp('last_login_at')->nullable();
-            $table->boolean('is_admin')->default(false);
-            $table->boolean('is_active')->default(true);
-            $table->boolean('is_locked')->default(false);
-            $table->boolean('is_2fa_enabled')->default(false);
-            $table->timestamp('locked_at')->nullable();
+            // $table->boolean('is_admin')->default(false);
+            // $table->boolean('is_active')->default(true);
+            // $table->boolean('is_locked')->default(false);
+            // $table->boolean('is_2fa_enabled')->default(false);
+            // $table->timestamp('locked_at')->nullable();
             $table->timestamp('password_changed_at')->nullable();
             $table->softDeletes();
 

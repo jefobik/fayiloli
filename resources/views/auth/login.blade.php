@@ -13,7 +13,7 @@
                           d="M512 256a15 15 0 00-7.1-12.8l-52-32 52-32.5a15 15 0 000-25.4L264 2.3c-4.8-3-11-3-15.9 0L7 153.3a15 15 0 000 25.4L58.9 211 7.1 243.3a15 15 0 000 25.4L58.8 301 7.1 333.3a15 15 0 000 25.4l241 151a15 15 0 0015.9 0l241-151a15 15 0 00-.1-25.5l-52-32 52-32.5A15 15 0 00512 256z"/>
                 </svg>
             </div>
-            <div class="auth-visual-title">NectarMetrics Electronic Document Management System</div>
+            <div class="auth-visual-title">NectarMetrics - FAYILOLI Electronic Document Management System</div>
             <div class="auth-visual-desc">
                 Secure, intelligent document management for government and modern organisations.
                 Powered by NectarMetrics Solutions Limited — delivering intelligent workflow, real-time notifications, enterprise-grade security, and powerful role-based access you can trust.

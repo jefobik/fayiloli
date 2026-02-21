@@ -1,20 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
+/**
+ * Seeds tenant users.
+ *
+ * Runs inside the tenant database context — never against the central DB.
+ * Creates 13 predictable dev users:
+ *   superadmin  / passw0rd!     (is_admin = true — workspace admin)
+ *   admin1–2    / Password12!   (is_admin = true)
+ *   user1–10    / Password123!
+ *
+ * NOTE: is_super_admin is intentionally absent — it is a central-DB-only
+ * flag and does NOT exist in the tenant users table.  The platform
+ * super-admin privilege is enforced at the central database level only.
+ */
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    // public function run(): void
-    // {
-    //     User::factory()->count(10)->create();
-    // }
     public function run(): void
     {
         $this->createSuperAdmin();
@@ -26,19 +33,16 @@ class UserSeeder extends Seeder
     {
         User::updateOrCreate(
             ['user_name' => 'superadmin'],
-
             [
-                'name' => 'Super Administrator',
-                'user_name' => 'superadmin',
-                'email' => 'superadmin@nectarmetrics.com.ng',
-                'phone' => '08000000001',
+                'name'              => 'Super Administrator',
+                'user_name'         => 'superadmin',
+                'email'             => 'superadmin@nectarmetrics.com.ng',
+                'phone'             => '08000000001',
                 'email_verified_at' => now(),
                 'phone_verified_at' => now(),
-                // 'password' => Hash::make('Passw0rd!'),
-                'password'=> bcrypt('passw0rd!'),
-                'is_active' => true,
-                'is_admin' => true,
-                'is_super_admin' => true,
+                'password'          => bcrypt('passw0rd!'),
+                'is_active'         => true,
+                'is_admin'          => true,
             ]
         );
     }
@@ -47,18 +51,17 @@ class UserSeeder extends Seeder
     {
         for ($i = 1; $i <= 2; $i++) {
             User::updateOrCreate(
-                ['user_name' => "admin$i"],
+                ['user_name' => "admin{$i}"],
                 [
-                    'name' => "System Admin $i",
-                    'user_name' => "admin$i",
-                    'email' => "admin$i@nectarmetrics.com.ng",
-                    'phone' => $this->generatePhone($i),
+                    'name'              => "System Admin {$i}",
+                    'user_name'         => "admin{$i}",
+                    'email'             => "admin{$i}@nectarmetrics.com.ng",
+                    'phone'             => $this->generatePhone($i),
                     'email_verified_at' => now(),
                     'phone_verified_at' => now(),
-                    // 'password' => Hash::make('Password12!'),
-                    'password' => bcrypt('Password12!'),
-                    'is_active' => true,
-                    'is_admin' => true,
+                    'password'          => bcrypt('Password12!'),
+                    'is_active'         => true,
+                    'is_admin'          => true,
                 ]
             );
         }
@@ -70,15 +73,16 @@ class UserSeeder extends Seeder
 
         for ($i = 1; $i <= 10; $i++) {
             User::updateOrCreate(
-                ['user_name' => "user$i"],
+                ['user_name' => "user{$i}"],
                 [
-                    'name' => $faker->name(),
-                    'email' => "user$i@nectarmetrics.com.ng",
-                    'phone' => $this->generatePhone($i + 10),
+                    'name'              => $faker->name(),
+                    'user_name'         => "user{$i}",
+                    'email'             => "user{$i}@nectarmetrics.com.ng",
+                    'phone'             => $this->generatePhone($i + 10),
                     'email_verified_at' => now(),
                     'phone_verified_at' => now(),
-                    'password' => bcrypt('Password123!'),
-                    'is_active' => true,
+                    'password'          => bcrypt('Password123!'),
+                    'is_active'         => true,
                 ]
             );
         }
@@ -86,10 +90,9 @@ class UserSeeder extends Seeder
 
     private function generatePhone(int $seed): string
     {
-        // Nigerian phone format: 080, 081, 070, 090, 091
         $prefixes = ['080', '081', '070', '090', '091'];
-        $prefix = $prefixes[array_rand($prefixes)];
+        $prefix   = $prefixes[$seed % count($prefixes)];
 
-        return $prefix . str_pad($seed, 8, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $seed, 8, '0', STR_PAD_LEFT);
     }
 }

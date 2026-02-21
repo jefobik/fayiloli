@@ -35,6 +35,9 @@
                         <dt class="col-sm-5 text-muted small">Organisation</dt>
                         <dd class="col-sm-7 fw-semibold">{{ $tenant->organization_name }}</dd>
 
+                        <dt class="col-sm-5 text-muted small">Short Name</dt>
+                        <dd class="col-sm-7 font-monospace small">{{ $tenant->short_name ?? '—' }}</dd>
+
                         <dt class="col-sm-5 text-muted small">Admin Email</dt>
                         <dd class="col-sm-7 small">{{ $tenant->admin_email }}</dd>
 
@@ -53,12 +56,12 @@
                         <dd class="col-sm-7 small text-secondary">{{ $tenant->notes }}</dd>
                         @endif
 
-                        @if ($tenant->level > 0 || $tenant->parent_uuid)
+                        @if ($tenant->level > 0 || $tenant->parent_id)
                         <dt class="col-sm-5 text-muted small">Hierarchy Level</dt>
                         <dd class="col-sm-7 small">{{ $tenant->level ?? 0 }}</dd>
-                        @if ($tenant->parent_uuid)
+                        @if ($tenant->parent_id)
                         <dt class="col-sm-5 text-muted small">Parent ID</dt>
-                        <dd class="col-sm-7 font-monospace small text-secondary">{{ $tenant->parent_uuid }}</dd>
+                        <dd class="col-sm-7 font-monospace small text-secondary">{{ $tenant->parent_id }}</dd>
                         @endif
                         @endif
 

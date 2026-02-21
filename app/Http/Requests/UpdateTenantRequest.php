@@ -7,6 +7,7 @@ namespace App\Http\Requests;
 use App\Enums\TenantModule;
 use App\Enums\TenantType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 /**
@@ -25,8 +26,23 @@ class UpdateTenantRequest extends FormRequest
 
     public function rules(): array
     {
+        /** @var \App\Models\Tenant $tenant */
+        $tenant = $this->route('tenant');
+
         return [
             'organization_name' => ['required', 'string', 'max:255'],
+
+            // Unique rule ignores the tenant being edited to allow saving
+            // without changing the short_name.
+            'short_name'        => [
+                'required',
+                'string',
+                'min:2',
+                'max:30',
+                'regex:/^[a-z0-9][a-z0-9-]*[a-z0-9]$/',
+                Rule::unique('tenants', 'short_name')->ignore($tenant?->id),
+            ],
+
             'admin_email'       => ['required', 'email', 'max:255'],
             'tenant_type'       => ['required', new Enum(TenantType::class)],
             'notes'             => ['nullable', 'string', 'max:1000'],
@@ -39,7 +55,9 @@ class UpdateTenantRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'modules.*.in' => 'One or more selected modules are invalid.',
+            'short_name.regex'  => 'Short name may only contain lowercase letters, numbers, and hyphens, and must start and end with a letter or digit.',
+            'short_name.unique' => 'This short name is already in use by another tenant.',
+            'modules.*.in'      => 'One or more selected modules are invalid.',
         ];
     }
 }

@@ -42,18 +42,19 @@ Route::middleware(['auth', 'central-admin'])
     ->name('tenants.')
     ->group(function () {
 
+        // ── Provisioning (super-admin only) ───────────────────────────────
+        //  Double-gated: 'super-admin' middleware blocks at the routing layer;
+        //  TenantPolicy::create() returns false for non-super-admins as a
+        //  defence-in-depth backstop via authorizeResource().
+        //  MUST be defined before /{tenant} to prevent "create" being resolved as a UUID.
+        Route::get('/create',  [TenantController::class, 'create'])->name('create')->middleware('super-admin');
+        Route::post('/',       [TenantController::class, 'store'])->name('store')->middleware('super-admin');
+
         // ── Read + update (any central admin) ─────────────────────────────
         Route::get('/',              [TenantController::class, 'index'])->name('index');
         Route::get('/{tenant}',      [TenantController::class, 'show'])->name('show');
         Route::get('/{tenant}/edit', [TenantController::class, 'edit'])->name('edit');
         Route::put('/{tenant}',      [TenantController::class, 'update'])->name('update');
-
-        // ── Provisioning (super-admin only) ───────────────────────────────
-        //  Double-gated: 'super-admin' middleware blocks at the routing layer;
-        //  TenantPolicy::create() returns false for non-super-admins as a
-        //  defence-in-depth backstop via authorizeResource().
-        Route::get('/create',  [TenantController::class, 'create'])->name('create')->middleware('super-admin');
-        Route::post('/',       [TenantController::class, 'store'])->name('store')->middleware('super-admin');
 
         // ── Deletion (super-admin only — triple-gated) ────────────────────
         //  Gate 1: 'super-admin' middleware (EnsureSuperAdmin) — routing layer.

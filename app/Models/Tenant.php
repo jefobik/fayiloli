@@ -30,15 +30,15 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public static function getCustomColumns(): array
     {
         return [
-            'id', 'organization_name', 'admin_email', 'is_active',
-            'parent_uuid', 'level', 'hierarchy_path',
+            'id', 'organization_name', 'short_name', 'admin_email', 'is_active',
+            'parent_id', 'level', 'hierarchy_path',
             'tenant_type', 'status', 'settings', 'notes',
         ];
     }
 
     protected $fillable = [
-        'id', 'organization_name', 'admin_email', 'is_active',
-        'parent_uuid', 'level', 'hierarchy_path',
+        'id', 'organization_name', 'short_name', 'admin_email', 'is_active',
+        'parent_id', 'level', 'hierarchy_path',
         'tenant_type', 'status', 'settings', 'notes',
     ];
 

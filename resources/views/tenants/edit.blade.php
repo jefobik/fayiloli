@@ -55,6 +55,29 @@
                     @enderror
                 </div>
 
+                {{-- Short Name --}}
+                <div class="mb-3">
+                    <label for="short_name" class="form-label fw-semibold">
+                        Short Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="short_name" name="short_name"
+                           class="form-control font-monospace @error('short_name') is-invalid @enderror"
+                           value="{{ old('short_name', $tenant->short_name) }}"
+                           maxlength="30"
+                           autocomplete="off"
+                           spellcheck="false"
+                           required>
+                    @error('short_name')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="form-text">
+                        2–30 chars — lowercase letters, numbers and hyphens only.
+                        Changing this does <strong>not</strong> rename existing domains; use the
+                        <a href="{{ route('tenants.show', $tenant) }}#domains">Domain Management</a>
+                        panel to update domain assignments.
+                    </div>
+                </div>
+
                 {{-- Admin Email --}}
                 <div class="mb-3">
                     <label for="admin_email" class="form-label fw-semibold">

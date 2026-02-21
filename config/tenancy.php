@@ -11,15 +11,39 @@ return [
 
     'domain_model' => Domain::class,
 
+    // ── Deployment environment awareness ──────────────────────────────────────
+    //
+    // Controls the FQDN pattern used by SubdomainGenerator when provisioning
+    // new tenant workspaces.  Set DEPLOYMENT_ENV in your .env file.
+    //
+    //   local      → {slug}.localhost
+    //   staging    → {slug}.staging.{TENANT_BASE_DOMAIN}
+    //   production → {slug}.{TENANT_BASE_DOMAIN}
+    //
+    'deployment_environment' => env('DEPLOYMENT_ENV', 'local'),
+
+    // ── Tenant base domain ────────────────────────────────────────────────────
+    //
+    // The root domain under which all tenant subdomains are provisioned.
+    // Only used in staging and production environments.
+    // Example: 'fayiloli.ng'  →  tenant workspace: 'finance.fayiloli.ng'
+    //
+    'tenant_base_domain' => env('TENANT_BASE_DOMAIN', 'fayiloli.ng'),
+
     /**
      * The list of domains hosting your central app.
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
+     *
+     * CENTRAL_DOMAIN should be set in .env for staging / production so the
+     * central admin panel domain (e.g. admin.fayiloli.ng) is properly
+     * recognised and tenancy is NOT initialised for it.
      */
-    'central_domains' => [
+    'central_domains' => array_values(array_filter([
         '127.0.0.1',
         'localhost',
-    ],
+        env('CENTRAL_DOMAIN'),   // e.g. admin.fayiloli.ng  (staging/prod only)
+    ])),
 
     /**
      * Tenancy bootstrappers are executed when tenancy is initialized.
