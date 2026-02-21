@@ -3,7 +3,7 @@
 @section('title', 'Edit Tenant — ' . $tenant->organization_name)
 
 @section('content')
-<div class="container py-4" style="max-width:680px">
+<div class="container py-4" style="max-width:720px">
 
     {{-- ── Breadcrumb ─────────────────────────────────────────────────────── --}}
     <nav aria-label="breadcrumb" class="mb-3">
@@ -20,11 +20,24 @@
         <div class="card-header bg-white border-bottom py-3">
             <h5 class="mb-0 fw-semibold">
                 <i class="fa-solid fa-pen-to-square me-2 text-primary" aria-hidden="true"></i>
-                Edit Tenant
+                Edit Tenant Details
             </h5>
             <div class="text-muted small font-monospace mt-1">{{ $tenant->id }}</div>
         </div>
         <div class="card-body">
+
+            {{-- ── Current status (read-only reminder) ── --}}
+            <div class="alert alert-light border d-flex align-items-center gap-2 py-2 mb-4" role="note">
+                <span class="badge {{ $tenant->status_badge }}">
+                    <i class="fa-solid fa-{{ $tenant->status_icon }} me-1" aria-hidden="true"></i>
+                    {{ $tenant->status_label }}
+                </span>
+                <span class="small text-muted">
+                    To change the lifecycle status, use the
+                    <a href="{{ route('tenants.show', $tenant) }}">Status panel</a> on the tenant detail page.
+                </span>
+            </div>
+
             <form method="POST" action="{{ route('tenants.update', $tenant) }}" novalidate>
                 @csrf @method('PUT')
 
@@ -63,16 +76,10 @@
                     </label>
                     <select id="tenant_type" name="tenant_type"
                             class="form-select @error('tenant_type') is-invalid @enderror" required>
-                        @foreach ([
-                            'government'  => 'Government',
-                            'secretariat' => 'Secretariat',
-                            'agency'      => 'Agency',
-                            'department'  => 'Department',
-                            'unit'        => 'Unit',
-                        ] as $val => $label)
-                            <option value="{{ $val }}"
-                                    {{ old('tenant_type', $tenant->tenant_type ?? $tenant->plan) === $val ? 'selected' : '' }}>
-                                {{ $label }}
+                        @foreach ($tenantTypes as $type)
+                            <option value="{{ $type->value }}"
+                                    {{ old('tenant_type', $tenant->tenant_type?->value ?? $tenant->tenant_type) === $type->value ? 'selected' : '' }}>
+                                {{ $type->label() }}
                             </option>
                         @endforeach
                     </select>
@@ -81,33 +88,8 @@
                     @enderror
                 </div>
 
-                {{-- Operational Status --}}
-                <div class="mb-3">
-                    <label for="status" class="form-label fw-semibold">
-                        Operational Status <span class="text-danger">*</span>
-                    </label>
-                    <select id="status" name="status"
-                            class="form-select @error('status') is-invalid @enderror" required>
-                        @foreach ([
-                            'pending'   => 'Pending',
-                            'active'    => 'Active',
-                            'suspended' => 'Suspended',
-                            'archived'  => 'Archived',
-                        ] as $val => $label)
-                            <option value="{{ $val }}"
-                                    {{ old('status', $tenant->status) === $val ? 'selected' : '' }}>
-                                {{ $label }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('status')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                    <div class="form-text">The operational lifecycle state of this tenant.</div>
-                </div>
-
                 {{-- Notes --}}
-                <div class="mb-3">
+                <div class="mb-4">
                     <label for="notes" class="form-label fw-semibold">Notes</label>
                     <textarea id="notes" name="notes" rows="3"
                               class="form-control @error('notes') is-invalid @enderror"
@@ -115,19 +97,55 @@
                     @error('notes')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+                    <div class="form-text">Internal notes; also updated by status transition reasons.</div>
                 </div>
 
-                {{-- Active Toggle --}}
+                {{-- ── Module Access ────────────────────────────────────────── --}}
                 <div class="mb-4">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch"
-                               id="is_active" name="is_active" value="1"
-                               {{ old('is_active', $tenant->is_active) ? 'checked' : '' }}>
-                        <label class="form-check-label fw-semibold" for="is_active">
-                            Allow Access
-                        </label>
+                    <hr class="mb-3">
+                    <p class="fw-semibold mb-1">
+                        <i class="fa-solid fa-grid me-1 text-muted" aria-hidden="true"></i>
+                        Module Access
+                    </p>
+                    <p class="text-muted small mb-3">
+                        Enable or disable EDMS feature modules for this tenant.
+                        Disabled modules return a 403 when users attempt to access them.
+                    </p>
+                    @error('modules')
+                        <div class="alert alert-danger py-1 small mb-2">{{ $message }}</div>
+                    @enderror
+                    @error('modules.*')
+                        <div class="alert alert-danger py-1 small mb-2">{{ $message }}</div>
+                    @enderror
+                    <div class="row g-2">
+                        @foreach ($tenantModules as $module)
+                            @php
+                                $oldModules  = old('modules');
+                                $savedModules = $tenant->enabledModules();
+                                $checked = $oldModules !== null
+                                    ? in_array($module->value, $oldModules, true)
+                                    : in_array($module->value, $savedModules, true);
+                            @endphp
+                            <div class="col-sm-6">
+                                <div class="form-check border rounded px-3 py-2 h-100 {{ $checked ? 'border-primary bg-primary bg-opacity-10' : '' }}">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="modules[]"
+                                           id="module_{{ $module->value }}"
+                                           value="{{ $module->value }}"
+                                           {{ $checked ? 'checked' : '' }}>
+                                    <label class="form-check-label w-100" for="module_{{ $module->value }}">
+                                        <span class="fw-semibold small">
+                                            <i class="fa-solid fa-{{ $module->icon() }} me-1 text-muted" aria-hidden="true"></i>
+                                            {{ $module->label() }}
+                                        </span>
+                                        <span class="d-block text-muted" style="font-size:.75rem; line-height:1.3">
+                                            {{ $module->description() }}
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
-                    <div class="form-text">Disabling this immediately blocks all logins for this tenant's EDMS instance.</div>
                 </div>
 
                 <div class="d-flex gap-2">

@@ -52,7 +52,9 @@
       "Bash(1:*)",
       "Bash(/var/www/laravel/fayiloli/resources/views/projects/index.blade.php:*)",
       "Bash(/var/www/laravel/fayiloli/resources/views/contacts/index.blade.php:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/tenants/edit.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/tenants/create.blade.php:*)"
     ],
     "additionalDirectories": [
       "/",

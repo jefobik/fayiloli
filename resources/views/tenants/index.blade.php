@@ -21,22 +21,28 @@
 
     {{-- ── Stats Row ──────────────────────────────────────────────────────── --}}
     <div class="row g-3 mb-4">
-        <div class="col-sm-4">
+        <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm text-center py-3">
-                <div class="h2 fw-bold text-primary mb-0" aria-label="{{ $tenants->total() }} total tenants">{{ $tenants->total() }}</div>
-                <div class="text-muted small" aria-hidden="true">Total Tenants</div>
+                <div class="h2 fw-bold text-primary mb-0">{{ $stats['total'] }}</div>
+                <div class="text-muted small">Total</div>
             </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm text-center py-3">
-                <div class="h2 fw-bold text-success mb-0" aria-label="{{ $tenants->where('is_active', true)->count() }} active tenants">{{ $tenants->where('is_active', true)->count() }}</div>
-                <div class="text-muted small" aria-hidden="true">Active</div>
+                <div class="h2 fw-bold text-success mb-0">{{ $stats['active'] }}</div>
+                <div class="text-muted small">Active</div>
             </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm text-center py-3">
-                <div class="h2 fw-bold text-danger mb-0" aria-label="{{ $tenants->where('is_active', false)->count() }} suspended tenants">{{ $tenants->where('is_active', false)->count() }}</div>
-                <div class="text-muted small" aria-hidden="true">Suspended</div>
+                <div class="h2 fw-bold text-warning mb-0">{{ $stats['pending'] }}</div>
+                <div class="text-muted small">Pending</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="h2 fw-bold text-danger mb-0">{{ $stats['suspended'] }}</div>
+                <div class="text-muted small">Suspended</div>
             </div>
         </div>
     </div>
@@ -50,7 +56,7 @@
                         <tr>
                             <th scope="col" class="ps-4">Organisation</th>
                             <th scope="col">Admin Email</th>
-                            <th scope="col">Tenant Type</th>
+                            <th scope="col">Type</th>
                             <th scope="col">Domains</th>
                             <th scope="col">Status</th>
                             <th scope="col">Created</th>
@@ -66,54 +72,56 @@
                                 </a>
                                 <div class="text-muted small font-monospace">{{ $tenant->id }}</div>
                             </td>
-                            <td data-label="Admin Email">{{ $tenant->admin_email ?? '—' }}</td>
-                            <td data-label="Tenant Type">
+                            <td class="small" data-label="Admin Email">{{ $tenant->admin_email ?? '—' }}</td>
+                            <td data-label="Type">
                                 <span class="badge rounded-pill {{ $tenant->plan_badge }}">
-                                    {{ ucfirst($tenant->tenant_type ?? $tenant->plan ?? '—') }}
+                                    {{ $tenant->plan_label }}
                                 </span>
                             </td>
                             <td data-label="Domains">
                                 @forelse ($tenant->domains as $domain)
-                                    <span class="badge bg-light text-secondary border me-1">{{ $domain->domain }}</span>
+                                    <span class="badge bg-light text-secondary border me-1 small">{{ $domain->domain }}</span>
                                 @empty
                                     <span class="text-muted small">None</span>
                                 @endforelse
                             </td>
                             <td data-label="Status">
                                 <span class="badge {{ $tenant->status_badge }}">
-                                    {{ ucfirst($tenant->status ?? ($tenant->is_active ? 'active' : 'suspended')) }}
+                                    <i class="fa-solid fa-{{ $tenant->status_icon }} me-1" aria-hidden="true"></i>
+                                    {{ $tenant->status_label }}
                                 </span>
-                                @if (!$tenant->is_active)
-                                    <span class="badge bg-dark ms-1" title="Access blocked">
-                                        <i class="fa-solid fa-lock fa-xs" aria-hidden="true"></i>
-                                    </span>
-                                @endif
                             </td>
-                            <td class="text-muted small" data-label="Created">{{ $tenant->created_at->format('d M Y') }}</td>
+                            <td class="text-muted small" data-label="Created">
+                                {{ $tenant->created_at->format('d M Y') }}
+                            </td>
                             <td class="text-end pe-4" data-label="Actions">
-                                <div class="d-flex justify-content-end gap-1" role="group" aria-label="Actions for {{ $tenant->organization_name }}">
+                                <div class="d-flex justify-content-end gap-1">
                                     <a href="{{ route('tenants.show', $tenant) }}"
                                        class="btn btn-sm btn-outline-secondary"
-                                       aria-label="View {{ $tenant->organization_name }}">
+                                       title="View {{ $tenant->organization_name }}">
                                         <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                     </a>
                                     <a href="{{ route('tenants.edit', $tenant) }}"
                                        class="btn btn-sm btn-outline-primary"
-                                       aria-label="Edit {{ $tenant->organization_name }}">
+                                       title="Edit {{ $tenant->organization_name }}">
                                         <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                                     </a>
-                                    <form method="POST" action="{{ route('tenants.toggle_active', $tenant) }}"
-                                          class="d-inline">
-                                        @csrf @method('PATCH')
-                                        <button type="submit"
-                                                class="btn btn-sm {{ $tenant->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}"
-                                                aria-label="{{ $tenant->is_active ? 'Suspend' : 'Activate' }} {{ $tenant->organization_name }}">
-                                            <i class="fa-solid {{ $tenant->is_active ? 'fa-pause' : 'fa-play' }}" aria-hidden="true"></i>
+                                    @if ($tenant->status && count($tenant->status->allowedTransitions()))
+                                        @php $first = $tenant->status->allowedTransitions()[0]; @endphp
+                                        <button type="button"
+                                                class="btn btn-sm {{ $first['btnClass'] }}"
+                                                title="{{ $first['action'] }} {{ $tenant->organization_name }}"
+                                                data-target-status="{{ $first['target']->value }}"
+                                                data-action-label="{{ $first['action'] }}"
+                                                data-tenant-name="{{ $tenant->organization_name }}"
+                                                data-transition-url="{{ route('tenants.transition_status', $tenant) }}"
+                                                onclick="openTransitionModal(this)">
+                                            <i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i>
                                         </button>
-                                    </form>
+                                    @endif
                                     <button type="button"
                                             class="btn btn-sm btn-outline-danger"
-                                            aria-label="Delete {{ $tenant->organization_name }}"
+                                            title="Delete {{ $tenant->organization_name }}"
                                             data-tenant-name="{{ $tenant->organization_name }}"
                                             data-delete-url="{{ route('tenants.destroy', $tenant) }}"
                                             onclick="confirmDeleteTenant(this)">
@@ -126,8 +134,7 @@
                         <tr>
                             <td colspan="7" class="text-center text-muted py-5">
                                 <i class="fa-solid fa-building-circle-exclamation fa-2x mb-2 d-block" aria-hidden="true"></i>
-                                No tenants yet.
-                                <a href="{{ route('tenants.create') }}">Create the first one.</a>
+                                No tenants yet. <a href="{{ route('tenants.create') }}">Create the first one.</a>
                             </td>
                         </tr>
                         @endforelse
@@ -140,6 +147,44 @@
             {{ $tenants->links() }}
         </div>
         @endif
+    </div>
+</div>
+
+{{-- ── Status Transition Modal ─────────────────────────────────────────────── --}}
+<div class="modal fade" id="transitionModal" tabindex="-1"
+     aria-labelledby="transitionModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-semibold" id="transitionModalLabel">
+                    <i class="fa-solid fa-arrow-right-arrow-left me-2 text-info" aria-hidden="true"></i>
+                    <span id="transitionModalAction"></span> Tenant
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cancel"></button>
+            </div>
+            <form id="transitionForm" method="POST">
+                @csrf @method('PATCH')
+                <input type="hidden" name="status" id="transitionTargetStatus">
+                <div class="modal-body pt-2">
+                    <p class="mb-3 small">
+                        Confirm: <strong id="transitionActionVerb"></strong>
+                        <strong id="transitionTenantName"></strong>.
+                    </p>
+                    <div>
+                        <label for="transitionReason" class="form-label small fw-semibold">
+                            Reason <span class="text-muted fw-normal">(optional)</span>
+                        </label>
+                        <textarea name="reason" id="transitionReason" rows="2"
+                                  class="form-control form-control-sm"
+                                  placeholder="Brief explanation for audit trail…"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm" id="transitionSubmitBtn">Confirm</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -179,13 +224,27 @@
 
 @push('scripts')
 <script>
+function openTransitionModal(btn) {
+    var status = btn.getAttribute('data-target-status');
+    var action = btn.getAttribute('data-action-label');
+    var name   = btn.getAttribute('data-tenant-name');
+    var url    = btn.getAttribute('data-transition-url');
+    var submit = document.getElementById('transitionSubmitBtn');
+    var match  = btn.className.match(/btn-(success|warning|danger|secondary)/);
+    submit.className = 'btn btn-sm btn-' + (match ? match[1] : 'primary');
+    submit.textContent = action;
+    document.getElementById('transitionModalAction').textContent = action;
+    document.getElementById('transitionActionVerb').textContent = action.toLowerCase();
+    document.getElementById('transitionTenantName').textContent = name;
+    document.getElementById('transitionTargetStatus').value = status;
+    document.getElementById('transitionForm').action = url;
+    document.getElementById('transitionReason').value = '';
+    new bootstrap.Modal(document.getElementById('transitionModal')).show();
+}
 function confirmDeleteTenant(btn) {
-    var name = btn.getAttribute('data-tenant-name');
-    var url  = btn.getAttribute('data-delete-url');
-    document.getElementById('deleteTenantName').textContent = name;
-    document.getElementById('deleteTenantForm').action = url;
-    var modal = new bootstrap.Modal(document.getElementById('deleteTenantModal'));
-    modal.show();
+    document.getElementById('deleteTenantName').textContent = btn.getAttribute('data-tenant-name');
+    document.getElementById('deleteTenantForm').action = btn.getAttribute('data-delete-url');
+    new bootstrap.Modal(document.getElementById('deleteTenantModal')).show();
 }
 </script>
 @endpush

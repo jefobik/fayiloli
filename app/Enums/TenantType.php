@@ -14,23 +14,23 @@ enum TenantType: string
     case SECRETARIAT = 'secretariat';
     case UNIT = 'unit';
 
-    /**
-     * Get the human-readable label for the tenant type
-     */
-    public function getLabel(): string
+    public function label(): string
     {
         return match ($this) {
-            self::GOVERNMENT => 'Government',
-            self::AGENCY => 'Agency',
-            self::DEPARTMENT => 'Department',
+            self::GOVERNMENT  => 'Government',
+            self::AGENCY      => 'Agency',
+            self::DEPARTMENT  => 'Department',
             self::SECRETARIAT => 'Secretariat',
-            self::UNIT => 'Unit',
+            self::UNIT        => 'Unit',
         };
     }
 
-    /**
-     * Get the color for Filament badge display
-     */
+    /** Filament / Spatie compatibility alias. */
+    public function getLabel(): string
+    {
+        return $this->label();
+    }
+
     public function getColor(): string
     {
         return match ($this) {

@@ -20,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Guard: abort 403 if tenancy has not been initialised yet.
             'tenant.initialized'  => \App\Http\Middleware\EnsureTenantInitialized::class,
+
+            // Module access gate — usage: 'tenant.module:documents'
+            'tenant.module'       => \App\Http\Middleware\EnsureModuleEnabled::class,
         ]);
 
         // Prepend InitializeTenancyByDomain to the global web middleware group.

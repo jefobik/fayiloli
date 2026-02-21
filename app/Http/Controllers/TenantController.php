@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\TenantModule;
+use App\Enums\TenantStatus;
+use App\Enums\TenantType;
+use App\Http\Requests\StoreTenantRequest;
+use App\Http\Requests\TransitionTenantStatusRequest;
+use App\Http\Requests\UpdateTenantRequest;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,15 +18,21 @@ use Illuminate\View\View;
 /**
  * TenantController — Central Administration
  *
- * Provides full CRUD management of tenants from the central (super-admin)
- * domain.  All operations run against the central PostgreSQL database; the
- * stancl/tenancy event pipeline handles tenant-database provisioning
- * (CreateDatabase → MigrateDatabase) automatically on creation and
- * database teardown on deletion.
+ * Manages the full tenant lifecycle from the super-admin domain.
+ * Status changes are gated by the TenantStatus state machine —
+ * callers cannot set arbitrary status values; they must use the
+ * permitted transitions defined in TenantStatus::allowedTransitions().
+ *
+ * Authorization is delegated to TenantPolicy via authorizeResource().
  */
 class TenantController extends Controller
 {
-    // ── List ─────────────────────────────────────────────────────────────────
+    public function __construct()
+    {
+        $this->authorizeResource(Tenant::class, 'tenant');
+    }
+
+    // ── List ──────────────────────────────────────────────────────────────────
 
     public function index(): View
     {
@@ -28,41 +40,56 @@ class TenantController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        return view('tenants.index', compact('tenants'));
+        $stats = [
+            'total'     => Tenant::count(),
+            'active'    => Tenant::where('status', TenantStatus::ACTIVE)->count(),
+            'pending'   => Tenant::where('status', TenantStatus::PENDING)->count(),
+            'suspended' => Tenant::where('status', TenantStatus::SUSPENDED)->count(),
+            'inactive'  => Tenant::where('status', TenantStatus::INACTIVE)->count(),
+        ];
+
+        return view('tenants.index', compact('tenants', 'stats'));
     }
 
     // ── Create ────────────────────────────────────────────────────────────────
 
     public function create(): View
     {
-        return view('tenants.create');
+        return view('tenants.create', [
+            'tenantTypes'   => TenantType::cases(),
+            'tenantModules' => TenantModule::cases(),
+            'defaultModules'=> TenantModule::defaults(),
+        ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreTenantRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'organization_name' => ['required', 'string', 'max:255'],
-            'admin_email'       => ['required', 'email', 'max:255'],
-            'plan'              => ['required', 'in:government,agency,department,secretariat,unit'],
-            'domain'            => ['required', 'string', 'max:255',
-                                    'regex:/^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z0-9-]{2,})+$/',
-                                    'unique:domains,domain'],
-        ]);
+        $data = $request->validated();
 
-        // stancl/tenancy auto-generates a UUID for the tenant id.
+        // Module selection: use the submitted array or fall back to defaults.
+        $modules = $data['modules'] ?? TenantModule::defaults();
+
+        // New tenants start as PENDING (is_active = false via Observer).
+        // After the database is synchronously provisioned, transition to ACTIVE.
         $tenant = Tenant::create([
-            'organization_name' => $validated['organization_name'],
-            'admin_email'       => $validated['admin_email'],
-            'plan'              => $validated['plan'],
-            'is_active'         => true,
+            'organization_name' => $data['organization_name'],
+            'admin_email'       => $data['admin_email'],
+            'tenant_type'       => $data['tenant_type'],
+            'status'            => TenantStatus::PENDING,
+            'notes'             => $data['notes'] ?? null,
+            'settings'          => ['modules' => $modules],
         ]);
 
-        // Attach the primary domain — triggers domain events.
-        $tenant->domains()->create(['domain' => $validated['domain']]);
+        // Attach the primary domain — fires DomainCreated event.
+        $tenant->domains()->create(['domain' => $data['domain']]);
+
+        // Provisioning is synchronous (shouldBeQueued = false) so the tenant DB
+        // is ready by this point — immediately activate the tenant.
+        $tenant->transitionStatus(TenantStatus::ACTIVE);
 
         return redirect()
             ->route('tenants.show', $tenant)
-            ->with('success', 'Tenant "' . $tenant->organization_name . '" provisioned successfully.');
+            ->with('success', "Tenant \"{$tenant->organization_name}\" provisioned and activated.");
     }
 
     // ── Show ──────────────────────────────────────────────────────────────────
@@ -71,7 +98,11 @@ class TenantController extends Controller
     {
         $tenant->load('domains');
 
-        return view('tenants.show', compact('tenant'));
+        return view('tenants.show', [
+            'tenant'        => $tenant,
+            'transitions'   => $tenant->status?->allowedTransitions() ?? [],
+            'tenantModules' => TenantModule::cases(),
+        ]);
     }
 
     // ── Edit ──────────────────────────────────────────────────────────────────
@@ -80,23 +111,36 @@ class TenantController extends Controller
     {
         $tenant->load('domains');
 
-        return view('tenants.edit', compact('tenant'));
+        return view('tenants.edit', [
+            'tenant'        => $tenant,
+            'tenantTypes'   => TenantType::cases(),
+            'tenantModules' => TenantModule::cases(),
+        ]);
     }
 
-    public function update(Request $request, Tenant $tenant): RedirectResponse
+    public function update(UpdateTenantRequest $request, Tenant $tenant): RedirectResponse
     {
-        $validated = $request->validate([
-            'organization_name' => ['required', 'string', 'max:255'],
-            'admin_email'       => ['required', 'email', 'max:255'],
-            'plan'              => ['required', 'in:government,agency,department,secretariat,unit'],
-            'is_active'         => ['boolean'],
-        ]);
+        $data = $request->validated();
 
-        $tenant->update($validated);
+        // Persist module selection into the settings JSONB array.
+        // When modules key is absent (form submitted without any checkbox),
+        // treat it as "no modules" — the admin deliberately disabled everything.
+        $modules = $data['modules'] ?? [];
+
+        // Merge modules into existing settings, preserving any other setting keys.
+        $settings = array_merge($tenant->settings ?? [], ['modules' => $modules]);
+
+        $tenant->update([
+            'organization_name' => $data['organization_name'],
+            'admin_email'       => $data['admin_email'],
+            'tenant_type'       => $data['tenant_type'],
+            'notes'             => $data['notes'] ?? null,
+            'settings'          => $settings,
+        ]);
 
         return redirect()
             ->route('tenants.show', $tenant)
-            ->with('success', 'Tenant updated successfully.');
+            ->with('success', 'Tenant details updated.');
     }
 
     // ── Destroy ───────────────────────────────────────────────────────────────
@@ -105,13 +149,35 @@ class TenantController extends Controller
     {
         $name = $tenant->organization_name;
 
-        // Cascades to domain deletion via FK; the TenancyServiceProvider
-        // TenantDeleted event fires the DeleteDatabase job automatically.
+        // TenantDeleted event fires DeleteDatabase job automatically.
         $tenant->delete();
 
         return redirect()
             ->route('tenants.index')
-            ->with('success', 'Tenant "' . $name . '" and its database have been removed.');
+            ->with('success', "Tenant \"{$name}\" and its database have been permanently removed.");
+    }
+
+    // ── Status Transition ─────────────────────────────────────────────────────
+
+    /**
+     * Apply a validated status transition through the state machine.
+     *
+     * TransitionTenantStatusRequest validates that the target state is
+     * reachable from the tenant's current state before the controller
+     * executes, so transitionStatus() here will never receive an illegal move.
+     */
+    public function transitionStatus(TransitionTenantStatusRequest $request, Tenant $tenant): RedirectResponse
+    {
+        $this->authorize('transitionStatus', $tenant);
+
+        $target = TenantStatus::from($request->validated()['status']);
+        $reason = $request->validated()['reason'] ?? null;
+
+        $tenant->transitionStatus($target, $reason);
+
+        return redirect()
+            ->route('tenants.show', $tenant)
+            ->with('success', "Tenant {$target->incomingActionLabel()} successfully.");
     }
 
     // ── Domain Management ─────────────────────────────────────────────────────
@@ -119,10 +185,14 @@ class TenantController extends Controller
     public function addDomain(Request $request, Tenant $tenant): RedirectResponse
     {
         $validated = $request->validate([
-            'domain' => ['required', 'string', 'max:255',
-                         'regex:/^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z0-9-]{2,})+$/',
-                         'unique:domains,domain'],
+            'domain' => [
+                'required', 'string', 'max:255',
+                'regex:/^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z0-9\-]{2,})+$/',
+                'unique:domains,domain',
+            ],
         ]);
+
+        $this->authorize('addDomain', $tenant);
 
         $tenant->domains()->create(['domain' => $validated['domain']]);
 
@@ -137,23 +207,12 @@ class TenantController extends Controller
             'domain_id' => ['required', 'integer', 'exists:domains,id'],
         ]);
 
+        $this->authorize('removeDomain', $tenant);
+
         $tenant->domains()->where('id', $validated['domain_id'])->delete();
 
         return redirect()
             ->route('tenants.show', $tenant)
             ->with('success', 'Domain removed.');
-    }
-
-    // ── Toggle Active Status ──────────────────────────────────────────────────
-
-    public function toggleActive(Tenant $tenant): RedirectResponse
-    {
-        $tenant->update(['is_active' => ! $tenant->is_active]);
-
-        $state = $tenant->is_active ? 'activated' : 'suspended';
-
-        return redirect()
-            ->route('tenants.show', $tenant)
-            ->with('success', "Tenant {$state} successfully.");
     }
 }

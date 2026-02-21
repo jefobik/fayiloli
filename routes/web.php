@@ -42,7 +42,11 @@ Route::middleware('auth')->prefix('admin/tenants')->name('tenants.')->group(func
     Route::get('/{tenant}/edit',            [TenantController::class, 'edit'])->name('edit');
     Route::put('/{tenant}',                 [TenantController::class, 'update'])->name('update');
     Route::delete('/{tenant}',              [TenantController::class, 'destroy'])->name('destroy');
-    Route::post('/{tenant}/domains',        [TenantController::class, 'addDomain'])->name('domains.add');
-    Route::delete('/{tenant}/domains',      [TenantController::class, 'removeDomain'])->name('domains.remove');
-    Route::patch('/{tenant}/toggle-active', [TenantController::class, 'toggleActive'])->name('toggle_active');
+    Route::post('/{tenant}/domains',         [TenantController::class, 'addDomain'])->name('domains.add');
+    Route::delete('/{tenant}/domains',       [TenantController::class, 'removeDomain'])->name('domains.remove');
+
+    // ── Status lifecycle (replaces toggle_active) ─────────────────────────
+    // Target status is validated against the state machine in
+    // TransitionTenantStatusRequest before the controller executes.
+    Route::patch('/{tenant}/status',         [TenantController::class, 'transitionStatus'])->name('transition_status');
 });
