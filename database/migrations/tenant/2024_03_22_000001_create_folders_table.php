@@ -15,7 +15,6 @@ return new class extends Migration
             $table->string('name');
             $table->uuid('parent_id')->nullable();
             $table->bigInteger('position')->default(0);
-            $table->foreign('parent_id')->references('id')->on('folders')->onDelete('cascade');
             $table->enum('visibility', ['public', 'private'])->default('public');
             $table->string('background_color')->nullable();
             $table->string('foreground_color')->nullable();
@@ -30,14 +29,13 @@ return new class extends Migration
         });
 
         // ==================== FOREIGN KEY CONSTRAINTS ====================
-        // Separate schema call to avoid circular dependencies
-        Schema::table('tenants', function (Blueprint $table) {
-            // Self-referencing foreign key for parent-child relationship
+        // Separate schema call so the primary key on `id` is created first,
+        // which PostgreSQL requires before a FK can reference it.
+        Schema::table('folders', function (Blueprint $table) {
             $table->foreign('parent_id')
                 ->references('id')
-                ->on('tenants')
-                ->onDelete('set null')
-                ->onUpdate('cascade');
+                ->on('folders')
+                ->onDelete('cascade');
         });
     }
 

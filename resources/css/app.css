@@ -26,8 +26,68 @@
 }
 
 /* ─── GLOBAL ─────────────────────────────────────── */
+[x-cloak] { display: none !important; }
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ─── FOCUS MANAGEMENT (WCAG 2.4.7 / 2.4.11) ────── */
+/*
+ * Remove the browser outline only for pointer/touch navigation.
+ * Keep a strong ring whenever the user is using a keyboard.
+ * :focus-visible is the correct selector — it fires only on keyboard focus,
+ * not on mouse clicks.
+ */
+:focus { outline: none; }
+:focus-visible {
+    outline: 2px solid #7c3aed;
+    outline-offset: 2px;
+    border-radius: 4px;
+    box-shadow: 0 0 0 4px rgba(124,58,237,0.15);
+}
+
+/* ─── TOUCH TARGETS (WCAG 2.5.5 — 44×44 px minimum) ─ */
+button,
+[role="button"],
+.toolbar-btn,
+.header-icon-btn,
+.header-menu-btn {
+    min-height: 44px;
+    min-width: 44px;
+}
+/* Header user button and sidebar links are wider, only need min-height */
+.header-user,
+.sidebar-link { min-height: 44px; }
+
+/* Inline text links are exempt from the 44 px rule */
+p a, li a, td a,
+.breadcrumb-item a,
+.edms-dropdown-item,
+.central-dropdown-item { min-height: unset; min-width: unset; }
+
+/* ─── REDUCED MOTION (WCAG 2.3.3) ───────────────── */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ─── ARIA STATE STYLES ──────────────────────────── */
+/* Pressed state for toggle buttons (dark-mode, etc.) */
+[aria-pressed="true"] .fa-moon { display: none; }
+[aria-pressed="true"] .fa-sun  { display: inline-block; }
+
+/* ─── SCREEN-READER-ONLY UTILITY ─────────────────── */
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
 
 html { height: 100%; }
 

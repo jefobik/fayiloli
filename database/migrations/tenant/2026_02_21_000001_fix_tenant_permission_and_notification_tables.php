@@ -7,16 +7,26 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Spatie laravel-permission tables — tenant-scoped.
+ * Fix tenant permission tables and notifications.notifiable_id column.
  *
- * Roles and permissions are entirely per-tenant.  Each tenant database
- * carries its own role/permission set so that organisations can define
- * their own access control model independently.
+ * PERMISSION TABLES
+ * -----------------
+ * The original tenant permission migration used $table->id() (BigInteger
+ * auto-increment) for permissions.id, roles.id and unsignedBigInteger for
+ * the model_morph_key column in the pivot tables.  Because the tenant users
+ * table uses HasUuids (UUID primary keys), assigning a role to a user writes
+ * a UUID string into model_morph_key — which PostgreSQL cannot store in a
+ * bigint column.  This migration rebuilds all five Spatie permission tables
+ * with UUID columns, matching the central database schema and the tenant
+ * users table.
  *
- * All ID columns use UUID to be consistent with the tenant users table
- * (which uses HasUuids and generates UUID primary keys).  The model_morph_key
- * column must be uuid so that Spatie can store the user's UUID id when
- * assigning roles/permissions.
+ * Existing role/permission assignments are cleared (dev environment only).
+ * Re-run RolesPermissionsSeeder after this migration to restore them.
+ *
+ * NOTIFICATIONS
+ * -------------
+ * notifications.notifiable_id was created as bigInteger but must be uuid to
+ * store user UUIDs from the notifiable() morph relationship.
  */
 return new class extends Migration
 {
@@ -27,6 +37,15 @@ return new class extends Migration
         $pivotRole   = $columnNames['role_pivot_key']       ?? 'role_id';
         $pivotPerm   = $columnNames['permission_pivot_key'] ?? 'permission_id';
         $teams       = config('permission.teams');
+
+        // ── 1. Rebuild Spatie permission tables with UUID IDs ────────────────
+        Schema::disableForeignKeyConstraints();
+
+        Schema::dropIfExists($tableNames['role_has_permissions']);
+        Schema::dropIfExists($tableNames['model_has_roles']);
+        Schema::dropIfExists($tableNames['model_has_permissions']);
+        Schema::dropIfExists($tableNames['roles']);
+        Schema::dropIfExists($tableNames['permissions']);
 
         Schema::create($tableNames['permissions'], static function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -55,7 +74,7 @@ return new class extends Migration
         ) {
             $table->uuid($pivotPerm);
             $table->string('model_type');
-            $table->uuid($columnNames['model_morph_key']); // must be uuid — users.id is uuid
+            $table->uuid($columnNames['model_morph_key']);
             $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_permissions_model_id_model_type_index');
             $table->foreign($pivotPerm)->references('id')->on($tableNames['permissions'])->cascadeOnDelete();
             if ($teams) {
@@ -78,7 +97,7 @@ return new class extends Migration
         ) {
             $table->uuid($pivotRole);
             $table->string('model_type');
-            $table->uuid($columnNames['model_morph_key']); // must be uuid — users.id is uuid
+            $table->uuid($columnNames['model_morph_key']);
             $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_roles_model_id_model_type_index');
             $table->foreign($pivotRole)->references('id')->on($tableNames['roles'])->cascadeOnDelete();
             if ($teams) {
@@ -106,18 +125,32 @@ return new class extends Migration
             $table->primary([$pivotPerm, $pivotRole], 'role_has_permissions_permission_id_role_id_primary');
         });
 
+        Schema::enableForeignKeyConstraints();
+
         app('cache')
             ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
             ->forget(config('permission.cache.key'));
+
+        // ── 2. Fix notifications.notifiable_id: bigint → uuid ───────────────
+        if (Schema::hasTable('notifications')) {
+            Schema::table('notifications', static function (Blueprint $table) {
+                $table->dropIndex(['notifiable_type', 'notifiable_id']);
+            });
+
+            Schema::table('notifications', static function (Blueprint $table) {
+                $table->dropColumn('notifiable_id');
+            });
+
+            Schema::table('notifications', static function (Blueprint $table) {
+                $table->uuid('notifiable_id')->nullable()->after('notifiable_type');
+                $table->index(['notifiable_type', 'notifiable_id']);
+            });
+        }
     }
 
     public function down(): void
     {
-        $tableNames = config('permission.table_names');
-        Schema::dropIfExists($tableNames['role_has_permissions']);
-        Schema::dropIfExists($tableNames['model_has_roles']);
-        Schema::dropIfExists($tableNames['model_has_permissions']);
-        Schema::dropIfExists($tableNames['roles']);
-        Schema::dropIfExists($tableNames['permissions']);
+        // Rebuilding with bigint IDs is intentionally not supported.
+        // The BigInteger schema was a bug — not a valid prior state.
     }
 };

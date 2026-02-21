@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'FAYILOLI') }} — Enterprise Document Management</title>
 
@@ -13,6 +13,9 @@
     {{-- Livewire styles --}}
     @livewireStyles
 
+    {{-- TallStackUI styles --}}
+    @tallStackUiStyle
+
     {{-- Bootstrap CSS (keeps existing inner-page components working) --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     {{-- Font Awesome 6 --}}
@@ -21,6 +24,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/trix/1.1.1/trix.css">
     {{-- Custom document CSS (legacy) --}}
     <link rel="stylesheet" href="{{ asset('custom-css/documents12.css') }}">
+    {{-- jQuery UI CSS (must be in <head> to avoid FOUC) --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
 
     {{-- SortableJS (needed in <head> so sidebar-enhancements.js finds it) --}}
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -40,7 +45,7 @@
     </script>
 </head>
 
-<body class="h-full" style="overflow:hidden">
+<body class="h-full" @auth style="overflow:hidden" @endauth>
 
 @auth
     {{-- ── Loading Overlay ─────────────────────────── --}}
@@ -109,9 +114,10 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('custom-js/documents1001.js') }}"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 @livewireScripts
+{{-- TallStackUI scripts --}}
+@tallStackUiScript
 
 @auth
 <script>
@@ -270,6 +276,21 @@ function generateRandomToken() {
 }
 function showFilters() { $('.custom-dropdown').css('display', 'flex'); }
 </script>
+
+{{-- ── Server-side flash → edmsToast bridge ────────────────────────────── --}}
+{{-- Converts redirect()->with('success'/'error'/'warning'/'info') into the   --}}
+{{-- same toast UX used by AJAX responses, so both paths look identical.      --}}
+@if(session()->hasAny(['success', 'error', 'warning', 'info']))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof edmsToast !== 'function') return;
+    @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
+    @if(session('error'))   edmsToast(@json(session('error')),   'error');   @endif
+    @if(session('warning')) edmsToast(@json(session('warning')), 'warning'); @endif
+    @if(session('info'))    edmsToast(@json(session('info')),    'info');    @endif
+});
+</script>
+@endif
 @endauth
 
 </body>

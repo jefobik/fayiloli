@@ -16,10 +16,10 @@ class TagController extends Controller
      */
     public function index()
     {
+        $tags    = Tag::orderBy('name')->paginate(25);
+        $folders = Folder::with(['categories.tags', 'subfolders'])->get();
 
-        $folders = Folder::with('categories', 'subfolders')->get();
-
-        return view('tags.index', compact('folders'));
+        return view('tags.index', compact('tags', 'folders'));
     }
 
     /**

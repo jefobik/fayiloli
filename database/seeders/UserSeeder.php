@@ -37,6 +37,7 @@ class UserSeeder extends Seeder
                 // 'password' => Hash::make('Passw0rd!'),
                 'password'=> bcrypt('passw0rd!'),
                 'is_active' => true,
+                'is_admin' => true,
             ]
         );
     }

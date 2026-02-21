@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->text('body')->nullable();
             $table->string('notifiable_type')->nullable();
-            $table->bigInteger('notifiable_id')->nullable();
+            $table->uuid('notifiable_id')->nullable(); // uuid — matches users.id (HasUuids)
             $table->json('data')->nullable();
             $table->timestamp('read_at')->nullable();
             $table->timestamps();

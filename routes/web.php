@@ -17,6 +17,11 @@ use App\Http\Controllers\TenantController;
 //  contexts every time the cache is rebuilt.
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ─── Central root redirect ────────────────────────────────────────────────
+Route::get('/', fn () => redirect()->to(
+    auth()->check() ? '/admin/tenants' : '/login'
+));
+
 // ─── Authentication (shared — central admin + tenant users) ──────────────
 //  A SINGLE set of auth routes serves both the super-admin portal and every
 //  tenant domain.  InitializeTenancyByDomain (prepended to the web group in

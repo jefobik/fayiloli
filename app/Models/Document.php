@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +14,7 @@ use Laravel\Scout\Searchable;
 
 class Document extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity, Searchable;
+    use HasFactory, HasUuids, SoftDeletes, LogsActivity, Searchable;
 
     protected static function boot()
     {

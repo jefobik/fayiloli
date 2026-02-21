@@ -1,59 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Module Coming Soon</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .container {
-            text-align: center;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        p {
-            color: #666;
-            margin-bottom: 40px;
-        }
-
-        .button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1>Project Module Coming Soon</h1>
-        <p>We're working hard to bring you the project module. Stay tuned for updates!</p>
-        <button class="button" onclick="window.location.href='/home'">Go Back</button>
+@section('content')
+<div class="dashboard-wrap" style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+    <div style="text-align:center;max-width:420px">
+        <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#ede9fe,#ddd6fe);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem">
+            <i class="fas fa-project-diagram" style="font-size:2.2rem;color:#7c3aed"></i>
+        </div>
+        <h2 style="font-size:1.5rem;font-weight:800;color:#1e293b;margin:0 0 0.5rem">Projects — Coming Soon</h2>
+        <p style="color:#64748b;font-size:0.9rem;line-height:1.6;margin:0 0 2rem">
+            The Projects module is currently under development.
+            Collaborative project tracking and milestone management will be available here.
+        </p>
+        <a href="{{ route('home') }}" class="toolbar-btn toolbar-btn-primary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
-</body>
+</div>
 
-</html>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var content = document.querySelector('.page-content');
+        if (content) content.style.display = 'block';
+        var overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.style.display = 'none';
+    });
+</script>
+@endsection

@@ -12,7 +12,9 @@ use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
 use Stancl\Tenancy\Middleware;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 class TenancyServiceProvider extends ServiceProvider
 {
@@ -122,6 +124,7 @@ class TenancyServiceProvider extends ServiceProvider
      */
     protected function configureTenancyMiddleware(): void
     {
+        // ── InitializeTenancyByDomain: pass-through on central, 404 on unknown ──
         InitializeTenancyByDomain::$onFail = function ($exception, $request, $next) {
             if (in_array($request->getHost(), config('tenancy.central_domains'), true)) {
                 // Central domain — tenancy is intentionally not initialized.
@@ -132,6 +135,42 @@ class TenancyServiceProvider extends ServiceProvider
             // Unknown tenant domain — surface as a proper 404.
             abort(404);
         };
+
+        // ── PreventAccessFromCentralDomains: redirect instead of aborting 404 ──
+        //
+        // This middleware runs BEFORE StartSession (it sits at the top of the
+        // middleware priority list), so auth()->check() is unreliable here —
+        // the session has not been started yet and always returns false.
+        //
+        // To avoid a redirect loop (unauthenticated-appearing /login → guest
+        // middleware → route('home') → PreventAccessFromCentralDomains → /login
+        // → …), we redirect to /admin/tenants unconditionally.  That route's
+        // own auth middleware runs AFTER StartSession, so it correctly sends
+        // unauthenticated visitors to /login and lets authenticated admins
+        // through to the panel.
+        PreventAccessFromCentralDomains::$abortRequest = function ($request, $next) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'This endpoint is only accessible from a tenant domain.'], 403);
+            }
+
+            return redirect('/admin/tenants');
+        };
+
+        // ── RedirectIfAuthenticated: tenant-aware home redirect ────────────────
+        //
+        // The framework's defaultRedirectUri() scans registered route names for
+        // 'dashboard' or 'home'.  It finds the 'home' named route from
+        // tenant.php and returns route('home'), which on the central domain is
+        // a URL guarded by PreventAccessFromCentralDomains — creating a loop:
+        //
+        //   /login (guest) → route('home') → PreventAccessFromCentralDomains
+        //   → /admin/tenants → (correct) … but /login → /home → /admin/tenants
+        //   needs to be direct, not via the tenant route.
+        //
+        // Override to use tenancy state: tenant domain → '/',  central → '/admin/tenants'.
+        RedirectIfAuthenticated::redirectUsing(function ($request) {
+            return tenancy()->initialized ? '/' : '/admin/tenants';
+        });
     }
 
     protected function bootEvents()

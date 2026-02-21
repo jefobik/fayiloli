@@ -20,9 +20,6 @@ return new class extends Migration
             $table->string('due_date_in_word')->nullable();
             $table->longText('note')->nullable();
             $table->timestamps();
-
-            $table->foreign('folder_id')->references('id')->on('folders')->onDelete('cascade');
-            $table->foreign('tag_id')->references('id')->on('tags')->onDelete('cascade');
         });
     }
 

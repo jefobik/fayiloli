@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -11,7 +12,7 @@ use Spatie\Activitylog\LogOptions;
 
 class Tag extends Model
 {
-    use HasFactory, Searchable, LogsActivity;
+    use HasFactory, HasUuids, Searchable, LogsActivity;
 
     protected $fillable = ['name', 'slug', 'code', 'background_color', 'foreground_color'];
 

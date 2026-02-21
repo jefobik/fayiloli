@@ -17,7 +17,7 @@ return new class extends Migration
             $table->char('code', 10)->nullable();
             $table->string('background_color')->nullable();
             $table->string('foreground_color')->nullable();
-            $table->foreignId('category_id')
+            $table->foreignUuid('category_id')
                 ->nullable()
                 ->constrained()
                 ->onDelete('cascade')

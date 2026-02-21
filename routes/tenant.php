@@ -76,8 +76,6 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
         Route::get('/search-tags', [TagController::class, 'searchTags'])->name('searchTags');
         Route::get('/add-tag', [TagController::class, 'addTag'])->name('addTag');
 
-        // ── Workspaces (alias for folders) ─────────────────────────────────
-        Route::resource('workspaces', FolderController::class);
 
         // ── Notifications ──────────────────────────────────────────────────
         Route::get('/notifications/fetch', [NotificationController::class, 'fetchNotifications'])->name('notifications.fetch');

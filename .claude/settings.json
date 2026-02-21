@@ -48,11 +48,16 @@
       "Bash(# Check if there''s a sudoers rule that allows specific commands without password sudo -l)",
       "Bash(# Check /etc/sudoers.d for any passwordless rules ls /etc/sudoers.d/ && cat /etc/sudoers.d/*)",
       "Bash(__NEW_LINE_f85b3474a5444979__ rm -f \"$COOKIE_JAR\")",
-      "Bash(ss:*)"
+      "Bash(ss:*)",
+      "Bash(1:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/projects/index.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/contacts/index.blade.php:*)",
+      "Bash(ls:*)"
     ],
     "additionalDirectories": [
       "/",
-      "/var/www/laravel/fayiloli"
+      "/var/www/laravel/fayiloli",
+      "/var/www/laravel/fayiloli/database/migrations"
     ]
   }
 }

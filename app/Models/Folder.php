@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -10,7 +11,7 @@ use Laravel\Scout\Searchable;
 
 class Folder extends Model
 {
-    use HasFactory, LogsActivity, Searchable;
+    use HasFactory, HasUuids, LogsActivity, Searchable;
 
     protected $fillable = ['name', 'parent_id', 'visibility', 'background_color', 'foreground_color', 'category_id', 'position'];
 

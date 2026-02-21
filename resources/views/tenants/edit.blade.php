@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.central')
+
+@section('title', 'Edit Tenant — ' . $tenant->organization_name)
 
 @section('content')
 <div class="container py-4" style="max-width:680px">
@@ -17,7 +19,7 @@
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-bottom py-3">
             <h5 class="mb-0 fw-semibold">
-                <i class="fa-solid fa-pen-to-square me-2 text-primary"></i>
+                <i class="fa-solid fa-pen-to-square me-2 text-primary" aria-hidden="true"></i>
                 Edit Tenant
             </h5>
             <div class="text-muted small font-monospace mt-1">{{ $tenant->id }}</div>
@@ -54,21 +56,63 @@
                     @enderror
                 </div>
 
-                {{-- Plan --}}
+                {{-- Tenant Type --}}
                 <div class="mb-3">
-                    <label for="plan" class="form-label fw-semibold">
-                        Subscription Plan <span class="text-danger">*</span>
+                    <label for="tenant_type" class="form-label fw-semibold">
+                        Tenant Type <span class="text-danger">*</span>
                     </label>
-                    <select id="plan" name="plan"
-                            class="form-select @error('plan') is-invalid @enderror" required>
-                        @foreach (['starter' => 'Starter', 'business' => 'Business', 'enterprise' => 'Enterprise'] as $val => $label)
+                    <select id="tenant_type" name="tenant_type"
+                            class="form-select @error('tenant_type') is-invalid @enderror" required>
+                        @foreach ([
+                            'government'  => 'Government',
+                            'secretariat' => 'Secretariat',
+                            'agency'      => 'Agency',
+                            'department'  => 'Department',
+                            'unit'        => 'Unit',
+                        ] as $val => $label)
                             <option value="{{ $val }}"
-                                    {{ old('plan', $tenant->plan) === $val ? 'selected' : '' }}>
+                                    {{ old('tenant_type', $tenant->tenant_type ?? $tenant->plan) === $val ? 'selected' : '' }}>
                                 {{ $label }}
                             </option>
                         @endforeach
                     </select>
-                    @error('plan')
+                    @error('tenant_type')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                {{-- Operational Status --}}
+                <div class="mb-3">
+                    <label for="status" class="form-label fw-semibold">
+                        Operational Status <span class="text-danger">*</span>
+                    </label>
+                    <select id="status" name="status"
+                            class="form-select @error('status') is-invalid @enderror" required>
+                        @foreach ([
+                            'pending'   => 'Pending',
+                            'active'    => 'Active',
+                            'suspended' => 'Suspended',
+                            'archived'  => 'Archived',
+                        ] as $val => $label)
+                            <option value="{{ $val }}"
+                                    {{ old('status', $tenant->status) === $val ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('status')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="form-text">The operational lifecycle state of this tenant.</div>
+                </div>
+
+                {{-- Notes --}}
+                <div class="mb-3">
+                    <label for="notes" class="form-label fw-semibold">Notes</label>
+                    <textarea id="notes" name="notes" rows="3"
+                              class="form-control @error('notes') is-invalid @enderror"
+                              placeholder="Internal notes about this tenant…">{{ old('notes', $tenant->notes) }}</textarea>
+                    @error('notes')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -80,15 +124,15 @@
                                id="is_active" name="is_active" value="1"
                                {{ old('is_active', $tenant->is_active) ? 'checked' : '' }}>
                         <label class="form-check-label fw-semibold" for="is_active">
-                            Tenant is Active
+                            Allow Access
                         </label>
                     </div>
-                    <div class="form-text">Suspending a tenant blocks all access to their EDMS instance.</div>
+                    <div class="form-text">Disabling this immediately blocks all logins for this tenant's EDMS instance.</div>
                 </div>
 
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary px-4">
-                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+                        <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i> Save Changes
                     </button>
                     <a href="{{ route('tenants.show', $tenant) }}" class="btn btn-outline-secondary">
                         Cancel

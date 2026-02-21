@@ -26,7 +26,9 @@ class EnsureTenantInitialized
     public function handle(Request $request, Closure $next): Response
     {
         if (! tenancy()->initialized) {
-            abort(403, 'This route is only accessible from a tenant domain.');
+            // Redirect rather than abort — central-domain users who somehow
+            // reach a tenant-only route should land on the appropriate page.
+            return redirect(auth()->check() ? '/admin/tenants' : '/login');
         }
 
         return $next($request);
