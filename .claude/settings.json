@@ -54,7 +54,9 @@
       "Bash(/var/www/laravel/fayiloli/resources/views/contacts/index.blade.php:*)",
       "Bash(ls:*)",
       "Bash(/var/www/laravel/fayiloli/resources/views/tenants/edit.blade.php:*)",
-      "Bash(/var/www/laravel/fayiloli/resources/views/tenants/create.blade.php:*)"
+      "Bash(/var/www/laravel/fayiloli/resources/views/tenants/create.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/database/migrations/0001_01_01_000000_create_users_table.php:*)",
+      "Bash(/var/www/laravel/fayiloli/app/Http/Controllers/TenantController.php:*)"
     ],
     "additionalDirectories": [
       "/",

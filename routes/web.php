@@ -33,20 +33,40 @@ Route::get('/', fn () => redirect()->to(
 //  admin portal or by a tenant-side admin account.
 Auth::routes(['register' => false]);
 
-// ─── Tenant Management (Super-Admin) ──────────────────────────────────────
-Route::middleware('auth')->prefix('admin/tenants')->name('tenants.')->group(function () {
-    Route::get('/',                         [TenantController::class, 'index'])->name('index');
-    Route::get('/create',                   [TenantController::class, 'create'])->name('create');
-    Route::post('/',                        [TenantController::class, 'store'])->name('store');
-    Route::get('/{tenant}',                 [TenantController::class, 'show'])->name('show');
-    Route::get('/{tenant}/edit',            [TenantController::class, 'edit'])->name('edit');
-    Route::put('/{tenant}',                 [TenantController::class, 'update'])->name('update');
-    Route::delete('/{tenant}',              [TenantController::class, 'destroy'])->name('destroy');
-    Route::post('/{tenant}/domains',         [TenantController::class, 'addDomain'])->name('domains.add');
-    Route::delete('/{tenant}/domains',       [TenantController::class, 'removeDomain'])->name('domains.remove');
+// ─── Central Admin Portal ─────────────────────────────────────────────────
+//  Stack: auth (must be logged in) → central-admin (must be is_admin or
+//  is_super_admin) → authorizeResource (TenantPolicy, bypassed for
+//  super-admins via Gate::before() in AppServiceProvider).
+Route::middleware(['auth', 'central-admin'])
+    ->prefix('admin/tenants')
+    ->name('tenants.')
+    ->group(function () {
 
-    // ── Status lifecycle (replaces toggle_active) ─────────────────────────
-    // Target status is validated against the state machine in
-    // TransitionTenantStatusRequest before the controller executes.
-    Route::patch('/{tenant}/status',         [TenantController::class, 'transitionStatus'])->name('transition_status');
-});
+        // ── Read + update (any central admin) ─────────────────────────────
+        Route::get('/',              [TenantController::class, 'index'])->name('index');
+        Route::get('/{tenant}',      [TenantController::class, 'show'])->name('show');
+        Route::get('/{tenant}/edit', [TenantController::class, 'edit'])->name('edit');
+        Route::put('/{tenant}',      [TenantController::class, 'update'])->name('update');
+
+        // ── Provisioning (super-admin only) ───────────────────────────────
+        //  Double-gated: 'super-admin' middleware blocks at the routing layer;
+        //  TenantPolicy::create() returns false for non-super-admins as a
+        //  defence-in-depth backstop via authorizeResource().
+        Route::get('/create',  [TenantController::class, 'create'])->name('create')->middleware('super-admin');
+        Route::post('/',       [TenantController::class, 'store'])->name('store')->middleware('super-admin');
+
+        // ── Deletion (super-admin only — triple-gated) ────────────────────
+        //  Gate 1: 'super-admin' middleware (EnsureSuperAdmin) — routing layer.
+        //  Gate 2: authorizeResource() → TenantPolicy::delete() — policy layer.
+        //  Gate 3: abort_unless($user->isSuperAdmin()) inside destroy() — method layer.
+        Route::delete('/{tenant}', [TenantController::class, 'destroy'])->name('destroy')->middleware('super-admin');
+
+        // ── Domain management (any central admin) ─────────────────────────
+        Route::post('/{tenant}/domains',   [TenantController::class, 'addDomain'])->name('domains.add');
+        Route::delete('/{tenant}/domains', [TenantController::class, 'removeDomain'])->name('domains.remove');
+
+        // ── Status lifecycle (any central admin) ──────────────────────────
+        //  Target status is validated against the state machine in
+        //  TransitionTenantStatusRequest before the controller executes.
+        Route::patch('/{tenant}/status', [TenantController::class, 'transitionStatus'])->name('transition_status');
+    });

@@ -15,16 +15,27 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
             $table->string('name');
+            $table->string('user_name')->nullable()->unique();
             $table->string('email')->unique();
+            $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+
+            // Role flags — central scope
+            $table->boolean('is_super_admin')->default(false);   // Bypasses all Gate checks
+            $table->boolean('is_admin')->default(false);         // Central admin portal access
+
+            // Account state — shared with tenant context
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_locked')->default(false);
+            $table->boolean('is_2fa_enabled')->default(false);
+
             $table->timestamps();
 
             // Indexes
             $table->index('email', 'indx_users_email');
             $table->index('name', 'indx_users_name');
-
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

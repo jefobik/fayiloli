@@ -14,9 +14,11 @@
             </h1>
             <p class="text-muted small mb-0">Manage organisations and their provisioned databases</p>
         </div>
+        @can('create', App\Models\Tenant::class)
         <a href="{{ route('tenants.create') }}" class="btn btn-primary">
             <i class="fa-solid fa-plus me-1" aria-hidden="true"></i> New Tenant
         </a>
+        @endcan
     </div>
 
     {{-- ── Stats Row ──────────────────────────────────────────────────────── --}}
@@ -65,7 +67,8 @@
                     </thead>
                     <tbody>
                         @forelse ($tenants as $tenant)
-                        <tr>
+                        @php $isPending = $tenant->status === \App\Enums\TenantStatus::PENDING; @endphp
+                        <tr class="{{ $isPending ? 'table-warning' : '' }}">
                             <td class="ps-4 fw-semibold" data-label="Organisation">
                                 <a href="{{ route('tenants.show', $tenant) }}" class="text-decoration-none text-dark">
                                     {{ $tenant->organization_name ?? '—' }}
@@ -86,26 +89,51 @@
                                 @endforelse
                             </td>
                             <td data-label="Status">
-                                <span class="badge {{ $tenant->status_badge }}">
-                                    <i class="fa-solid fa-{{ $tenant->status_icon }} me-1" aria-hidden="true"></i>
-                                    {{ $tenant->status_label }}
-                                </span>
+                                @if ($isPending)
+                                    <span class="badge {{ $tenant->status_badge }}"
+                                          title="Provisioning in progress — activate or reject when ready">
+                                        <span class="spinner-grow spinner-grow-sm me-1"
+                                              style="width:.5rem;height:.5rem;vertical-align:.1em"
+                                              role="status" aria-hidden="true"></span>
+                                        {{ $tenant->status_label }}
+                                    </span>
+                                @else
+                                    <span class="badge {{ $tenant->status_badge }}">
+                                        <i class="fa-solid fa-{{ $tenant->status_icon }} me-1" aria-hidden="true"></i>
+                                        {{ $tenant->status_label }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="text-muted small" data-label="Created">
                                 {{ $tenant->created_at->format('d M Y') }}
                             </td>
                             <td class="text-end pe-4" data-label="Actions">
                                 <div class="d-flex justify-content-end gap-1">
+                                    {{-- View — always available --}}
                                     <a href="{{ route('tenants.show', $tenant) }}"
                                        class="btn btn-sm btn-outline-secondary"
                                        title="View {{ $tenant->organization_name }}">
                                         <i class="fa-solid fa-eye" aria-hidden="true"></i>
                                     </a>
-                                    <a href="{{ route('tenants.edit', $tenant) }}"
-                                       class="btn btn-sm btn-outline-primary"
-                                       title="Edit {{ $tenant->organization_name }}">
-                                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-                                    </a>
+
+                                    {{-- Edit — locked while provisioning is pending --}}
+                                    @if ($isPending)
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary"
+                                                disabled
+                                                title="Provisioning in progress — edit once the tenant is activated"
+                                                aria-disabled="true">
+                                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                        </button>
+                                    @else
+                                        <a href="{{ route('tenants.edit', $tenant) }}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Edit {{ $tenant->organization_name }}">
+                                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                        </a>
+                                    @endif
+
+                                    {{-- Status transition — shown for all statuses that have allowed transitions --}}
                                     @if ($tenant->status && count($tenant->status->allowedTransitions()))
                                         @php $first = $tenant->status->allowedTransitions()[0]; @endphp
                                         <button type="button"
@@ -119,14 +147,28 @@
                                             <i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i>
                                         </button>
                                     @endif
-                                    <button type="button"
-                                            class="btn btn-sm btn-outline-danger"
-                                            title="Delete {{ $tenant->organization_name }}"
-                                            data-tenant-name="{{ $tenant->organization_name }}"
-                                            data-delete-url="{{ route('tenants.destroy', $tenant) }}"
-                                            onclick="confirmDeleteTenant(this)">
-                                        <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                                    </button>
+
+                                    {{-- Delete — super-admin only; not shown while provisioning is pending --}}
+                                    @can('delete', $tenant)
+                                        @if ($isPending)
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    disabled
+                                                    title="Provisioning in progress — cannot delete until activated or rejected"
+                                                    aria-disabled="true">
+                                                <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                            </button>
+                                        @else
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Delete {{ $tenant->organization_name }}"
+                                                    data-tenant-name="{{ $tenant->organization_name }}"
+                                                    data-delete-url="{{ route('tenants.destroy', $tenant) }}"
+                                                    onclick="confirmDeleteTenant(this)">
+                                                <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                                            </button>
+                                        @endif
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
@@ -134,7 +176,10 @@
                         <tr>
                             <td colspan="7" class="text-center text-muted py-5">
                                 <i class="fa-solid fa-building-circle-exclamation fa-2x mb-2 d-block" aria-hidden="true"></i>
-                                No tenants yet. <a href="{{ route('tenants.create') }}">Create the first one.</a>
+                                No tenants yet.
+                                @can('create', App\Models\Tenant::class)
+                                    <a href="{{ route('tenants.create') }}">Create the first one.</a>
+                                @endcan
                             </td>
                         </tr>
                         @endforelse
@@ -188,31 +233,38 @@
     </div>
 </div>
 
-{{-- ── Delete Confirmation Modal ───────────────────────────────────────────── --}}
+{{-- ── Delete Confirmation Modal (super-admin only) ───────────────────────── --}}
+{{-- Rendered for all admins but only reachable via @can-gated buttons above --}}
 <div class="modal fade" id="deleteTenantModal" tabindex="-1"
      aria-labelledby="deleteTenantModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content border-danger">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title text-danger fw-semibold" id="deleteTenantModalLabel">
                     <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>
-                    Delete Tenant
+                    Permanently Delete Tenant
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cancel deletion"></button>
             </div>
             <div class="modal-body pt-2">
                 <p class="mb-1">You are about to permanently delete:</p>
-                <p class="fw-semibold" id="deleteTenantName"></p>
-                <p class="text-danger small mb-0">
-                    This will drop the tenant's database and remove all associated data.
-                    <strong>This action cannot be undone.</strong>
+                <p class="fw-semibold fs-6" id="deleteTenantName"></p>
+                <p class="text-danger small mb-2">
+                    This will <strong>drop the tenant's PostgreSQL database</strong>, destroy all
+                    EDMS data, and remove all domain registrations.
+                    <strong>This action is irrecoverable.</strong>
                 </p>
+                <p class="small mb-1 fw-semibold">Type the organisation name to confirm:</p>
+                <input type="text" id="deleteConfirmInput"
+                       class="form-control form-control-sm"
+                       placeholder="Organisation name…"
+                       autocomplete="off">
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form id="deleteTenantForm" method="POST" class="d-inline">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
+                    <button type="submit" id="deleteConfirmBtn" class="btn btn-danger" disabled>
                         <i class="fa-solid fa-trash-can me-1" aria-hidden="true"></i> Delete Permanently
                     </button>
                 </form>
@@ -224,6 +276,24 @@
 
 @push('scripts')
 <script>
+function confirmDeleteTenant(btn) {
+    var name = btn.getAttribute('data-tenant-name');
+    document.getElementById('deleteTenantName').textContent = name;
+    document.getElementById('deleteTenantForm').action = btn.getAttribute('data-delete-url');
+    var input  = document.getElementById('deleteConfirmInput');
+    var submit = document.getElementById('deleteConfirmBtn');
+    input.value = '';
+    submit.disabled = true;
+    input.oninput = function () {
+        submit.disabled = input.value.trim() !== name;
+    };
+    new bootstrap.Modal(document.getElementById('deleteTenantModal')).show();
+    // Focus the input after the modal animates in.
+    document.getElementById('deleteTenantModal').addEventListener('shown.bs.modal', function handler() {
+        input.focus();
+        this.removeEventListener('shown.bs.modal', handler);
+    });
+}
 function openTransitionModal(btn) {
     var status = btn.getAttribute('data-target-status');
     var action = btn.getAttribute('data-action-label');
@@ -240,11 +310,6 @@ function openTransitionModal(btn) {
     document.getElementById('transitionForm').action = url;
     document.getElementById('transitionReason').value = '';
     new bootstrap.Modal(document.getElementById('transitionModal')).show();
-}
-function confirmDeleteTenant(btn) {
-    document.getElementById('deleteTenantName').textContent = btn.getAttribute('data-tenant-name');
-    document.getElementById('deleteTenantForm').action = btn.getAttribute('data-delete-url');
-    new bootstrap.Modal(document.getElementById('deleteTenantModal')).show();
 }
 </script>
 @endpush

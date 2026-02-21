@@ -23,6 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Module access gate — usage: 'tenant.module:documents'
             'tenant.module'       => \App\Http\Middleware\EnsureModuleEnabled::class,
+
+            // Central-domain: restrict route to platform super-admin only.
+            'super-admin'         => \App\Http\Middleware\EnsureSuperAdmin::class,
+
+            // Central-domain: require is_admin or is_super_admin for portal access.
+            'central-admin'       => \App\Http\Middleware\EnsureCentralAdmin::class,
         ]);
 
         // Prepend InitializeTenancyByDomain to the global web middleware group.

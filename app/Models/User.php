@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -22,12 +24,13 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'email',
-        'password',
-        'supervisor_id',
         'user_name',
+        'email',
         'phone',
-        'is_admin',
+        'password',
+        'supervisor_id',        // tenant-context only (foreign key within tenant DB)
+        'is_super_admin',       // central-context: bypasses all Gate checks
+        'is_admin',             // central-context: central admin portal access
         'is_active',
         'is_locked',
         'is_2fa_enabled',
@@ -52,27 +55,69 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_admin' => 'boolean',
-            'is_active' => 'boolean',
-            'is_locked' => 'boolean',
-            'is_2fa_enabled' => 'boolean',
+            'password'          => 'hashed',
+            'is_super_admin'    => 'boolean',
+            'is_admin'          => 'boolean',
+            'is_active'         => 'boolean',
+            'is_locked'         => 'boolean',
+            'is_2fa_enabled'    => 'boolean',
         ];
     }
+
+    // ── Role helpers ──────────────────────────────────────────────────────────
+
+    /**
+     * True when this user holds the platform super-admin flag.
+     *
+     * Super-admins bypass every Gate check (registered in AppServiceProvider
+     * via Gate::before()).  This method is provided for explicit conditional
+     * checks in views and controllers where the bypass does not apply.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return (bool) ($this->is_super_admin ?? false);
+    }
+
+    /**
+     * True when the user has at least admin-level access to the central portal.
+     * Super-admins implicitly satisfy this check.
+     */
+    public function isAdminOrAbove(): bool
+    {
+        return $this->isSuperAdmin() || (bool) ($this->is_admin ?? false);
+    }
+
+    /**
+     * Human-readable role label used in UI components.
+     */
+    public function roleLabel(): string
+    {
+        if ($this->isSuperAdmin()) {
+            return 'Super Admin';
+        }
+        if ($this->isAdminOrAbove()) {
+            return 'Admin';
+        }
+        return 'User';
+    }
+
+    // ── Activity log ──────────────────────────────────────────────────────────
 
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'email'])
+            ->logOnly(['name', 'email', 'is_admin', 'is_super_admin'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('user');
     }
 
+    // ── Computed attributes ───────────────────────────────────────────────────
+
     public function getAvatarInitialsAttribute(): string
     {
         $words = explode(' ', $this->name);
-        $initials = collect($words)->take(2)->map(fn($w) => strtoupper($w[0]))->implode('');
+        $initials = collect($words)->take(2)->map(fn ($w) => strtoupper($w[0]))->implode('');
         return $initials ?: 'U';
     }
 }

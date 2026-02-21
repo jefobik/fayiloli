@@ -69,6 +69,7 @@
                         <dd class="col-sm-7 small">{{ $tenant->updated_at->format('d M Y, H:i') }}</dd>
                     </dl>
                 </div>
+                @can('delete', $tenant)
                 <div class="card-footer bg-white border-top pt-3">
                     <button type="button"
                             class="btn btn-sm btn-outline-danger"
@@ -79,6 +80,7 @@
                         <i class="fa-solid fa-trash-can me-1" aria-hidden="true"></i> Delete Tenant
                     </button>
                 </div>
+                @endcan
             </div>
         </div>
 
@@ -285,31 +287,37 @@
     </div>
 </div>
 
-{{-- ── Delete Tenant Modal ─────────────────────────────────────────────────── --}}
+{{-- ── Delete Tenant Modal (super-admin only — rendered but only reachable via @can button) -- --}}
 <div class="modal fade" id="deleteTenantModal" tabindex="-1"
      aria-labelledby="deleteTenantModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content border-danger">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title text-danger fw-semibold" id="deleteTenantModalLabel">
                     <i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>
-                    Delete Tenant
+                    Permanently Delete Tenant
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cancel deletion"></button>
             </div>
             <div class="modal-body pt-2">
                 <p class="mb-1">You are about to permanently delete:</p>
-                <p class="fw-semibold" id="deleteTenantName"></p>
-                <p class="text-danger small mb-0">
-                    This will drop the tenant's database and remove all associated data.
-                    <strong>This action cannot be undone.</strong>
+                <p class="fw-semibold fs-6" id="deleteTenantName"></p>
+                <p class="text-danger small mb-2">
+                    This will <strong>drop the tenant's PostgreSQL database</strong>, destroy all
+                    EDMS data, and remove all domain registrations.
+                    <strong>This action is irrecoverable.</strong>
                 </p>
+                <p class="small mb-1 fw-semibold">Type the organisation name to confirm:</p>
+                <input type="text" id="deleteConfirmInput"
+                       class="form-control form-control-sm"
+                       placeholder="Organisation name…"
+                       autocomplete="off">
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form id="deleteTenantForm" method="POST" class="d-inline">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
+                    <button type="submit" id="deleteConfirmBtn" class="btn btn-danger" disabled>
                         <i class="fa-solid fa-trash-can me-1" aria-hidden="true"></i> Delete Permanently
                     </button>
                 </form>
@@ -368,11 +376,23 @@ function openTransitionModal(btn) {
     new bootstrap.Modal(document.getElementById('transitionModal')).show();
 }
 
-// ── Delete confirmation modal ──────────────────────────────────────────────
+// ── Delete tenant modal (super-admin only) ────────────────────────────────
 function confirmDeleteTenant(btn) {
-    document.getElementById('deleteTenantName').textContent = btn.getAttribute('data-tenant-name');
+    var name = btn.getAttribute('data-tenant-name');
+    document.getElementById('deleteTenantName').textContent = name;
     document.getElementById('deleteTenantForm').action = btn.getAttribute('data-delete-url');
+    var input  = document.getElementById('deleteConfirmInput');
+    var submit = document.getElementById('deleteConfirmBtn');
+    input.value = '';
+    submit.disabled = true;
+    input.oninput = function () {
+        submit.disabled = input.value.trim() !== name;
+    };
     new bootstrap.Modal(document.getElementById('deleteTenantModal')).show();
+    document.getElementById('deleteTenantModal').addEventListener('shown.bs.modal', function handler() {
+        input.focus();
+        this.removeEventListener('shown.bs.modal', handler);
+    });
 }
 
 // ── Remove domain modal ────────────────────────────────────────────────────

@@ -23,20 +23,21 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create the platform super-admin account.
-        // This user exists only in the central database.
+        // ── Platform Super-Admin ───────────────────────────────────────────
+        // This user exists ONLY in the central database.
+        // is_super_admin = true grants unconditional Gate bypass via
+        // AppServiceProvider::registerSuperAdminGate().
         User::updateOrCreate(
             ['email' => 'superadmin@nectarmetrics.com.ng'],
             [
-                'name'               => 'Super Administrator',
-                'user_name'          => 'superadmin',
-                'email'              => 'superadmin@nectarmetrics.com.ng',
-                'phone'              => '08000000001',
-                'email_verified_at'  => now(),
-                'phone_verified_at'  => now(),
-                'password'           => bcrypt('passw0rd!'),
-                'is_active'          => true,
-                'is_admin'           => true,
+                'name'              => 'Super Administrator',
+                'user_name'         => 'superadmin',
+                'phone'             => '08000000001',
+                'email_verified_at' => now(),
+                'password'          => bcrypt('passw0rd!'),
+                'is_super_admin'    => true,
+                'is_admin'          => true,    // redundant but explicit for clarity
+                'is_active'         => true,
             ]
         );
     }

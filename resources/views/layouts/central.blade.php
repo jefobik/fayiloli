@@ -365,10 +365,11 @@
                 aria-label="User menu for {{ Auth::user()?->name }}">
             <div class="text-end d-none d-sm-block" aria-hidden="true">
                 <div class="u-name">{{ Auth::user()?->name }}</div>
-                <div class="u-role">Super Admin</div>
+                <div class="u-role">{{ Auth::user()?->roleLabel() ?? 'Admin' }}</div>
             </div>
-            <div class="central-nav-avatar" aria-hidden="true">
-                {{ strtoupper(substr(Auth::user()?->name ?? 'S', 0, 1)) }}{{ strtoupper(substr(explode(' ', Auth::user()?->name ?? 'A ')[1] ?? '', 0, 1)) }}
+            <div class="central-nav-avatar" aria-hidden="true"
+                 @if(Auth::user()?->isSuperAdmin()) style="background:linear-gradient(135deg,#dc2626,#7c3aed)" @endif>
+                {{ Auth::user()?->avatar_initials ?? 'SA' }}
             </div>
             <i class="fas fa-chevron-down" aria-hidden="true" style="font-size:0.65rem;color:#64748b"></i>
         </button>
@@ -385,7 +386,12 @@
              x-transition:leave-end="opacity-0 scale-95">
 
             <div class="central-dropdown-header" aria-hidden="true">
-                <div class="d-name">{{ Auth::user()?->name }}</div>
+                <div class="d-name">
+                    {{ Auth::user()?->name }}
+                    @if(Auth::user()?->isSuperAdmin())
+                        <span style="font-size:.58rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;background:rgba(220,38,38,.18);color:#f87171;padding:.1rem .3rem;border-radius:3px;border:1px solid rgba(220,38,38,.3);vertical-align:middle;margin-left:.35rem">SUPER</span>
+                    @endif
+                </div>
                 <div class="d-email">{{ Auth::user()?->email }}</div>
             </div>
 

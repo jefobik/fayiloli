@@ -46,9 +46,9 @@ class RolesPermissionsSeeder extends Seeder
             'view notifications',
             'dismiss notifications',
 
-            // Admin
+            // Tenant admin (workspace scope only — tenant provisioning is a
+            // central-domain concern handled by is_super_admin, not Spatie)
             'manage roles',
-            'manage tenants',
             'view audit log',
             'manage settings',
         ];
@@ -89,13 +89,26 @@ class RolesPermissionsSeeder extends Seeder
             'view notifications',
         ]);
 
-        // ── Assign admin role to first user ────────────────────────────────
-        $firstUser = User::first();
-        if ($firstUser && !$firstUser->hasRole('admin')) {
-            $firstUser->assignRole('admin');
-        }
+        // ── Assign Spatie roles to all seeded tenant users ─────────────────
+        // is_super_admin / is_admin are central-DB flags; inside the tenant DB
+        // we use Spatie roles to express workspace-level capabilities.
+        // Mapping: central is_admin=true  → tenant 'admin' role
+        //          all other active users → tenant 'user' role
+        // The superadmin central user is mirrored in tenant DB as is_admin=true,
+        // so they also receive the tenant 'admin' Spatie role for workspace ops.
+        User::where('is_admin', true)->each(function (User $u) use ($admin): void {
+            if (! $u->hasRole('admin')) {
+                $u->assignRole($admin);
+            }
+        });
 
-        $this->command->info('✅ Roles and permissions seeded successfully.');
+        User::where('is_admin', false)->each(function (User $u) use ($user): void {
+            if (! $u->hasAnyRole(['admin', 'manager', 'viewer'])) {
+                $u->assignRole($user);
+            }
+        });
+
+        $this->command->info('Roles and permissions seeded successfully.');
         $this->command->table(
             ['Role', 'Permission Count'],
             [

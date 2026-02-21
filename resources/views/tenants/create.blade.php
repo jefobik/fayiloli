@@ -28,8 +28,21 @@
             </p>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('tenants.store') }}" novalidate>
+            <form method="POST" action="{{ route('tenants.store') }}" novalidate
+                  id="provisionForm">
                 @csrf
+
+                {{-- Idempotency key — generated per page-load by TenantController::create().
+                     Validated and consumed on first successful POST to prevent double-provisioning. --}}
+                <input type="hidden" name="_provision_key" value="{{ $provisionKey }}">
+
+                {{-- Surface a key mismatch as a top-of-form banner (back-button replay, expired session). --}}
+                @error('_provision_key')
+                <div class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation flex-shrink-0" aria-hidden="true"></i>
+                    <span class="small">{{ $message }}</span>
+                </div>
+                @enderror
 
                 {{-- Organisation Name --}}
                 <div class="mb-3">
@@ -161,13 +174,67 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="fa-solid fa-rocket me-1" aria-hidden="true"></i> Provision Tenant
+                    <button type="submit" id="provisionBtn" class="btn btn-primary px-4">
+                        <span id="provisionIdle">
+                            <i class="fa-solid fa-rocket me-1" aria-hidden="true"></i> Provision Tenant
+                        </span>
+                        <span id="provisionWorking" class="d-none">
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            Provisioning&hellip;
+                        </span>
                     </button>
-                    <a href="{{ route('tenants.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                    <a href="{{ route('tenants.index') }}" class="btn btn-outline-secondary" id="cancelBtn">Cancel</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+/**
+ * Provision-form submit guard.
+ *
+ * On first submit:
+ *   – Swaps the button label to a spinner + "Provisioning…"
+ *   – Disables the button and the Cancel link (prevents navigation away)
+ *   – Sets a localStorage sentinel so that a hard-refresh-then-submit
+ *     attempt sees the button re-disabled until the server responds.
+ *
+ * On validation failure the server returns the page with the form still
+ * present.  In that case the button is restored so the admin can correct
+ * errors and retry (the server already issued a fresh provision key via
+ * session regeneration — the @@error banner above will explain the issue).
+ */
+(function () {
+    var form    = document.getElementById('provisionForm');
+    var btn     = document.getElementById('provisionBtn');
+    var idle    = document.getElementById('provisionIdle');
+    var working = document.getElementById('provisionWorking');
+    var cancel  = document.getElementById('cancelBtn');
+
+    if (!form || !btn) return;
+
+    form.addEventListener('submit', function (e) {
+        // Prevent double-click on rapid re-trigger.
+        if (btn.disabled) {
+            e.preventDefault();
+            return;
+        }
+
+        // Lock the UI.
+        btn.disabled = true;
+        idle.classList.add('d-none');
+        working.classList.remove('d-none');
+
+        // Dim Cancel so it is visually coupled to the locked state.
+        if (cancel) {
+            cancel.classList.add('disabled');
+            cancel.setAttribute('aria-disabled', 'true');
+            cancel.setAttribute('tabindex', '-1');
+        }
+    });
+})();
+</script>
+@endpush
