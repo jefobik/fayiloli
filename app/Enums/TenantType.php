@@ -9,9 +9,11 @@ enum TenantType: string
      */
 
     case GOVERNMENT = 'government';
-    case AGENCY = 'agency';
-    case DEPARTMENT = 'department';
+    case MINISTRY = 'ministry';
     case SECRETARIAT = 'secretariat';
+    case DEPARTMENT = 'department';
+    case DIVISION = 'division';
+    case AGENCY = 'agency';
     case UNIT = 'unit';
 
     public function label(): string
@@ -21,6 +23,8 @@ enum TenantType: string
             self::AGENCY      => 'Agency',
             self::DEPARTMENT  => 'Department',
             self::SECRETARIAT => 'Secretariat',
+            self::DIVISION    => 'Division',
+            self::MINISTRY    => 'Ministry',
             self::UNIT        => 'Unit',
         };
     }
@@ -35,6 +39,8 @@ enum TenantType: string
     {
         return match ($this) {
             self::GOVERNMENT => 'primary',
+            self::MINISTRY => 'red',
+            self::DIVISION => 'secondary',
             self::AGENCY => 'success',
             self::DEPARTMENT => 'info',
             self::SECRETARIAT => 'warning',

@@ -1,11 +1,26 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Http\Request;
 
+/**
+ * UserManagementController — Tenant-scoped user CRUD.
+ *
+ * All operations run inside the tenant DB context (enforced by
+ * InitializeTenancyByDomain + PreventAccessFromCentralDomains middleware on
+ * routes/tenant.php).
+ *
+ * Uses App\Models\Role and App\Models\Permission — our UUID-aware extensions
+ * of Spatie's models (HasUuids + $keyType='string').  Using Spatie's default
+ * models (int PK, no HasUuids) would produce
+ * "operator does not exist: uuid = integer" on PostgreSQL pivot joins.
+ */
 class UserManagementController extends Controller
 {
     public function index()
@@ -59,6 +74,12 @@ class UserManagementController extends Controller
 
         return redirect()->route('users.index')
             ->with('success', "User {$user->name} has been created.");
+    }
+
+    public function show(User $user)
+    {
+        $user->load('roles', 'permissions');
+        return view('users.show', compact('user'));
     }
 
     public function edit(User $user)
@@ -115,7 +136,7 @@ class UserManagementController extends Controller
     public function destroy(User $user)
     {
         $name = $user->name;
-        $user->delete();
+        $user->delete(); // Soft-deletes via SoftDeletes trait — sets deleted_at, preserves audit trail.
 
         return redirect()->route('users.index')
             ->with('success', "{$name} has been removed.");

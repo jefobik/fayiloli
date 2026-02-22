@@ -2,14 +2,22 @@
 
 declare(strict_types=1);
 
+use App\Enums\TenantStatus;
+use App\Enums\TenantType;
+use App\Models\Tenant;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\TenantType;
-use App\Enums\TenantStatus;
 
 class CreateTenantsTable extends Migration
 {
+    /**
+     * DROP DATABASE cannot execute inside a PostgreSQL transaction block.
+     * Setting this to false instructs Laravel to run this migration outside
+     * a transaction so the tenant database cleanup in down() succeeds.
+     */
+    public $withinTransaction = false;
+
     /**
      * Run the migrations.
      *
@@ -68,6 +76,17 @@ class CreateTenantsTable extends Migration
      */
     public function down(): void
     {
+        // Drop each tenant's PostgreSQL database before removing the registry table.
+        // Without this, migrate:refresh accumulates orphaned tenant databases on every
+        // run because the central registry is gone before databases can be identified.
+        Tenant::all()->each(function (Tenant $tenant): void {
+            try {
+                $tenant->database()->manager()->deleteDatabase($tenant);
+            } catch (\Throwable) {
+                // Already dropped or connection unavailable — skip.
+            }
+        });
+
         Schema::dropIfExists('tenants');
     }
 }

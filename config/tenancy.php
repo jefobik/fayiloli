@@ -217,7 +217,7 @@ return [
      * Parameters used by the tenants:seed command.
      */
     'seeder_parameters' => [
-        '--class' => 'TenantDatabaseSeeder', // tenant-scoped seeder (EDMS data only)
-        // '--force' => true, // This needs to be true to seed tenant databases in production
+        '--class' => 'TenantDatabaseSeeder', // tenant-scoped seeder (RBAC always; dev fixtures in local/testing)
+        '--force' => true,                   // Required for seeder to run in production without --force flag
     ],
 ];

@@ -8,91 +8,67 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 
 /**
- * Seeds tenant users.
+ * Seeds 13 deterministic dev users into the current tenant database.
  *
  * Runs inside the tenant database context — never against the central DB.
- * Creates 13 predictable dev users:
- *   superadmin  / passw0rd!     (is_admin = true — workspace admin)
- *   admin1–2    / Password12!   (is_admin = true)
- *   user1–10    / Password123!
+ * All users are fully deterministic (no faker/random data) to guarantee
+ * stable test fixtures and reproducible debugging sessions across re-runs.
  *
- * NOTE: is_super_admin is intentionally absent — it is a central-DB-only
- * flag and does NOT exist in the tenant users table.  The platform
- * super-admin privilege is enforced at the central database level only.
+ * User roster:
+ *   superadmin   / passw0rd!    is_admin=true  — mirrors the central super-admin
+ *   admin1–2     / Password12!  is_admin=true  — workspace admin accounts
+ *   user1–10     / Password123! is_admin=false — standard workspace users
+ *
+ * NOTE: is_super_admin is a central-DB-only flag and does NOT exist in the
+ * tenant users table.  Workspace authority is expressed via Spatie roles
+ * (admin, manager, user, viewer) assigned by RolesPermissionsSeeder.
  */
 class UserSeeder extends Seeder
 {
+    /**
+     * Deterministic user definitions.
+     * Key: user_name (unique, stable identity for updateOrCreate).
+     *
+     * @var array<int, array{user_name: string, name: string, phone: string, is_admin: bool, password: string}>
+     */
+    private const USERS = [
+        // ── Workspace admins ──────────────────────────────────────────────────
+        ['user_name' => 'superadmin', 'name' => 'Super Administrator', 'phone' => '08000000001', 'is_admin' => true,  'password' => 'passw0rd!'],
+        ['user_name' => 'admin1',     'name' => 'System Admin One',    'phone' => '08100000001', 'is_admin' => true,  'password' => 'Password12!'],
+        ['user_name' => 'admin2',     'name' => 'System Admin Two',    'phone' => '08100000002', 'is_admin' => true,  'password' => 'Password12!'],
+
+        // ── Standard users (user1–10) ─────────────────────────────────────────
+        ['user_name' => 'user1',  'name' => 'Aisha Bello',         'phone' => '08000000011', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user2',  'name' => 'Emeka Okafor',        'phone' => '08100000012', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user3',  'name' => 'Fatima Aliyu',        'phone' => '07000000013', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user4',  'name' => 'Chidi Nwosu',         'phone' => '09000000014', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user5',  'name' => 'Ngozi Eze',           'phone' => '09100000015', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user6',  'name' => 'Ibrahim Musa',        'phone' => '08000000016', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user7',  'name' => 'Chinwe Obi',          'phone' => '08100000017', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user8',  'name' => 'Yusuf Hassan',        'phone' => '07000000018', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user9',  'name' => 'Adaeze Nwankwo',      'phone' => '09000000019', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user10', 'name' => 'Oluwaseun Adeyemi',   'phone' => '09100000020', 'is_admin' => false, 'password' => 'Password123!'],
+    ];
+
     public function run(): void
     {
-        $this->createSuperAdmin();
-        $this->createAdmins();
-        $this->createBulkUsers();
-    }
-
-    private function createSuperAdmin(): void
-    {
-        User::updateOrCreate(
-            ['user_name' => 'superadmin'],
-            [
-                'name'              => 'Super Administrator',
-                'user_name'         => 'superadmin',
-                'email'             => 'superadmin@nectarmetrics.com.ng',
-                'phone'             => '08000000001',
-                'email_verified_at' => now(),
-                'phone_verified_at' => now(),
-                'password'          => bcrypt('passw0rd!'),
-                'is_active'         => true,
-                'is_admin'          => true,
-            ]
-        );
-    }
-
-    private function createAdmins(): void
-    {
-        for ($i = 1; $i <= 2; $i++) {
+        foreach (self::USERS as $data) {
             User::updateOrCreate(
-                ['user_name' => "admin{$i}"],
+                ['user_name' => $data['user_name']],
                 [
-                    'name'              => "System Admin {$i}",
-                    'user_name'         => "admin{$i}",
-                    'email'             => "admin{$i}@nectarmetrics.com.ng",
-                    'phone'             => $this->generatePhone($i),
+                    'name'              => $data['name'],
+                    'user_name'         => $data['user_name'],
+                    'email'             => "{$data['user_name']}@nectarmetrics.com.ng",
+                    'phone'             => $data['phone'],
                     'email_verified_at' => now(),
                     'phone_verified_at' => now(),
-                    'password'          => bcrypt('Password12!'),
+                    'password'          => bcrypt($data['password']),
                     'is_active'         => true,
-                    'is_admin'          => true,
+                    'is_admin'          => $data['is_admin'],
                 ]
             );
         }
-    }
 
-    private function createBulkUsers(): void
-    {
-        $faker = fake();
-
-        for ($i = 1; $i <= 10; $i++) {
-            User::updateOrCreate(
-                ['user_name' => "user{$i}"],
-                [
-                    'name'              => $faker->name(),
-                    'user_name'         => "user{$i}",
-                    'email'             => "user{$i}@nectarmetrics.com.ng",
-                    'phone'             => $this->generatePhone($i + 10),
-                    'email_verified_at' => now(),
-                    'phone_verified_at' => now(),
-                    'password'          => bcrypt('Password123!'),
-                    'is_active'         => true,
-                ]
-            );
-        }
-    }
-
-    private function generatePhone(int $seed): string
-    {
-        $prefixes = ['080', '081', '070', '090', '091'];
-        $prefix   = $prefixes[$seed % count($prefixes)];
-
-        return $prefix . str_pad((string) $seed, 8, '0', STR_PAD_LEFT);
+        $this->command?->line('  ' . count(self::USERS) . ' tenant users seeded.');
     }
 }

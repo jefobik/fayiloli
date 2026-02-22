@@ -16,7 +16,8 @@
         ['module' => TenantModule::SHARES,        'permission' => 'share documents',    'color' => '#059669', 'bg' => 'rgba(5,150,105,0.08)',    'border' => 'rgba(5,150,105,0.2)'],
         ['module' => TenantModule::NOTIFICATIONS, 'permission' => 'view notifications', 'color' => '#dc2626', 'bg' => 'rgba(220,38,38,0.08)',    'border' => 'rgba(220,38,38,0.2)'],
         ['module' => TenantModule::PROJECTS,      'permission' => null,                 'color' => '#0891b2', 'bg' => 'rgba(8,145,178,0.08)',    'border' => 'rgba(8,145,178,0.2)'],
-        ['module' => TenantModule::CONTACTS,      'permission' => null,                 'color' => '#16a34a', 'bg' => 'rgba(22,163,74,0.08)',    'border' => 'rgba(22,163,74,0.2)'],
+        ['module' => TenantModule::HRM,           'permission' => null,                 'color' => '#16a34a', 'bg' => 'rgba(22,163,74,0.08)',    'border' => 'rgba(22,163,74,0.2)'],
+        ['module' => TenantModule::STATS,         'permission' => null,                 'color' => '#8b5cf6', 'bg' => 'rgba(139,92,246,0.08)',    'border' => 'rgba(139,92,246,0.2)'],
     ])->filter(function (array $card) use ($tenant, $authUser): bool {
         $enabled = $tenant?->hasModule($card['module']) ?? false;
         $allowed = $card['permission'] ? ($authUser?->can($card['permission']) ?? false) : true;

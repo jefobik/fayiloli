@@ -167,7 +167,17 @@ class TenancyServiceProvider extends ServiceProvider
         //   → /admin/tenants → (correct) … but /login → /home → /admin/tenants
         //   needs to be direct, not via the tenant route.
         //
-        // Override to use tenancy state: tenant domain → '/',  central → '/admin/tenants'.
+        // Override to use tenancy state:
+        //   - Tenant domain  → '/'  (EDMS application root; RBAC and module gating
+        //                            is enforced by the destination route/middleware,
+        //                            not by the redirect target)
+        //   - Central domain → '/admin/tenants'  (super-admin / central-admin panel)
+        //
+        // NOTE: LoginController::redirectTo() (POST-login) correctly sends tenant
+        // users to '/home' — this callback only fires for users who are ALREADY
+        // authenticated and try to hit GET /login again (e.g. back-button after
+        // login).  Routing them to '/' lets the tenant's own document-index or
+        // module middleware take over from there, preserving the isolated-DB flow.
         RedirectIfAuthenticated::redirectUsing(function ($request) {
             return tenancy()->initialized ? '/' : '/admin/tenants';
         });

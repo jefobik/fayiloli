@@ -44,12 +44,13 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumnIfExists([
-                'user_name', 'phone',
-                'is_super_admin', 'is_admin', 'is_active',
-                'is_locked', 'is_2fa_enabled',
-            ]);
-        });
+        $columns = ['user_name', 'phone', 'is_super_admin', 'is_admin', 'is_active', 'is_locked', 'is_2fa_enabled'];
+        $existing = array_filter($columns, fn($col) => Schema::hasColumn('users', $col));
+
+        if ($existing) {
+            Schema::table('users', function (Blueprint $table) use ($existing) {
+                $table->dropColumn(array_values($existing));
+            });
+        }
     }
 };

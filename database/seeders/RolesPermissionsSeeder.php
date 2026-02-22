@@ -108,8 +108,8 @@ class RolesPermissionsSeeder extends Seeder
             }
         });
 
-        $this->command->info('Roles and permissions seeded successfully.');
-        $this->command->table(
+        $this->command?->info('Roles and permissions seeded successfully.');
+        $this->command?->table(
             ['Role', 'Permission Count'],
             [
                 ['admin',   Permission::count()],

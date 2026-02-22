@@ -11,10 +11,11 @@
     $canTags   = $tenant?->hasModule(TenantModule::TAGS)        && $authUser?->can('view tags');
     $canUsers  = $tenant?->hasModule(TenantModule::USERS)       && $authUser?->can('view users');
     $canProj   = $tenant?->hasModule(TenantModule::PROJECTS);   // no granular permission yet
-    $canConts  = $tenant?->hasModule(TenantModule::CONTACTS);   // no granular permission yet
+    $canConts  = $tenant?->hasModule(TenantModule::HRM);   // no granular permission yet
+    $canStats   = $tenant?->hasModule(TenantModule::STATS);   // no granular permission yet
 
     // "Modules" section heading only renders if at least one module is visible
-    $showModSection = $canUsers || $canProj || $canConts;
+    $showModSection = $canUsers || $canProj || $canConts || $canStats;
 @endphp
 
 {{-- ── Sidebar Logo ─────────────────────────────────────────────────── --}}
@@ -97,7 +98,15 @@
             <a href="{{ route('contacts.index') }}"
                class="sidebar-link {{ Route::is('contacts.*') ? 'active' : '' }}"
                {{ Route::is('contacts.*') ? 'aria-current=page' : '' }}>
-                <i class="fas fa-address-book" aria-hidden="true"></i> Contacts
+                <i class="fas fa-address-book" aria-hidden="true"></i> Human Resources
+            </a>
+        @endif
+
+        @if ($canStats)
+            <a href="{{ route('stats.index') }}"
+               class="sidebar-link {{ Route::is('stats.*') ? 'active' : '' }}"
+               {{ Route::is('stats.*') ? 'aria-current=page' : '' }}>
+                <i class="fas fa-chart-bar" aria-hidden="true"></i> Statistics
             </a>
         @endif
     @endif

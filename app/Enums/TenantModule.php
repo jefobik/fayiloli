@@ -21,7 +21,8 @@ enum TenantModule: string
     case FILE_REQUESTS = 'file_requests';
     case SHARES        = 'shares';
     case PROJECTS      = 'projects';
-    case CONTACTS      = 'contacts';
+    case HRM      = 'human resource management';
+    case STATS      = 'statistical reports';
 
     // ── Labels & UI ──────────────────────────────────────────────────────────
 
@@ -36,7 +37,8 @@ enum TenantModule: string
             self::FILE_REQUESTS => 'File Requests',
             self::SHARES        => 'Document Sharing',
             self::PROJECTS      => 'Projects',
-            self::CONTACTS      => 'Contacts',
+            self::HRM      => 'Human Resource Management',
+            self::STATS      => 'Statistical Reports',
         };
     }
 
@@ -51,7 +53,8 @@ enum TenantModule: string
             self::FILE_REQUESTS => 'Request files from other users.',
             self::SHARES        => 'Share documents via secure public links.',
             self::PROJECTS      => 'Project tracking and overview.',
-            self::CONTACTS      => 'Organisation contact directory.',
+            self::HRM      => 'Manage human resources.',
+            self::STATS      => 'View statistical reports.',
         };
     }
 
@@ -66,7 +69,8 @@ enum TenantModule: string
             self::FILE_REQUESTS => 'file-circle-question',
             self::SHARES        => 'share-nodes',
             self::PROJECTS      => 'diagram-project',
-            self::CONTACTS      => 'address-book',
+            self::HRM      => 'users',
+            self::STATS      => 'chart-line',
         };
     }
 
@@ -85,7 +89,8 @@ enum TenantModule: string
             self::FILE_REQUESTS => 'documents.index',   // no standalone index yet
             self::SHARES        => 'documents.index',   // no standalone index yet
             self::PROJECTS      => 'projects.index',
-            self::CONTACTS      => 'contacts.index',
+            self::HRM      => 'hrm.index',
+            self::STATS      => 'stats.index',
         };
     }
 

@@ -7,6 +7,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -15,7 +16,7 @@ use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable
 {
-    use HasFactory, HasUuids, Notifiable, HasRoles, LogsActivity;
+    use HasFactory, HasUuids, Notifiable, HasRoles, LogsActivity, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -61,6 +62,11 @@ class User extends Authenticatable
             'is_active'         => 'boolean',
             'is_locked'         => 'boolean',
             'is_2fa_enabled'    => 'boolean',
+            // Tracking columns — exist in tenant users table; central table gains
+            // them via migration 2026_02_22_000001_add_tracking_to_central_users.php
+            'last_login_at'     => 'datetime',
+            'locked_at'         => 'datetime',
+            'deleted_at'        => 'datetime',
         ];
     }
 

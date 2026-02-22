@@ -51,7 +51,8 @@
       "Bash(ss:*)",
       "Bash(1:*)",
       "Bash(/var/www/laravel/fayiloli/resources/views/projects/index.blade.php:*)",
-      "Bash(/var/www/laravel/fayiloli/resources/views/contacts/index.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/hrm/index.blade.php:*)",
+      "Bash(/var/www/laravel/fayiloli/resources/views/stats/index.blade.php:*)",
       "Bash(ls:*)",
       "Bash(/var/www/laravel/fayiloli/resources/views/tenants/edit.blade.php:*)",
       "Bash(/var/www/laravel/fayiloli/resources/views/tenants/create.blade.php:*)",
@@ -70,7 +71,9 @@
       "Bash(# Find the compiled login view specifically for f in /var/www/laravel/fayiloli/storage/framework/views/*.php; do if grep -q \"\"auth-shell\\\\|Signing in\\\\|nectarmetrics\"\" \"\"$f\"\" ; then echo \"\"=== $f ===\"\" grep -n \"\"nectarmetrics\\\\|@submit\\\\|loading = true\\\\|compileSubmit\\\\|plan_label\\\\|gradients\"\" \"\"$f\"\")",
       "Bash(# Check the vite manifest to understand how assets are resolved cat /var/www/laravel/fayiloli/public/build/manifest.json)",
       "Bash(xargs:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "additionalDirectories": [
       "/",

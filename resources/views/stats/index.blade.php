@@ -8,8 +8,8 @@
         </div>
         <h2 style="font-size:1.5rem;font-weight:800;color:#1e293b;margin:0 0 0.5rem">Contacts — Coming Soon</h2>
         <p style="color:#64748b;font-size:0.9rem;line-height:1.6;margin:0 0 2rem">
-            The Contacts module is currently under development.
-            Organisation-wide contact management and directory will be available here.
+            The statistical information module is currently under development.
+            Organisation-wide human resources management and directory will be available here.
         </p>
         <a href="{{ route('home') }}" class="toolbar-btn toolbar-btn-primary">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
