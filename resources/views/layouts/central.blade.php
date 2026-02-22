@@ -8,6 +8,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin') — {{ config('app.name', 'Fayiloli') }}</title>
 
+    {{-- Favicon --}}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon"  href="/favicon.ico">
+    <link rel="apple-touch-icon"          href="/img/fayiloli-icon.svg">
+
     {{-- Inter font --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -334,9 +339,11 @@
 
     {{-- Brand --}}
     <a href="{{ route('tenants.index') }}" class="central-nav-brand" aria-label="Fayiloli Admin — go to tenants">
-        <div class="brand-icon" aria-hidden="true">
-            <i class="fas fa-layer-group" aria-hidden="true"></i>
-        </div>
+        <img src="/img/fayiloli-icon.svg"
+             alt=""
+             aria-hidden="true"
+             width="32" height="32"
+             style="border-radius:8px;flex-shrink:0">
         <span class="brand-name">Fayiloli</span>
         <span class="brand-badge" aria-label="Central Admin">Admin</span>
     </a>

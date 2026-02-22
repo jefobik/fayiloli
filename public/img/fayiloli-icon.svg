@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Fayiloli EDMS">
+  <title>Fayiloli EDMS</title>
+  <defs>
+    <!--
+      Diagonal gradient: violet-500 → indigo-800.
+      The deeper indigo at the bottom-right gives the icon a premium,
+      layered depth that reads well at 16 px favicon size.
+    -->
+    <linearGradient id="fav-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#3730a3"/>
+    </linearGradient>
+
+    <!--
+      Flow gradient: solid white → transparent, left to right.
+      Applied to the flowing-arc group so the arcs naturally
+      "launch" from the document edge and dissolve into space.
+    -->
+    <linearGradient id="fav-flow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="white" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.25"/>
+    </linearGradient>
+
+    <!--
+      Clip path: everything inside the rounded-square tile.
+      Ensures no stroke bleeds outside the icon boundary.
+    -->
+    <clipPath id="fav-clip">
+      <rect width="48" height="48" rx="10.5"/>
+    </clipPath>
+  </defs>
+
+  <!-- ── Background tile ─────────────────────────────────────────────── -->
+  <rect width="48" height="48" rx="10.5" fill="url(#fav-bg)"/>
+
+  <g clip-path="url(#fav-clip)">
+
+    <!-- ── Document body ─────────────────────────────────────────────── -->
+    <!--
+      Shape: rectangle with rounded TL / BL / BR corners and a
+      cut (folded) TR corner.  The fold diagonal runs from
+      (22, 7) → (29, 14), producing a 7 × 7 px fold tab.
+
+      Path breakdown:
+        M 9,7          — start at top-left indent
+        Q 7,7 7,9      — TL quarter-arc (radius ≈ 2)
+        L 7,35         — left edge down
+        Q 7,37 9,37    — BL quarter-arc
+        L 27,37        — bottom edge
+        Q 29,37 29,35  — BR quarter-arc
+        L 29,14        — right edge up to fold bottom
+        L 22,7         — fold diagonal (TR corner cut)
+        Z              — close: draws top edge 22 → 9
+    -->
+    <path d="M9,7 Q7,7 7,9 L7,35 Q7,37 9,37 L27,37 Q29,37 29,35 L29,14 L22,7 Z"
+          fill="rgba(255,255,255,0.97)"/>
+
+    <!-- ── Fold flap (the turned-over triangle) ───────────────────────── -->
+    <!--
+      Small right-triangle that represents the page corner being
+      folded back: TL=(22,7) TR=(29,14) BL=(22,14).
+      Semi-transparent white gives a subtle shadow-like depth.
+    -->
+    <path d="M22,7 L29,14 L22,14 Z"
+          fill="rgba(255,255,255,0.28)"/>
+
+    <!-- ── Document content lines (text simulation) ───────────────────── -->
+    <!--
+      Three pill-shaped lines inside the doc body, tinted with
+      deep violet so they read as "ink on paper".  The third
+      line is shorter — mimics a paragraph's last line.
+    -->
+    <rect x="10" y="19" width="15" height="2"   rx="1" fill="#4c1d95" opacity="0.30"/>
+    <rect x="10" y="24" width="15" height="2"   rx="1" fill="#4c1d95" opacity="0.24"/>
+    <rect x="10" y="29" width="10" height="2"   rx="1" fill="#4c1d95" opacity="0.18"/>
+
+    <!-- ── Flowing data-stream arcs ───────────────────────────────────── -->
+    <!--
+      Two cubic-bezier curves and an arrowhead originate from
+      the right edge of the document (x=29) and sweep up-right,
+      representing electronic document flow / transmission.
+
+      Arc 1 (primary): bold, nearly opaque, sweeps from (29,16)
+        through control points (35,10) → (41,16) to end at (43,22).
+      Arc 2 (secondary): thinner, 50% opacity, lower register.
+      Arrowhead: chevron at the Arc 1 endpoint (43,22) pointing →
+    -->
+
+    <!-- Primary flow arc -->
+    <path d="M29,16 C35,10 41,16 43,22"
+          fill="none"
+          stroke="url(#fav-flow)"
+          stroke-width="2.4"
+          stroke-linecap="round"/>
+
+    <!-- Secondary flow arc -->
+    <path d="M29,24 C35,21 40,27 42,31"
+          fill="none"
+          stroke="rgba(255,255,255,0.48)"
+          stroke-width="1.7"
+          stroke-linecap="round"/>
+
+    <!-- Arrowhead (chevron) at primary arc terminus -->
+    <path d="M40,19 L43.5,22 L40,25"
+          fill="none"
+          stroke="rgba(255,255,255,0.90)"
+          stroke-width="2.1"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+  </g>
+</svg>

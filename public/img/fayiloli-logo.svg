@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 196 52" role="img" aria-label="Fayiloli EDMS">
+  <title>Fayiloli EDMS</title>
+  <defs>
+    <linearGradient id="logo-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#3730a3"/>
+    </linearGradient>
+    <linearGradient id="logo-flow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="white" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.25"/>
+    </linearGradient>
+    <clipPath id="logo-clip">
+      <rect x="2" y="2" width="48" height="48" rx="10.5"/>
+    </clipPath>
+  </defs>
+
+  <!-- ── Icon tile (offset 2,2 to allow drop-shadow room) ────────────── -->
+  <rect x="2" y="2" width="48" height="48" rx="10.5" fill="url(#logo-bg)"/>
+
+  <g clip-path="url(#logo-clip)">
+    <!-- Document body -->
+    <path d="M11,9 Q9,9 9,11 L9,37 Q9,39 11,39 L29,39 Q31,39 31,37 L31,16 L24,9 Z"
+          fill="rgba(255,255,255,0.97)"/>
+    <!-- Fold flap -->
+    <path d="M24,9 L31,16 L24,16 Z"
+          fill="rgba(255,255,255,0.28)"/>
+    <!-- Content lines -->
+    <rect x="12" y="21" width="15" height="2"  rx="1" fill="#4c1d95" opacity="0.30"/>
+    <rect x="12" y="26" width="15" height="2"  rx="1" fill="#4c1d95" opacity="0.24"/>
+    <rect x="12" y="31" width="10" height="2"  rx="1" fill="#4c1d95" opacity="0.18"/>
+    <!-- Primary flow arc -->
+    <path d="M31,18 C37,12 43,18 45,24"
+          fill="none" stroke="url(#logo-flow)" stroke-width="2.4" stroke-linecap="round"/>
+    <!-- Secondary flow arc -->
+    <path d="M31,26 C37,23 42,29 44,33"
+          fill="none" stroke="rgba(255,255,255,0.48)" stroke-width="1.7" stroke-linecap="round"/>
+    <!-- Arrowhead -->
+    <path d="M42,21 L45.5,24 L42,27"
+          fill="none" stroke="rgba(255,255,255,0.90)" stroke-width="2.1"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- ── Wordmark text ─────────────────────────────────────────────────── -->
+  <!--
+    Font stack: Inter (loaded on every app page), then system UI fallbacks.
+    SVG text renders using the document's loaded fonts — since Inter is
+    always available in the app context, these glyphs will look correct.
+  -->
+
+  <!-- Brand name — dark slate, heavy weight -->
+  <text
+    x="62" y="28"
+    font-family="'Inter', 'Helvetica Neue', Arial, sans-serif"
+    font-size="21"
+    font-weight="800"
+    fill="#0f172a"
+    letter-spacing="-0.5"
+    dominant-baseline="middle"
+  >FAYILOLI</text>
+
+  <!-- Subtitle — violet accent, tight tracking -->
+  <text
+    x="63" y="42"
+    font-family="'Inter', 'Helvetica Neue', Arial, sans-serif"
+    font-size="9.5"
+    font-weight="700"
+    fill="#7c3aed"
+    letter-spacing="3"
+    dominant-baseline="middle"
+  >EDMS</text>
+
+</svg>

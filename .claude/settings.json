@@ -56,7 +56,21 @@
       "Bash(/var/www/laravel/fayiloli/resources/views/tenants/edit.blade.php:*)",
       "Bash(/var/www/laravel/fayiloli/resources/views/tenants/create.blade.php:*)",
       "Bash(/var/www/laravel/fayiloli/database/migrations/0001_01_01_000000_create_users_table.php:*)",
-      "Bash(/var/www/laravel/fayiloli/app/Http/Controllers/TenantController.php:*)"
+      "Bash(/var/www/laravel/fayiloli/app/Http/Controllers/TenantController.php:*)",
+      "Bash(chmod:*)",
+      "Bash(for:*)",
+      "Bash(do php -l \"$f\")",
+      "Bash(PGPASSWORD=password psql:*)",
+      "Bash(while read f)",
+      "Bash(PGPASSWORD=edms_password psql:*)",
+      "Bash(git -C /var/www/laravel/fayiloli status --short)",
+      "Bash(git -C /var/www/laravel/fayiloli diff --stat HEAD)",
+      "Bash(git -C /var/www/laravel/fayiloli add app/Http/Controllers/TenantController.php app/Http/Requests/StoreTenantRequest.php app/Http/Requests/UpdateTenantRequest.php app/Models/Tenant.php app/Models/Permission.php app/Models/Role.php app/Services/SubdomainGenerator.php config/permission.php config/tenancy.php database/migrations/2019_09_15_000010_create_tenants_table.php database/migrations/2026_02_18_034818_add_additional_fields_to_users_table.php \"database/migrations/2026_02_21_220000_add_short_name_to_tenants_table.php\" \"database/migrations/tenant/2024_03_20_000001_create_permission_tables.php\" \"database/migrations/tenant/2026_02_21_000001_fix_tenant_permission_and_notification_tables.php\" database/seeders/DatabaseSeeder.php database/seeders/RolesPermissionsSeeder.php database/seeders/UserSeeder.php resources/views/auth/login.blade.php resources/views/tenants/create.blade.php resources/views/tenants/edit.blade.php resources/views/tenants/show.blade.php routes/web.php .env.example infrastructure/)",
+      "Bash(git -C:*)",
+      "Bash(# Find the compiled login view specifically for f in /var/www/laravel/fayiloli/storage/framework/views/*.php; do if grep -q \"\"auth-shell\\\\|Signing in\\\\|nectarmetrics\"\" \"\"$f\"\" ; then echo \"\"=== $f ===\"\" grep -n \"\"nectarmetrics\\\\|@submit\\\\|loading = true\\\\|compileSubmit\\\\|plan_label\\\\|gradients\"\" \"\"$f\"\")",
+      "Bash(# Check the vite manifest to understand how assets are resolved cat /var/www/laravel/fayiloli/public/build/manifest.json)",
+      "Bash(xargs:*)",
+      "Bash(git add:*)"
     ],
     "additionalDirectories": [
       "/",

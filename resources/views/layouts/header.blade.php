@@ -17,10 +17,11 @@
     <div class="header-brand" x-show="!sidebarOpen" aria-hidden="true">
         <a href="{{ route('home') }}" tabindex="-1"
            style="display:flex;align-items:center;gap:0.5rem;text-decoration:none">
-            <svg aria-hidden="true" focusable="false"
-                 style="width:28px;height:28px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                <path fill="#7c3aed" d="M512 256a15 15 0 00-7.1-12.8l-52-32 52-32.5a15 15 0 000-25.4L264 2.3c-4.8-3-11-3-15.9 0L7 153.3a15 15 0 000 25.4L58.9 211 7.1 243.3a15 15 0 000 25.4L58.8 301 7.1 333.3a15 15 0 000 25.4l241 151a15 15 0 0015.9 0l241-151a15 15 0 00-.1-25.5l-52-32 52-32.5A15 15 0 00512 256z"/>
-            </svg>
+            <img src="/img/fayiloli-icon.svg"
+                 alt=""
+                 aria-hidden="true"
+                 width="28" height="28"
+                 style="flex-shrink:0;border-radius:6px">
             <span class="app-title">Fayiloli v2.9</span>
         </a>
     </div>
@@ -81,7 +82,7 @@
                 <a class="edms-dropdown-item" role="menuitem" href="{{ route('documents.index') }}">
                     <i class="fas fa-file-alt" aria-hidden="true"></i> Documents
                 </a>
-                <a class="edms-dropdown-item" role="menuitem" href="{{ route('workspaces.index') }}">
+                <a class="edms-dropdown-item" role="menuitem" href="{{ route('folders.index') }}">
                     <i class="fas fa-layer-group" aria-hidden="true"></i> Workspaces
                 </a>
                 <a class="edms-dropdown-item" role="menuitem" href="{{ route('tags.index') }}">

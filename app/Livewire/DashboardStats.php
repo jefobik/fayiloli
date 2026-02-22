@@ -8,6 +8,7 @@ use App\Models\Folder;
 use App\Models\Tag;
 use App\Models\ShareDocument;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use App\Models\MongoActivity;
 
@@ -18,11 +19,14 @@ class DashboardStats extends Component
     public int $tagCount        = 0;
     public int $sharedCount     = 0;
     public int $unreadCount     = 0;
+    public int $userCount       = 0;
 
     public array $docsByExt     = [];
     public array $monthlyLabels = [];
     public array $monthlyData   = [];
     public array $recentActivity= [];
+
+    public string $lastUpdated  = '';
 
     public function mount(): void
     {
@@ -32,6 +36,16 @@ class DashboardStats extends Component
     public function refresh(): void
     {
         $this->loadStats();
+
+        // Dispatch a browser event so the @script block can re-draw Chart.js
+        // instances that were destroyed when Livewire morphed the canvas DOM nodes.
+        $this->dispatch('stats-refreshed', [
+            'extData' => $this->docsByExt,
+            'monthly' => [
+                'labels' => $this->monthlyLabels,
+                'data'   => $this->monthlyData,
+            ],
+        ]);
     }
 
     private function loadStats(): void
@@ -40,9 +54,12 @@ class DashboardStats extends Component
         $this->folderCount   = Folder::count();
         $this->tagCount      = Tag::count();
         $this->sharedCount   = ShareDocument::count();
+        $this->userCount     = User::count();
         $this->unreadCount   = Notification::where('status', 'UNREAD')
             ->where('dismiss_status', 'UNDISMISSED')
             ->count();
+
+        $this->lastUpdated = now()->format('H:i:s');
 
         // Documents by extension (top 6).
         // withoutGlobalScope('position') prevents the Document model's global
@@ -87,10 +104,10 @@ class DashboardStats extends Component
         // Recent activity log — reads from MongoDB via MongoActivity.
         $this->recentActivity = MongoActivity::with('causer')
             ->latest()
-            ->limit(8)
+            ->limit(10)
             ->get()
             ->map(fn($a) => [
-                'id'          => $a->id,
+                'id'          => (string) $a->id,
                 'description' => $a->description,
                 'event'       => $a->event ?? 'updated',
                 'subject'     => $a->subject_type ? class_basename($a->subject_type) : 'System',

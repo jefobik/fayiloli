@@ -1,3 +1,22 @@
+@php
+    use App\Enums\TenantModule;
+    $tenant  = tenancy()->tenant ?? null;
+    $authUser = Auth::user();
+
+    // ── Resolve which modules are visible to THIS user ─────────────────────
+    // Layer 1: module must be enabled on the tenant
+    // Layer 2: user must hold the required Spatie permission for that module
+
+    $canDocs   = $tenant?->hasModule(TenantModule::DOCUMENTS)  && $authUser?->can('view documents');
+    $canTags   = $tenant?->hasModule(TenantModule::TAGS)        && $authUser?->can('view tags');
+    $canUsers  = $tenant?->hasModule(TenantModule::USERS)       && $authUser?->can('view users');
+    $canProj   = $tenant?->hasModule(TenantModule::PROJECTS);   // no granular permission yet
+    $canConts  = $tenant?->hasModule(TenantModule::CONTACTS);   // no granular permission yet
+
+    // "Modules" section heading only renders if at least one module is visible
+    $showModSection = $canUsers || $canProj || $canConts;
+@endphp
+
 {{-- ── Sidebar Logo ─────────────────────────────────────────────────── --}}
 <div class="sidebar-logo">
     <a href="{{ route('home') }}" aria-label="Fayiloli — go to dashboard"
@@ -21,21 +40,25 @@
         <i class="fas fa-home" aria-hidden="true"></i> Dashboard
     </a>
 
-    <a href="{{ route('documents.index') }}"
-       class="sidebar-link {{ Route::is('documents.index') ? 'active' : '' }}"
-       {{ Route::is('documents.index') ? 'aria-current=page' : '' }}>
-        <i class="fas fa-file-alt" aria-hidden="true"></i> Documents
-        <span class="badge" id="sidebar-doc-count" aria-live="polite"></span>
-    </a>
+    @if ($canDocs)
+        <a href="{{ route('documents.index') }}"
+           class="sidebar-link {{ Route::is('documents.index') ? 'active' : '' }}"
+           {{ Route::is('documents.index') ? 'aria-current=page' : '' }}>
+            <i class="fas fa-file-alt" aria-hidden="true"></i> Documents
+            <span class="badge" id="sidebar-doc-count" aria-live="polite"></span>
+        </a>
+    @endif
 
-    <a href="{{ route('tags.index') }}"
-       class="sidebar-link {{ Route::is('tags.*') ? 'active' : '' }}"
-       {{ Route::is('tags.*') ? 'aria-current=page' : '' }}>
-        <i class="fas fa-tags" aria-hidden="true"></i> Tags
-    </a>
+    @if ($canTags)
+        <a href="{{ route('tags.index') }}"
+           class="sidebar-link {{ Route::is('tags.*') ? 'active' : '' }}"
+           {{ Route::is('tags.*') ? 'aria-current=page' : '' }}>
+            <i class="fas fa-tags" aria-hidden="true"></i> Tags
+        </a>
+    @endif
 
     {{-- ── Workspaces / Folder Tree ──────────────────────────────────── --}}
-    @if (Route::is('documents.index'))
+    @if ($canDocs && Route::is('documents.index'))
         <div class="sidebar-section-label" role="heading" aria-level="2"
              style="margin-top:0.75rem;display:flex;align-items:center;">Workspaces</div>
         <ul class="folders" aria-label="Workspace folders"
@@ -49,26 +72,35 @@
         <div id="renderFolderTagsHtml"></div>
     @endif
 
-    <div class="sidebar-section-label" role="heading" aria-level="2"
-         style="margin-top:0.75rem">Modules</div>
+    {{-- ── Module-gated links ─────────────────────────────────────────── --}}
+    @if ($showModSection)
+        <div class="sidebar-section-label" role="heading" aria-level="2"
+             style="margin-top:0.75rem">Modules</div>
 
-    <a href="{{ route('users.index') }}"
-       class="sidebar-link {{ Route::is('users.*') ? 'active' : '' }}"
-       {{ Route::is('users.*') ? 'aria-current=page' : '' }}>
-        <i class="fas fa-users" aria-hidden="true"></i> Users
-    </a>
+        @if ($canUsers)
+            <a href="{{ route('users.index') }}"
+               class="sidebar-link {{ Route::is('users.*') ? 'active' : '' }}"
+               {{ Route::is('users.*') ? 'aria-current=page' : '' }}>
+                <i class="fas fa-users" aria-hidden="true"></i> Users
+            </a>
+        @endif
 
-    <a href="{{ route('projects.index') }}"
-       class="sidebar-link {{ Route::is('projects.*') ? 'active' : '' }}"
-       {{ Route::is('projects.*') ? 'aria-current=page' : '' }}>
-        <i class="fas fa-project-diagram" aria-hidden="true"></i> Projects
-    </a>
+        @if ($canProj)
+            <a href="{{ route('projects.index') }}"
+               class="sidebar-link {{ Route::is('projects.*') ? 'active' : '' }}"
+               {{ Route::is('projects.*') ? 'aria-current=page' : '' }}>
+                <i class="fas fa-project-diagram" aria-hidden="true"></i> Projects
+            </a>
+        @endif
 
-    <a href="{{ route('contacts.index') }}"
-       class="sidebar-link {{ Route::is('contacts.*') ? 'active' : '' }}"
-       {{ Route::is('contacts.*') ? 'aria-current=page' : '' }}>
-        <i class="fas fa-address-book" aria-hidden="true"></i> Contacts
-    </a>
+        @if ($canConts)
+            <a href="{{ route('contacts.index') }}"
+               class="sidebar-link {{ Route::is('contacts.*') ? 'active' : '' }}"
+               {{ Route::is('contacts.*') ? 'aria-current=page' : '' }}>
+                <i class="fas fa-address-book" aria-hidden="true"></i> Contacts
+            </a>
+        @endif
+    @endif
 </nav>
 
 {{-- ── Sidebar Footer ───────────────────────────────────────────────── --}}

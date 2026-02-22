@@ -7,6 +7,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'FAYILOLI') }} — Enterprise Document Management</title>
 
+    {{-- Favicon — SVG (modern) + ICO (legacy fallback) --}}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon"  href="/favicon.ico">
+    <link rel="apple-touch-icon"          href="/img/fayiloli-icon.svg">
+
     {{-- Tailwind v4 + Alpine.js + Chart.js (via Vite) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -90,8 +95,19 @@
                 @include('layouts.header')
             @endif
 
-            {{-- ── Page Content (shown by JS after AJAX load) ──────────── --}}
-            <div class="page-content" style="display:none">
+            {{--
+                Page Content visibility strategy
+                ─────────────────────────────────
+                • documents.index  → start HIDDEN; documents1001.js reveals it after
+                                     the AJAX folder-load completes (prevents flash of
+                                     empty content while the file list is fetching).
+                • all other routes → start VISIBLE immediately; SSR content is ready
+                                     the moment the HTML is parsed, so hiding it would
+                                     just cause a blank-screen flash after every login
+                                     redirect and every page navigation.
+            --}}
+            <div class="page-content"
+                 style="{{ Route::is('documents.index') ? 'display:none' : 'display:block' }}">
                 @if (!isset($shareDocument) && !Route::is('home'))
                     @include('layouts.navbar-search')
                 @endif
@@ -102,19 +118,23 @@
     </div>
 
 @else
-    {{-- ── Unauthenticated layout ───────────────────── --}}
-    <div style="min-height:100vh">
-        <div class="page-content" style="display:block">
-            @yield('content')
-        </div>
-    </div>
+    {{--
+        Unauthenticated layout — auth shell owns its own min-height and layout.
+        Do NOT wrap in .page-content: that class carries EDMS-app CSS
+        (background:#f8fafc, overflow-x:hidden, flex:1) that conflicts with
+        the full-bleed auth-shell design.
+    --}}
+    @yield('content')
 @endauth
 
 {{-- ── Scripts ─────────────────────────────────────────────────────────── --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+@auth
+{{-- EDMS-specific JS — only needed on authenticated pages (not login/portal) --}}
 <script src="{{ asset('custom-js/documents1001.js') }}"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+@endauth
 @livewireScripts
 {{-- TallStackUI scripts --}}
 @tallStackUiScript

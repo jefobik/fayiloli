@@ -1,8 +1,9 @@
 <?php
 
+use App\Http\Controllers\PortalController;
+use App\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TenantController;
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  CENTRAL-DOMAIN ROUTES  (localhost / 127.0.0.1)
@@ -18,9 +19,20 @@ use App\Http\Controllers\TenantController;
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ─── Central root redirect ────────────────────────────────────────────────
-Route::get('/', fn () => redirect()->to(
-    auth()->check() ? '/admin/tenants' : '/login'
-));
+//  Authenticated admins/super-admins   → tenant management portal
+//  Everyone else (guests + non-admins) → organisation discovery portal
+Route::get('/', function () {
+    if (auth()->check() && auth()->user()->isAdminOrAbove()) {
+        return redirect('/admin/tenants');
+    }
+    return redirect('/portal');
+});
+
+// ─── Organisation Discovery Portal (public) ──────────────────────────────
+//  Renders the "Find Your Organisation" page.  No auth required.
+//  Only ACTIVE tenants are shown; signing in at an org link initialises
+//  tenancy on that subdomain and authenticates against the tenant DB.
+Route::get('/portal', PortalController::class)->name('portal.discover');
 
 // ─── Authentication (shared — central admin + tenant users) ──────────────
 //  A SINGLE set of auth routes serves both the super-admin portal and every

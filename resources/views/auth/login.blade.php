@@ -1,36 +1,66 @@
 @extends('layouts.app')
 
+@php
+    // Org context is only available on tenant subdomains.
+    $org = tenancy()->initialized ? tenancy()->tenant : null;
+@endphp
+
 @section('content')
 <div class="auth-shell">
 
     {{-- ── Visual Panel (left) ─────────────────────────────────────────── --}}
     <div class="auth-visual" aria-hidden="true">
         <div class="auth-visual-content">
-            <div class="auth-visual-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width:64px;height:64px"
-                     aria-hidden="true" focusable="false">
-                    <path fill="rgba(255,255,255,0.85)"
-                          d="M512 256a15 15 0 00-7.1-12.8l-52-32 52-32.5a15 15 0 000-25.4L264 2.3c-4.8-3-11-3-15.9 0L7 153.3a15 15 0 000 25.4L58.9 211 7.1 243.3a15 15 0 000 25.4L58.8 301 7.1 333.3a15 15 0 000 25.4l241 151a15 15 0 0015.9 0l241-151a15 15 0 00-.1-25.5l-52-32 52-32.5A15 15 0 00512 256z"/>
-                </svg>
-            </div>
-            <div class="auth-visual-title">NectarMetrics - FAYILOLI Electronic Document Management System</div>
-            <div class="auth-visual-desc">
-                Secure, intelligent document management for government and modern organisations.
-                Powered by NectarMetrics Solutions Limited — delivering intelligent workflow, real-time notifications, enterprise-grade security, and powerful role-based access you can trust.
-            </div>
+            @if ($org)
+                {{-- Tenant-branded left panel --}}
+                @php
+                    $gradients = [
+                        'government'  => ['#dc2626','#b91c1c'],
+                        'secretariat' => ['#4f46e5','#7c3aed'],
+                        'agency'      => ['#0284c7','#0369a1'],
+                        'department'  => ['#16a34a','#15803d'],
+                        'unit'        => ['#d97706','#b45309'],
+                    ];
+                    $gc = $gradients[$org->tenant_type?->value ?? ''] ?? ['#475569','#334155'];
+                @endphp
+                <div class="auth-visual-icon" style="background:linear-gradient(135deg,{{ $gc[0] }},{{ $gc[1] }});border-radius:16px;width:72px;height:72px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem">
+                    <span style="font-size:1.6rem;font-weight:800;color:#fff;letter-spacing:0.02em">
+                        {{ strtoupper(substr($org->organization_name, 0, 1)) }}{{ strtoupper(substr(explode(' ', $org->organization_name)[1] ?? '', 0, 1)) }}
+                    </span>
+                </div>
+                <div class="auth-visual-title">{{ $org->organization_name }}</div>
+                <div class="auth-visual-desc">
+                    {{ $org->plan_label }} &middot; Secure EDMS Workspace<br>
+                    Sign in with your organisation credentials to access documents, workspaces, and collaboration tools.
+                </div>
+            @else
+                {{-- Central / generic left panel --}}
+                <div class="auth-visual-icon">
+                    <img src="/img/fayiloli-icon.svg"
+                         alt=""
+                         aria-hidden="true"
+                         width="72" height="72"
+                         style="border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.35)">
+                </div>
+                <div class="auth-visual-title">NectarMetrics - FAYILOLI Electronic Document Management System</div>
+                <div class="auth-visual-desc">
+                    Secure, intelligent document management for government and modern organisations.
+                    Powered by NectarMetrics Solutions Limited — delivering intelligent workflow, real-time notifications, enterprise-grade security, and powerful role-based access you can trust.
+                </div>
+            @endif
 
             <div class="auth-features">
                 <div class="auth-feature">
                     <i class="fas fa-search" aria-hidden="true"></i>
-                    <span>Intelligent workflow-based and full-text search with MeiliSearch</span>
+                    <span>Intelligent workflow-based and full-text search</span>
                 </div>
                 <div class="auth-feature">
                     <i class="fas fa-bell" aria-hidden="true"></i>
-                    <span>Real-time notifications &amp; audit and activity log</span>
+                    <span>Real-time activities notifications &amp; audit and activity log</span>
                 </div>
                 <div class="auth-feature">
                     <i class="fas fa-shield-alt" aria-hidden="true"></i>
-                    <span>Role-based access control (Administrator, Manager, Reviewer, Approver, Viewer)</span>
+                    <span>Role-based access control (Administrator, Manager, Reviewer, Viewer)</span>
                 </div>
                 <div class="auth-feature">
                     <i class="fas fa-layer-group" aria-hidden="true"></i>
@@ -48,16 +78,40 @@
     <div class="auth-form-panel">
         <div class="auth-form-inner">
 
-            {{-- Logo --}}
+            {{-- Logo / Brand --}}
             <div class="auth-form-logo" aria-hidden="true">
-                <div class="avatar" style="width:36px;height:36px;font-size:0.9rem">
-                    <i class="fas fa-layer-group" aria-hidden="true" style="font-size:0.9rem"></i>
-                </div>
+                <img src="/img/fayiloli-icon.svg"
+                     alt=""
+                     aria-hidden="true"
+                     width="36" height="36"
+                     style="border-radius:8px;flex-shrink:0">
                 <span class="brand">Fayiloli v2.9</span>
             </div>
 
-            <h2 class="auth-form-title">Sign in to your account</h2>
-            <p class="auth-form-sub">Enter your credentials to access your workspace</p>
+            {{-- Org identity strip (tenant domains only) --}}
+            @if ($org)
+                <div class="org-identity-strip" role="region" aria-label="Organisation">
+                    @php
+                        $gc = $gradients[$org->tenant_type?->value ?? ''] ?? ['#475569','#334155'];
+                    @endphp
+                    <div class="org-identity-avatar" style="background:linear-gradient(135deg,{{ $gc[0] }},{{ $gc[1] }})">
+                        {{ strtoupper(substr($org->organization_name, 0, 1)) }}{{ strtoupper(substr(explode(' ', $org->organization_name)[1] ?? '', 0, 1)) }}
+                    </div>
+                    <div class="org-identity-info">
+                        <div class="org-identity-name">{{ $org->organization_name }}</div>
+                        <span class="org-identity-type">{{ $org->plan_label }}</span>
+                    </div>
+                    <a href="/portal" class="org-change-link" title="Switch organisation">
+                        <i class="fas fa-exchange-alt" aria-hidden="true"></i>
+                    </a>
+                </div>
+
+                <h2 class="auth-form-title">Sign in to your workspace</h2>
+                <p class="auth-form-sub">Access {{ $org->organization_name }} EDMS</p>
+            @else
+                <h2 class="auth-form-title">Sign in to your account</h2>
+                <p class="auth-form-sub">Enter your credentials to access your workspace</p>
+            @endif
 
             {{-- Validation Errors --}}
             @if ($errors->any())
@@ -74,7 +128,16 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}" x-data="{ showPw: false }" novalidate>
+            {{--
+                Alpine state:
+                  showPw   — password visibility toggle
+                  loading  — true while the form POST is in-flight; prevents
+                             double-submit and shows a spinner on the button
+            --}}
+            <form method="POST" action="{{ route('login') }}"
+                  x-data="{ showPw: false, loading: false }"
+                  @submit="loading = true"
+                  novalidate>
                 @csrf
 
                 {{-- Email --}}
@@ -85,9 +148,10 @@
                         <input
                             type="email" id="email" name="email"
                             value="{{ old('email') }}"
-                            placeholder="you@company.com"
+                            placeholder="you@organisation.gov.ng"
                             required autocomplete="email" autofocus
                             aria-required="true"
+                            :disabled="loading"
                             @if ($errors->has('email')) aria-invalid="true" @endif
                         >
                     </div>
@@ -111,12 +175,14 @@
                             placeholder="••••••••"
                             required autocomplete="current-password"
                             aria-required="true"
+                            :disabled="loading"
                             :aria-label="showPw ? 'Password (visible)' : 'Password'"
                             @if ($errors->has('password')) aria-invalid="true" @endif
                         >
                         <button type="button"
                                 class="toggle-pw"
                                 @click="showPw = !showPw"
+                                :disabled="loading"
                                 :aria-pressed="showPw.toString()"
                                 :aria-label="showPw ? 'Hide password' : 'Show password'">
                             <i :class="showPw ? 'fas fa-eye-slash' : 'fas fa-eye'" aria-hidden="true"></i>
@@ -127,19 +193,33 @@
                 {{-- Remember me --}}
                 <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.25rem">
                     <input type="checkbox" id="remember" name="remember"
-                           style="width:16px;height:16px;accent-color:#7c3aed;cursor:pointer">
+                           style="width:16px;height:16px;accent-color:#7c3aed;cursor:pointer"
+                           :disabled="loading">
                     <label for="remember" style="font-size:0.82rem;color:#374151;cursor:pointer;margin:0">
                         Keep me signed in for 30 days
                     </label>
                 </div>
 
-                <button type="submit" class="auth-submit">
-                    <i class="fas fa-sign-in-alt" aria-hidden="true" style="margin-right:0.5rem"></i>
-                    Sign In
+                <button type="submit" class="auth-submit" :disabled="loading" :aria-busy="loading.toString()">
+                    {{-- Spinner (visible while loading) --}}
+                    <span x-show="loading" x-cloak aria-hidden="true"
+                          style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:auth-spin 0.7s linear infinite;margin-right:0.5rem;vertical-align:middle"></span>
+                    {{-- Icon (visible when not loading) --}}
+                    <i class="fas fa-sign-in-alt" aria-hidden="true" style="margin-right:0.5rem" x-show="!loading"></i>
+                    <span x-text="loading ? 'Signing in…' : 'Sign In'">Sign In</span>
                 </button>
             </form>
 
-            @if (Route::has('register'))
+            {{-- Back to portal (tenant domains only) --}}
+            @if ($org)
+                <div class="auth-divider"><span>Wrong organisation?</span></div>
+                <div style="text-align:center">
+                    <a href="/portal" class="auth-link" style="font-size:0.875rem">
+                        <i class="fas fa-arrow-left" aria-hidden="true" style="font-size:0.75rem"></i>
+                        Find a different organisation
+                    </a>
+                </div>
+            @elseif (Route::has('register'))
                 <div class="auth-divider"><span>Don't have an account?</span></div>
                 <div style="text-align:center">
                     <a href="{{ route('register') }}" class="auth-link" style="font-size:0.875rem">
@@ -152,12 +232,71 @@
             <div style="text-align:center;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #f1f5f9;color:#94a3b8;font-size:0.72rem">
                 &copy; {{ date('Y') }} NECTARMETRICS SOLUTIONS LIMITED. All rights reserved.<br>
                 <span style="margin-top:0.2rem;display:block">
-                    Powered by @nectarmetrics {{ app()->version() }} &middot; EDMS v2.9 &middot; Heracleus-CBT v5.2
+                    Powered by @@nectarmetrics {{ app()->version() }} &middot; EDMS v2.9 &middot; Heracleus-CBT v5.2
                 </span>
             </div>
 
         </div>
     </div>
 </div>
+
+<style>
+/* Submit button spinner */
+@keyframes auth-spin {
+    to { transform: rotate(360deg); }
+}
+.auth-submit:disabled { opacity: 0.75; cursor: not-allowed; }
+
+/* Org identity strip on tenant login */
+.org-identity-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+}
+.org-identity-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+}
+.org-identity-info { flex: 1; min-width: 0; }
+.org-identity-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.org-identity-type {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #7c3aed;
+}
+.org-change-link {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    text-decoration: none;
+    padding: 0.3rem;
+    border-radius: 5px;
+    transition: color 0.15s;
+    flex-shrink: 0;
+}
+.org-change-link:hover { color: #7c3aed; }
+</style>
 
 @endsection

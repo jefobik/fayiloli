@@ -23,13 +23,16 @@ class LoginController extends Controller
     /**
      * Where to redirect users after login.
      *
-     * Returns the EDMS home ('/') on a tenant domain (tenancy is already
-     * initialised by the global InitializeTenancyByDomain middleware), or
-     * the central super-admin portal ('/admin/tenants') on the central domain.
+     * Tenant domain  → /home (RBAC-aware module dashboard)
+     * Central domain → /admin/tenants (tenant management, admins only)
+     *
+     * We send tenant users to /home rather than / so they land on the
+     * personalised dashboard (role badge, module launchpad, live stats)
+     * instead of jumping straight into the documents list.
      */
     protected function redirectTo(): string
     {
-        return tenancy()->initialized ? '/' : '/admin/tenants';
+        return tenancy()->initialized ? '/home' : '/admin/tenants';
     }
 
     /**
