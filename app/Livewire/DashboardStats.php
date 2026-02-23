@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\Attributes\Locked;
 use App\Models\Document;
 use App\Models\Folder;
 use App\Models\Tag;
@@ -12,21 +15,28 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use App\Models\MongoActivity;
 
+/**
+ * Live dashboard stats component.
+ * Polls every 60 seconds via wire:poll in the Blade view.
+ * Uses #[Locked] on all server-computed properties to prevent
+ * client-side tampering.
+ */
 class DashboardStats extends Component
 {
-    public int $documentCount   = 0;
-    public int $folderCount     = 0;
-    public int $tagCount        = 0;
-    public int $sharedCount     = 0;
-    public int $unreadCount     = 0;
-    public int $userCount       = 0;
+    /** Stat counters — server-owned, not writable from the browser. */
+    #[Locked] public int $documentCount = 0;
+    #[Locked] public int $folderCount = 0;
+    #[Locked] public int $tagCount = 0;
+    #[Locked] public int $sharedCount = 0;
+    #[Locked] public int $unreadCount = 0;
+    #[Locked] public int $userCount = 0;
 
-    public array $docsByExt     = [];
-    public array $monthlyLabels = [];
-    public array $monthlyData   = [];
-    public array $recentActivity= [];
+    #[Locked] public array $docsByExt = [];
+    #[Locked] public array $monthlyLabels = [];
+    #[Locked] public array $monthlyData = [];
+    #[Locked] public array $recentActivity = [];
 
-    public string $lastUpdated  = '';
+    #[Locked] public string $lastUpdated = '';
 
     public function mount(): void
     {
@@ -39,23 +49,24 @@ class DashboardStats extends Component
 
         // Dispatch a browser event so the @script block can re-draw Chart.js
         // instances that were destroyed when Livewire morphed the canvas DOM nodes.
-        $this->dispatch('stats-refreshed', [
-            'extData' => $this->docsByExt,
-            'monthly' => [
+        $this->dispatch(
+            'stats-refreshed',
+            extData: $this->docsByExt,
+            monthly: [
                 'labels' => $this->monthlyLabels,
-                'data'   => $this->monthlyData,
+                'data' => $this->monthlyData,
             ],
-        ]);
+        );
     }
 
     private function loadStats(): void
     {
         $this->documentCount = Document::count();
-        $this->folderCount   = Folder::count();
-        $this->tagCount      = Tag::count();
-        $this->sharedCount   = ShareDocument::count();
-        $this->userCount     = User::count();
-        $this->unreadCount   = Notification::where('status', 'UNREAD')
+        $this->folderCount = Folder::count();
+        $this->tagCount = Tag::count();
+        $this->sharedCount = ShareDocument::count();
+        $this->userCount = User::count();
+        $this->unreadCount = Notification::where('status', 'UNREAD')
             ->where('dismiss_status', 'UNDISMISSED')
             ->count();
 
@@ -76,8 +87,8 @@ class DashboardStats extends Component
 
         $this->docsByExt = [
             'labels' => $byExt->pluck('extension')->map(fn($e) => strtoupper($e))->toArray(),
-            'data'   => $byExt->pluck('total')->toArray(),
-            'colors' => ['#7c3aed','#4f46e5','#0ea5e9','#10b981','#f59e0b','#ef4444'],
+            'data' => $byExt->pluck('total')->toArray(),
+            'colors' => ['#7c3aed', '#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444'],
         ];
 
         // Monthly uploads (last 6 months).
@@ -97,23 +108,35 @@ class DashboardStats extends Component
             ->keyBy('month_key');
 
         $this->monthlyLabels = $months->map(fn($m) => $m->format('M Y'))->toArray();
-        $this->monthlyData   = $months->map(
+        $this->monthlyData = $months->map(
             fn($m) => (int) ($uploads->get($m->format('Y-m'))?->cnt ?? 0)
         )->toArray();
 
         // Recent activity log — reads from MongoDB via MongoActivity.
-        $this->recentActivity = MongoActivity::with('causer')
-            ->latest()
-            ->limit(10)
-            ->get()
-            ->map(fn($a) => [
-                'id'          => (string) $a->id,
-                'description' => $a->description,
-                'event'       => $a->event ?? 'updated',
-                'subject'     => $a->subject_type ? class_basename($a->subject_type) : 'System',
-                'causer'      => $a->causer?->name ?? 'System',
-                'time'        => $a->created_at?->diffForHumans(),
-            ])->toArray();
+        // Wrapped in try/catch: if MongoDB is unavailable or misconfigured
+        // (common in freshly-provisioned tenants) the component degrades
+        // gracefully to an empty list rather than crashing the dashboard.
+        try {
+            $this->recentActivity = MongoActivity::with('causer')
+                ->latest()
+                ->limit(10)
+                ->get()
+                ->map(fn($a) => [
+                    // Cast to string + fallback ensures wire:key is never null,
+                    // which would cause Livewire's DOM morpher to crash with
+                    // "Attempt to read property childNodes on null".
+                    'id' => (string) ($a->_id ?? $a->id ?? uniqid('act_', true)),
+                    'description' => $a->description ?? '',
+                    'event' => $a->event ?? 'updated',
+                    'subject' => $a->subject_type ? class_basename($a->subject_type) : 'System',
+                    'causer' => $a->causer?->name ?? 'System',
+                    'time' => $a->created_at?->diffForHumans() ?? 'Unknown',
+                ])->toArray();
+        } catch (\Throwable $e) {
+            // Log silently and fall back to empty — dashboard still loads.
+            logger()->warning('[DashboardStats] MongoDB activity fetch failed: ' . $e->getMessage());
+            $this->recentActivity = [];
+        }
     }
 
     public function render()

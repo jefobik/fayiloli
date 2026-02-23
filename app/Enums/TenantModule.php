@@ -13,64 +13,77 @@ namespace App\Enums;
  */
 enum TenantModule: string
 {
-    case DOCUMENTS     = 'documents';
-    case FOLDERS       = 'folders';
-    case TAGS          = 'tags';
-    case USERS         = 'users';
-    case NOTIFICATIONS = 'notifications';
-    case FILE_REQUESTS = 'file_requests';
-    case SHARES        = 'shares';
-    case PROJECTS      = 'projects';
-    case HRM      = 'human resource management';
-    case STATS      = 'statistical reports';
+    // PHP 8.3 — typed class constants for static-analysis & IDE support
+    const string DOCUMENTS_VALUE = 'documents';
+    const string FOLDERS_VALUE = 'folders';
+    const string TAGS_VALUE = 'tags';
+    const string USERS_VALUE = 'users';
+    const string NOTIFICATIONS_VALUE = 'notifications';
+    const string FILE_REQUESTS_VALUE = 'file_requests';
+    const string SHARES_VALUE = 'shares';
+    const string PROJECTS_VALUE = 'projects';
+    const string HRM_VALUE = 'human resource management';
+    const string STATS_VALUE = 'statistical reports';
+
+    case DOCUMENTS = self::DOCUMENTS_VALUE;
+    case FOLDERS = self::FOLDERS_VALUE;
+    case TAGS = self::TAGS_VALUE;
+    case USERS = self::USERS_VALUE;
+    case NOTIFICATIONS = self::NOTIFICATIONS_VALUE;
+    case FILE_REQUESTS = self::FILE_REQUESTS_VALUE;
+    case SHARES = self::SHARES_VALUE;
+    case PROJECTS = self::PROJECTS_VALUE;
+    case HRM = self::HRM_VALUE;
+    case STATS = self::STATS_VALUE;
+
 
     // ── Labels & UI ──────────────────────────────────────────────────────────
 
     public function label(): string
     {
         return match ($this) {
-            self::DOCUMENTS     => 'Documents',
-            self::FOLDERS       => 'Folders',
-            self::TAGS          => 'Tags',
-            self::USERS         => 'User Management',
+            self::DOCUMENTS => 'Documents',
+            self::FOLDERS => 'Folders',
+            self::TAGS => 'Tags',
+            self::USERS => 'User Management',
             self::NOTIFICATIONS => 'Notifications',
             self::FILE_REQUESTS => 'File Requests',
-            self::SHARES        => 'Document Sharing',
-            self::PROJECTS      => 'Projects',
-            self::HRM      => 'Human Resource Management',
-            self::STATS      => 'Statistical Reports',
+            self::SHARES => 'Document Sharing',
+            self::PROJECTS => 'Projects',
+            self::HRM => 'Human Resource Management',
+            self::STATS => 'Statistical Reports',
         };
     }
 
     public function description(): string
     {
         return match ($this) {
-            self::DOCUMENTS     => 'Upload, view, and manage documents.',
-            self::FOLDERS       => 'Organise documents into folder hierarchies.',
-            self::TAGS          => 'Tag and filter documents by custom labels.',
-            self::USERS         => 'Create and manage tenant user accounts.',
+            self::DOCUMENTS => 'Upload, view, and manage documents.',
+            self::FOLDERS => 'Organise documents into folder hierarchies.',
+            self::TAGS => 'Tag and filter documents by custom labels.',
+            self::USERS => 'Create and manage tenant user accounts.',
             self::NOTIFICATIONS => 'In-app notification centre.',
             self::FILE_REQUESTS => 'Request files from other users.',
-            self::SHARES        => 'Share documents via secure public links.',
-            self::PROJECTS      => 'Project tracking and overview.',
-            self::HRM      => 'Manage human resources.',
-            self::STATS      => 'View statistical reports.',
+            self::SHARES => 'Share documents via secure public links.',
+            self::PROJECTS => 'Project tracking and overview.',
+            self::HRM => 'Manage human resources.',
+            self::STATS => 'View statistical reports.',
         };
     }
 
     public function icon(): string
     {
         return match ($this) {
-            self::DOCUMENTS     => 'file-lines',
-            self::FOLDERS       => 'folder-open',
-            self::TAGS          => 'tags',
-            self::USERS         => 'users-gear',
+            self::DOCUMENTS => 'file-lines',
+            self::FOLDERS => 'folder-open',
+            self::TAGS => 'tags',
+            self::USERS => 'users-gear',
             self::NOTIFICATIONS => 'bell',
             self::FILE_REQUESTS => 'file-circle-question',
-            self::SHARES        => 'share-nodes',
-            self::PROJECTS      => 'diagram-project',
-            self::HRM      => 'users',
-            self::STATS      => 'chart-line',
+            self::SHARES => 'share-nodes',
+            self::PROJECTS => 'diagram-project',
+            self::HRM => 'users',
+            self::STATS => 'chart-line',
         };
     }
 
@@ -81,16 +94,16 @@ enum TenantModule: string
     public function landingRoute(): string
     {
         return match ($this) {
-            self::DOCUMENTS     => 'documents.index',
-            self::FOLDERS       => 'folders.index',
-            self::TAGS          => 'tags.index',
-            self::USERS         => 'users.index',
+            self::DOCUMENTS => 'documents.index',
+            self::FOLDERS => 'folders.index',
+            self::TAGS => 'tags.index',
+            self::USERS => 'users.index',
             self::NOTIFICATIONS => 'notifications.fetch',
             self::FILE_REQUESTS => 'documents.index',   // no standalone index yet
-            self::SHARES        => 'documents.index',   // no standalone index yet
-            self::PROJECTS      => 'projects.index',
-            self::HRM      => 'hrm.index',
-            self::STATS      => 'stats.index',
+            self::SHARES => 'documents.index',   // no standalone index yet
+            self::PROJECTS => 'projects.index',
+            self::HRM => 'hrm.index',
+            self::STATS => 'stats.index',
         };
     }
 

@@ -33,21 +33,21 @@ class UserSeeder extends Seeder
      */
     private const USERS = [
         // ── Workspace admins ──────────────────────────────────────────────────
-        ['user_name' => 'superadmin', 'name' => 'Super Administrator', 'phone' => '08000000001', 'is_admin' => true,  'password' => 'passw0rd!'],
-        ['user_name' => 'admin1',     'name' => 'System Admin One',    'phone' => '08100000001', 'is_admin' => true,  'password' => 'Password12!'],
-        ['user_name' => 'admin2',     'name' => 'System Admin Two',    'phone' => '08100000002', 'is_admin' => true,  'password' => 'Password12!'],
+        ['user_name' => 'superadmin', 'name' => 'Super Administrator', 'phone' => '08000000001', 'is_admin' => true, 'password' => 'passw0rd!'],
+        ['user_name' => 'admin1', 'name' => 'System Admin One', 'phone' => '08100000001', 'is_admin' => true, 'password' => 'Password12!'],
+        ['user_name' => 'admin2', 'name' => 'System Admin Two', 'phone' => '08100000002', 'is_admin' => true, 'password' => 'Password12!'],
 
         // ── Standard users (user1–10) ─────────────────────────────────────────
-        ['user_name' => 'user1',  'name' => 'Aisha Bello',         'phone' => '08000000011', 'is_admin' => false, 'password' => 'Password123!'],
-        ['user_name' => 'user2',  'name' => 'Emeka Okafor',        'phone' => '08100000012', 'is_admin' => false, 'password' => 'Password123!'],
-        ['user_name' => 'user3',  'name' => 'Fatima Aliyu',        'phone' => '07000000013', 'is_admin' => false, 'password' => 'Password123!'],
-        ['user_name' => 'user4',  'name' => 'Chidi Nwosu',         'phone' => '09000000014', 'is_admin' => false, 'password' => 'Password123!'],
-        ['user_name' => 'user5',  'name' => 'Ngozi Eze',           'phone' => '09100000015', 'is_admin' => false, 'password' => 'Password123!'],
-        ['user_name' => 'user6',  'name' => 'Ibrahim Musa',        'phone' => '08000000016', 'is_admin' => false, 'password' => 'Password123!'],
-        ['user_name' => 'user7',  'name' => 'Chinwe Obi',          'phone' => '08100000017', 'is_admin' => false, 'password' => 'Password123!'],
-        ['user_name' => 'user8',  'name' => 'Yusuf Hassan',        'phone' => '07000000018', 'is_admin' => false, 'password' => 'Password123!'],
-        ['user_name' => 'user9',  'name' => 'Adaeze Nwankwo',      'phone' => '09000000019', 'is_admin' => false, 'password' => 'Password123!'],
-        ['user_name' => 'user10', 'name' => 'Oluwaseun Adeyemi',   'phone' => '09100000020', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user1', 'name' => 'Aisha Bello', 'phone' => '08000000011', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user2', 'name' => 'Emeka Okafor', 'phone' => '08100000012', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user3', 'name' => 'Fatima Aliyu', 'phone' => '07000000013', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user4', 'name' => 'Chidi Nwosu', 'phone' => '09000000014', 'is_admin' => false, 'password' => 'Password123!'],
+        ['user_name' => 'user5', 'name' => 'Ngozi Eze', 'phone' => '09100000015', 'is_admin' => false, 'password' => 'Password123!'],
+        // ['user_name' => 'user6',  'name' => 'Ibrahim Musa',        'phone' => '08000000016', 'is_admin' => false, 'password' => 'Password123!'],
+        // ['user_name' => 'user7',  'name' => 'Chinwe Obi',          'phone' => '08100000017', 'is_admin' => false, 'password' => 'Password123!'],
+        // ['user_name' => 'user8',  'name' => 'Yusuf Hassan',        'phone' => '07000000018', 'is_admin' => false, 'password' => 'Password123!'],
+        // ['user_name' => 'user9',  'name' => 'Adaeze Nwankwo',      'phone' => '09000000019', 'is_admin' => false, 'password' => 'Password123!'],
+        // ['user_name' => 'user10', 'name' => 'Oluwaseun Adeyemi',   'phone' => '09100000020', 'is_admin' => false, 'password' => 'Password123!'],
     ];
 
     public function run(): void
@@ -56,15 +56,15 @@ class UserSeeder extends Seeder
             User::updateOrCreate(
                 ['user_name' => $data['user_name']],
                 [
-                    'name'              => $data['name'],
-                    'user_name'         => $data['user_name'],
-                    'email'             => "{$data['user_name']}@nectarmetrics.com.ng",
-                    'phone'             => $data['phone'],
+                    'name' => $data['name'],
+                    'user_name' => $data['user_name'],
+                    'email' => "{$data['user_name']}@nectarmetrics.com.ng",
+                    'phone' => $data['phone'],
                     'email_verified_at' => now(),
                     'phone_verified_at' => now(),
-                    'password'          => bcrypt($data['password']),
-                    'is_active'         => true,
-                    'is_admin'          => $data['is_admin'],
+                    'password' => bcrypt($data['password']),
+                    'is_active' => true,
+                    'is_admin' => $data['is_admin'],
                 ]
             );
         }

@@ -17,9 +17,9 @@ class FolderSeeder extends Seeder
     {
         $folderNames = [
             "Minister's Registry",
-            'PS CSS Registry',
+            'PS-CSS Registry',
             'HOS Registry',
-            'Budget & Treasury Registry',
+            'Treasury & Budget Registry',
         ];
 
         $allCategories = Category::all();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -91,7 +93,7 @@ class LoginController extends Controller
         $user = User::where($this->username(), $request->input($this->username()))->first();
 
         // ── Email not found or password mismatch ──────────────────────────────
-        if (! $user || ! Hash::check($request->input('password'), $user->password)) {
+        if (!$user || !Hash::check($request->input('password'), $user->password)) {
             // Increment failed attempts only when we can identify the account.
             // We never increment for unknown emails to avoid an enumeration side-channel.
             if ($user) {
@@ -101,7 +103,7 @@ class LoginController extends Controller
         }
 
         // ── Account deactivated ───────────────────────────────────────────────
-        if (! $user->is_active) {
+        if (!$user->is_active) {
             $this->loginError =
                 'Your account has been deactivated. '
                 . 'Please contact your workspace administrator to restore access.';
@@ -137,15 +139,15 @@ class LoginController extends Controller
         // hasAttribute() to avoid "column not found" errors across contexts.
         $updates = [];
 
-        if (array_key_exists('failed_login_attempts', $user->getAttributes()) || $user->exists) {
+        if (array_key_exists('failed_login_attempts', $user->getAttributes())) {
             $updates['failed_login_attempts'] = 0;
         }
 
-        if (array_key_exists('last_login_at', $user->getAttributes()) || $user->exists) {
+        if (array_key_exists('last_login_at', $user->getAttributes())) {
             $updates['last_login_at'] = now();
         }
 
-        if (! empty($updates)) {
+        if (!empty($updates)) {
             $user->forceFill($updates)->saveQuietly();
         }
     }
@@ -186,11 +188,11 @@ class LoginController extends Controller
 
         $updates = ['failed_login_attempts' => $attempts];
 
-        if ($attempts >= self::MAX_ATTEMPTS_BEFORE_LOCK && ! $user->is_locked) {
+        if ($attempts >= self::MAX_ATTEMPTS_BEFORE_LOCK && !$user->is_locked) {
             $updates['is_locked'] = true;
 
             // Only set locked_at if the column exists in the current DB context.
-            if (array_key_exists('locked_at', $user->getAttributes()) || $user->exists) {
+            if (array_key_exists('locked_at', $user->getAttributes())) {
                 $updates['locked_at'] = now();
             }
         }

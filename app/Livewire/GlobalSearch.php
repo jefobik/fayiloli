@@ -1,24 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\Attributes\Locked;
 use App\Models\Document;
 use App\Models\Folder;
 use App\Models\Tag;
 
 class GlobalSearch extends Component
 {
-    public string $query   = '';
-    public bool   $isOpen  = false;
-    public array  $results = [];
+    public string $query = '';
+    public bool $isOpen = false;
+    #[Locked] public array $results = [];
 
     public function updatedQuery(): void
     {
         $q = trim($this->query);
         if (strlen($q) < 2) {
             $this->results = [];
-            $this->isOpen  = false;
+            $this->isOpen = false;
             return;
         }
 
@@ -28,45 +31,45 @@ class GlobalSearch extends Component
                 ->take(5)
                 ->get()
                 ->map(fn($d) => [
-                    'type'      => 'document',
-                    'id'        => $d->id,
-                    'label'     => $d->name,
-                    'sub'       => $d->folder?->name ?? 'No Folder',
-                    'icon'      => $this->extIcon($d->extension),
-                    'color'     => 'text-blue-600',
-                    'url'       => route('getFiles', $d->folder_id ?? 0),
+                    'type' => 'document',
+                    'id' => $d->id,
+                    'label' => $d->name,
+                    'sub' => $d->folder?->name ?? 'No Folder',
+                    'icon' => $this->extIcon($d->extension),
+                    'color' => 'text-blue-600',
+                    'url' => route('getFiles', $d->folder_id ?? 0),
                     'folder_id' => $d->folder_id,
-                    'ext'       => strtoupper($d->extension ?? ''),
+                    'ext' => strtoupper($d->extension ?? ''),
                 ]);
 
             $folders = Folder::search($q)
                 ->take(4)
                 ->get()
                 ->map(fn($f) => [
-                    'type'      => 'folder',
-                    'id'        => $f->id,
-                    'label'     => $f->name,
-                    'sub'       => $f->parent?->name ?? 'Root Workspace',
-                    'icon'      => 'fa-folder',
-                    'color'     => 'text-amber-500',
-                    'url'       => route('getFiles', $f->id),
+                    'type' => 'folder',
+                    'id' => $f->id,
+                    'label' => $f->name,
+                    'sub' => $f->parent?->name ?? 'Root Workspace',
+                    'icon' => 'fa-folder',
+                    'color' => 'text-amber-500',
+                    'url' => route('getFiles', $f->id),
                     'folder_id' => $f->id,
-                    'ext'       => '',
+                    'ext' => '',
                 ]);
 
             $tags = Tag::search($q)
                 ->take(3)
                 ->get()
                 ->map(fn($t) => [
-                    'type'      => 'tag',
-                    'id'        => $t->id,
-                    'label'     => $t->name,
-                    'sub'       => 'Tag · ' . $t->code,
-                    'icon'      => 'fa-tag',
-                    'color'     => 'text-purple-600',
-                    'url'       => route('tags.show', $t->id),
+                    'type' => 'tag',
+                    'id' => $t->id,
+                    'label' => $t->name,
+                    'sub' => 'Tag · ' . $t->code,
+                    'icon' => 'fa-tag',
+                    'color' => 'text-purple-600',
+                    'url' => route('tags.show', $t->id),
                     'folder_id' => null,
-                    'ext'       => '',
+                    'ext' => '',
                 ]);
 
             $this->results = $documents->concat($folders)->concat($tags)->values()->toArray();
@@ -77,11 +80,15 @@ class GlobalSearch extends Component
                 ->orWhere('original_name', 'like', $like)
                 ->limit(6)->get()
                 ->map(fn($d) => [
-                    'type' => 'document', 'id' => $d->id,
-                    'label' => $d->name, 'sub' => $d->folder?->name ?? '-',
-                    'icon' => $this->extIcon($d->extension), 'color' => 'text-blue-600',
+                    'type' => 'document',
+                    'id' => $d->id,
+                    'label' => $d->name,
+                    'sub' => $d->folder?->name ?? '-',
+                    'icon' => $this->extIcon($d->extension),
+                    'color' => 'text-blue-600',
                     'url' => route('getFiles', $d->folder_id ?? 0),
-                    'folder_id' => $d->folder_id, 'ext' => strtoupper($d->extension ?? ''),
+                    'folder_id' => $d->folder_id,
+                    'ext' => strtoupper($d->extension ?? ''),
                 ])->toArray();
         }
 
@@ -90,8 +97,8 @@ class GlobalSearch extends Component
 
     public function selectResult(string $url, ?int $folderId): void
     {
-        $this->query   = '';
-        $this->isOpen  = false;
+        $this->query = '';
+        $this->isOpen = false;
         $this->results = [];
 
         if ($folderId) {
@@ -103,22 +110,22 @@ class GlobalSearch extends Component
 
     public function close(): void
     {
-        $this->isOpen  = false;
+        $this->isOpen = false;
     }
 
     private function extIcon(?string $ext): string
     {
-        return match(strtolower($ext ?? '')) {
-            'pdf'                   => 'fa-file-pdf',
-            'doc', 'docx'           => 'fa-file-word',
-            'xls', 'xlsx'           => 'fa-file-excel',
-            'ppt', 'pptx'           => 'fa-file-powerpoint',
+        return match (strtolower($ext ?? '')) {
+            'pdf' => 'fa-file-pdf',
+            'doc', 'docx' => 'fa-file-word',
+            'xls', 'xlsx' => 'fa-file-excel',
+            'ppt', 'pptx' => 'fa-file-powerpoint',
             'jpg', 'jpeg', 'png',
-            'gif', 'svg', 'webp'    => 'fa-file-image',
-            'mp4', 'mov', 'avi'     => 'fa-file-video',
-            'mp3', 'wav'            => 'fa-file-audio',
-            'zip', 'rar', '7z'      => 'fa-file-archive',
-            default                 => 'fa-file-alt',
+            'gif', 'svg', 'webp' => 'fa-file-image',
+            'mp4', 'mov', 'avi' => 'fa-file-video',
+            'mp3', 'wav' => 'fa-file-audio',
+            'zip', 'rar', '7z' => 'fa-file-archive',
+            default => 'fa-file-alt',
         };
     }
 

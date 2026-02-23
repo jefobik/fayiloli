@@ -700,3 +700,73 @@ body.dark-mode ::-webkit-scrollbar-thumb { background: #334155; }
     .header-search-wrap { display: none; }
     .stat-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ─── DASHBOARD STATS COMPONENT ─────────────────── */
+/* Extracted from Livewire component to avoid Blade @-rule parsing issues */
+
+/* KPI grid pulse on refresh */
+.ds-refreshing { opacity: 0.6; pointer-events: none; transition: opacity 0.15s; }
+
+/* Skeleton loader */
+@keyframes ds-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
+.ds-skeleton  { pointer-events: none; }
+.ds-skel-icon { width: 42px; height: 42px; border-radius: 10px; background: #f1f5f9; flex-shrink: 0; animation: ds-pulse 1.5s ease-in-out infinite; }
+.ds-skel-body { flex: 1; }
+.ds-skel-line { height: 12px; border-radius: 6px; background: #f1f5f9; animation: ds-pulse 1.5s ease-in-out infinite; margin-bottom: 6px; }
+.ds-skel-val  { height: 22px; width: 55%; }
+.ds-skel-lbl  { height: 11px; width: 75%; }
+
+/* Refresh button */
+.ds-refresh-btn { min-height: 36px; min-width: 36px; }
+
+/* Live indicator */
+.ds-live-dot {
+    font-size: 0.45rem; color: #10b981;
+    animation: ds-live-blink 2s ease-in-out infinite;
+    vertical-align: middle; margin-right: 0.15rem;
+}
+@keyframes ds-live-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+}
+.ds-last-updated {
+    font-size: 0.7rem; color: #94a3b8;
+    display: flex; align-items: center; gap: 0.2rem;
+}
+
+/* Live poll badge */
+.ds-poll-badge {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    font-size: 0.65rem; font-weight: 600; color: #10b981;
+    background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 999px; padding: 0.1rem 0.5rem;
+    letter-spacing: 0.04em; text-transform: uppercase;
+}
+
+/* Empty chart placeholder */
+.ds-empty-chart {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 0.5rem;
+    padding: 2.5rem 1rem; text-align: center;
+    color: #94a3b8; font-size: 0.85rem;
+}
+.ds-empty-chart i { font-size: 2rem; opacity: 0.3; }
+
+/* Empty activity placeholder */
+.ds-empty-activity {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 0.5rem;
+    padding: 2.5rem 1rem; text-align: center;
+    color: #94a3b8; font-size: 0.85rem;
+}
+.ds-empty-activity i { font-size: 2rem; opacity: 0.3; }
+.ds-empty-activity p { margin: 0; }
+
+/* Dark mode adjustments */
+body.dark-mode .ds-skel-icon,
+body.dark-mode .ds-skel-line { background: #334155; }
+body.dark-mode .ds-empty-chart,
+body.dark-mode .ds-empty-activity { color: #64748b; }

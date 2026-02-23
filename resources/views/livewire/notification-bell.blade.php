@@ -1,4 +1,7 @@
-<div class="relative" x-data="{ open: false }" @click.outside="open = false" wire:poll.15s="loadNotifications">
+<div class="relative" x-data="{ open: false }" @click.outside="open = false">
+    {{-- Poll trigger: hidden div polls every 15 s. Placed inside (not on) the root
+    div — Livewire v4 best-practice to avoid root-element polling warnings. --}}
+    <div wire:poll.15s="loadNotifications" style="display:none" aria-hidden="true"></div>
 
     {{-- Bell Button --}}
     <button class="header-icon-btn" @click="open = !open" title="Notifications">
@@ -9,20 +12,18 @@
     </button>
 
     {{-- Dropdown Panel --}}
-    <div class="edms-dropdown notif-dropdown"
-         x-show="open"
-         x-transition:enter="transition ease-out duration-150"
-         x-transition:enter-start="opacity-0 scale-95"
-         x-transition:enter-end="opacity-100 scale-100"
-         x-transition:leave="transition ease-in duration-100"
-         x-transition:leave-start="opacity-100 scale-100"
-         x-transition:leave-end="opacity-0 scale-95"
-         x-cloak>
+    <div class="edms-dropdown notif-dropdown" x-show="open" x-transition:enter="transition ease-out duration-150"
+        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95" x-cloak>
 
         <div class="notif-header">
-            <h6>Notifications @if($count > 0)<span class="notif-badge" style="background:#7c3aed;color:#fff;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;margin-left:0.35rem">{{ $count }}</span>@endif</h6>
+            <h6>Notifications @if($count > 0)<span class="notif-badge"
+            style="background:#7c3aed;color:#fff;font-size:0.65rem;padding:0.1rem 0.4rem;border-radius:999px;margin-left:0.35rem">{{ $count }}</span>@endif
+            </h6>
             @if($count > 0)
-                <button wire:click="dismissAll" class="auth-link" style="font-size:0.75rem;background:none;border:none;cursor:pointer">
+                <button wire:click="dismissAll" class="auth-link"
+                    style="font-size:0.75rem;background:none;border:none;cursor:pointer">
                     Mark all read
                 </button>
             @endif
@@ -40,8 +41,8 @@
                     </div>
                 </div>
                 <button wire:click="dismiss({{ $notif['id'] }})"
-                        style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.8rem;padding:0.2rem;flex-shrink:0"
-                        title="Dismiss">
+                    style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.8rem;padding:0.2rem;flex-shrink:0"
+                    title="Dismiss">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

@@ -22,20 +22,26 @@ namespace App\Enums;
  */
 enum TenantStatus: string
 {
-    case PENDING   = 'pending';
-    case ACTIVE    = 'active';
-    case SUSPENDED = 'suspended';
-    case INACTIVE  = 'inactive';
+    // PHP 8.3 — typed class constants for static-analysis & IDE support
+    const string PENDING_VALUE = 'pending';
+    const string ACTIVE_VALUE = 'active';
+    const string SUSPENDED_VALUE = 'suspended';
+    const string INACTIVE_VALUE = 'inactive';
+
+    case PENDING = self::PENDING_VALUE;
+    case ACTIVE = self::ACTIVE_VALUE;
+    case SUSPENDED = self::SUSPENDED_VALUE;
+    case INACTIVE = self::INACTIVE_VALUE;
 
     // ── Human-readable labels ────────────────────────────────────────────────
 
     public function label(): string
     {
         return match ($this) {
-            self::PENDING   => 'Pending Activation',
-            self::ACTIVE    => 'Active',
+            self::PENDING => 'Pending Activation',
+            self::ACTIVE => 'Active',
             self::SUSPENDED => 'Suspended',
-            self::INACTIVE  => 'Inactive',
+            self::INACTIVE => 'Inactive',
         };
     }
 
@@ -44,10 +50,10 @@ enum TenantStatus: string
     public function badgeClass(): string
     {
         return match ($this) {
-            self::PENDING   => 'bg-warning text-dark',
-            self::ACTIVE    => 'bg-success',
+            self::PENDING => 'bg-warning text-dark',
+            self::ACTIVE => 'bg-success',
             self::SUSPENDED => 'bg-danger',
-            self::INACTIVE  => 'bg-secondary',
+            self::INACTIVE => 'bg-secondary',
         };
     }
 
@@ -56,10 +62,10 @@ enum TenantStatus: string
     public function icon(): string
     {
         return match ($this) {
-            self::PENDING   => 'clock',
-            self::ACTIVE    => 'circle-check',
+            self::PENDING => 'clock',
+            self::ACTIVE => 'circle-check',
             self::SUSPENDED => 'ban',
-            self::INACTIVE  => 'circle-xmark',
+            self::INACTIVE => 'circle-xmark',
         };
     }
 
@@ -86,19 +92,19 @@ enum TenantStatus: string
     {
         return match ($this) {
             self::PENDING => [
-                ['target' => self::ACTIVE,    'action' => 'Activate',   'btnClass' => 'btn-success'],
-                ['target' => self::INACTIVE,  'action' => 'Reject',     'btnClass' => 'btn-outline-secondary'],
+                ['target' => self::ACTIVE, 'action' => 'Activate', 'btnClass' => 'btn-success'],
+                ['target' => self::INACTIVE, 'action' => 'Reject', 'btnClass' => 'btn-outline-secondary'],
             ],
             self::ACTIVE => [
-                ['target' => self::SUSPENDED, 'action' => 'Suspend',    'btnClass' => 'btn-warning'],
-                ['target' => self::INACTIVE,  'action' => 'Deactivate', 'btnClass' => 'btn-outline-secondary'],
+                ['target' => self::SUSPENDED, 'action' => 'Suspend', 'btnClass' => 'btn-warning'],
+                ['target' => self::INACTIVE, 'action' => 'Deactivate', 'btnClass' => 'btn-outline-secondary'],
             ],
             self::SUSPENDED => [
-                ['target' => self::ACTIVE,    'action' => 'Reactivate', 'btnClass' => 'btn-success'],
-                ['target' => self::INACTIVE,  'action' => 'Archive',    'btnClass' => 'btn-outline-secondary'],
+                ['target' => self::ACTIVE, 'action' => 'Reactivate', 'btnClass' => 'btn-success'],
+                ['target' => self::INACTIVE, 'action' => 'Archive', 'btnClass' => 'btn-outline-secondary'],
             ],
             self::INACTIVE => [
-                ['target' => self::ACTIVE,    'action' => 'Reactivate', 'btnClass' => 'btn-success'],
+                ['target' => self::ACTIVE, 'action' => 'Reactivate', 'btnClass' => 'btn-success'],
             ],
         };
     }
@@ -121,10 +127,10 @@ enum TenantStatus: string
     public function incomingActionLabel(): string
     {
         return match ($this) {
-            self::ACTIVE    => 'Activated',
+            self::ACTIVE => 'Activated',
             self::SUSPENDED => 'Suspended',
-            self::INACTIVE  => 'Deactivated',
-            self::PENDING   => 'Reset to Pending',
+            self::INACTIVE => 'Deactivated',
+            self::PENDING => 'Reset to Pending',
         };
     }
 
@@ -138,10 +144,10 @@ enum TenantStatus: string
     public function getColor(): string
     {
         return match ($this) {
-            self::PENDING   => 'warning',
-            self::ACTIVE    => 'success',
+            self::PENDING => 'warning',
+            self::ACTIVE => 'success',
             self::SUSPENDED => 'danger',
-            self::INACTIVE  => 'gray',
+            self::INACTIVE => 'gray',
         };
     }
 }

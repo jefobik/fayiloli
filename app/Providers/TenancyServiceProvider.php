@@ -24,7 +24,7 @@ class TenancyServiceProvider extends ServiceProvider
     public function events()
     {
         return [
-            // Tenant events
+                // Tenant events
             Events\CreatingTenant::class => [],
             Events\TenantCreated::class => [
                 JobPipeline::make([
@@ -52,7 +52,7 @@ class TenancyServiceProvider extends ServiceProvider
                 })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
             ],
 
-            // Domain events
+                // Domain events
             Events\CreatingDomain::class => [],
             Events\DomainCreated::class => [],
             Events\SavingDomain::class => [],
@@ -62,14 +62,14 @@ class TenancyServiceProvider extends ServiceProvider
             Events\DeletingDomain::class => [],
             Events\DomainDeleted::class => [],
 
-            // Database events
+                // Database events
             Events\DatabaseCreated::class => [],
             Events\DatabaseMigrated::class => [],
             Events\DatabaseSeeded::class => [],
             Events\DatabaseRolledBack::class => [],
             Events\DatabaseDeleted::class => [],
 
-            // Tenancy events
+                // Tenancy events
             Events\InitializingTenancy::class => [],
             Events\TenancyInitialized::class => [
                 Listeners\BootstrapTenancy::class,
@@ -85,12 +85,12 @@ class TenancyServiceProvider extends ServiceProvider
             Events\RevertingToCentralContext::class => [],
             Events\RevertedToCentralContext::class => [],
 
-            // Resource syncing
+                // Resource syncing
             Events\SyncedResourceSaved::class => [
                 Listeners\UpdateSyncedResource::class,
             ],
 
-            // Fired only when a synced resource is changed in a different DB than the origin DB (to avoid infinite loops)
+                // Fired only when a synced resource is changed in a different DB than the origin DB (to avoid infinite loops)
             Events\SyncedResourceChangedInForeignDatabase::class => [],
         ];
     }
@@ -106,7 +106,12 @@ class TenancyServiceProvider extends ServiceProvider
         $this->mapRoutes();
         $this->configureTenancyMiddleware();
 
-        $this->makeTenancyMiddlewareHighestPriority();
+        // NOTE: makeTenancyMiddlewareHighestPriority() was removed.
+        // Laravel 12 does not bind Illuminate\Contracts\Http\Kernel in the
+        // container; calling prependToMiddlewarePriority() on it throws a
+        // BindingResolutionException on every request once config is cached.
+        // Middleware priority is already managed via bootstrap/app.php which
+        // prepends InitializeTenancyByDomain to the global 'web' group.
     }
 
     /**
@@ -206,21 +211,5 @@ class TenancyServiceProvider extends ServiceProvider
         });
     }
 
-    protected function makeTenancyMiddlewareHighestPriority()
-    {
-        $tenancyMiddleware = [
-            // Even higher priority than the initialization middleware
-            Middleware\PreventAccessFromCentralDomains::class,
-
-            Middleware\InitializeTenancyByDomain::class,
-            Middleware\InitializeTenancyBySubdomain::class,
-            Middleware\InitializeTenancyByDomainOrSubdomain::class,
-            Middleware\InitializeTenancyByPath::class,
-            Middleware\InitializeTenancyByRequestData::class,
-        ];
-
-        foreach (array_reverse($tenancyMiddleware) as $middleware) {
-            $this->app[\Illuminate\Contracts\Http\Kernel::class]->prependToMiddlewarePriority($middleware);
-        }
-    }
 }
+
