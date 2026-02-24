@@ -121,7 +121,7 @@
                             placeholder="you@organisation.gov.ng"
                             required autocomplete="email" autofocus
                             aria-required="true"
-                            :disabled="loading"
+                            :readonly="loading"
                             @if ($errors->has('email')) aria-invalid="true" style="border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,0.1);" @endif
                         >
                     </div>
@@ -146,14 +146,14 @@
                             placeholder="••••••••"
                             required autocomplete="current-password"
                             aria-required="true"
-                            :disabled="loading"
+                            :readonly="loading"
                             :aria-label="showPw ? 'Password (visible)' : 'Password'"
                             @if ($errors->has('password')) aria-invalid="true" style="border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,0.1);" @endif
                         >
                         <button type="button"
                                 class="toggle-pw"
                                 @click="showPw = !showPw"
-                                :disabled="loading"
+                                :readonly="loading"
                                 :aria-pressed="showPw.toString()"
                                 :aria-label="showPw ? 'Hide password' : 'Show password'">
                             <i :class="showPw ? 'fas fa-eye-slash' : 'fas fa-eye'" aria-hidden="true"></i>
@@ -165,7 +165,7 @@
                 <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">
                     <input type="checkbox" id="remember" name="remember"
                            style="width:18px;height:18px;accent-color:#6d28d9;cursor:pointer;border-radius:4px;border:1px solid #cbd5e1;"
-                           :disabled="loading">
+                           onclick="return !document.querySelector('.auth-submit').disabled">
                     <label for="remember" style="font-size:0.9rem;color:#475569;cursor:pointer;margin:0;font-weight:500;">
                         Keep me signed in for 30 days
                     </label>

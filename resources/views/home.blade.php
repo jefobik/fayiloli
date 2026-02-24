@@ -3,21 +3,21 @@
 @php
     use App\Enums\TenantModule;
 
-    $tenant   = tenancy()->tenant ?? null;
+    $tenant = tenancy()->tenant ?? null;
     $authUser = Auth::user();
 
     // ── Module launchpad: two-layer gate (tenant enabled + Spatie permission) ──
     $moduleCards = collect([
-        ['module' => TenantModule::DOCUMENTS,     'permission' => 'view documents',     'color' => '#4f46e5', 'bg' => 'rgba(79,70,229,0.08)',   'border' => 'rgba(79,70,229,0.2)'],
-        ['module' => TenantModule::FOLDERS,       'permission' => 'view folders',       'color' => '#0284c7', 'bg' => 'rgba(2,132,199,0.08)',    'border' => 'rgba(2,132,199,0.2)'],
-        ['module' => TenantModule::TAGS,          'permission' => 'view tags',          'color' => '#7c3aed', 'bg' => 'rgba(124,58,237,0.08)',   'border' => 'rgba(124,58,237,0.2)'],
-        ['module' => TenantModule::USERS,         'permission' => 'view users',         'color' => '#0369a1', 'bg' => 'rgba(3,105,161,0.08)',    'border' => 'rgba(3,105,161,0.2)'],
-        ['module' => TenantModule::FILE_REQUESTS, 'permission' => 'view documents',     'color' => '#d97706', 'bg' => 'rgba(217,119,6,0.08)',    'border' => 'rgba(217,119,6,0.2)'],
-        ['module' => TenantModule::SHARES,        'permission' => 'share documents',    'color' => '#059669', 'bg' => 'rgba(5,150,105,0.08)',    'border' => 'rgba(5,150,105,0.2)'],
-        ['module' => TenantModule::NOTIFICATIONS, 'permission' => 'view notifications', 'color' => '#dc2626', 'bg' => 'rgba(220,38,38,0.08)',    'border' => 'rgba(220,38,38,0.2)'],
-        ['module' => TenantModule::PROJECTS,      'permission' => null,                 'color' => '#0891b2', 'bg' => 'rgba(8,145,178,0.08)',    'border' => 'rgba(8,145,178,0.2)'],
-        ['module' => TenantModule::HRM,           'permission' => null,                 'color' => '#16a34a', 'bg' => 'rgba(22,163,74,0.08)',    'border' => 'rgba(22,163,74,0.2)'],
-        ['module' => TenantModule::STATS,         'permission' => null,                 'color' => '#8b5cf6', 'bg' => 'rgba(139,92,246,0.08)',    'border' => 'rgba(139,92,246,0.2)'],
+        ['module' => TenantModule::DOCUMENTS, 'permission' => 'view documents', 'color' => 'text-indigo-600 dark:text-indigo-400', 'bg' => 'bg-indigo-100 dark:bg-indigo-900/30', 'border' => 'border-indigo-200 dark:border-indigo-800'],
+        ['module' => TenantModule::FOLDERS, 'permission' => 'view folders', 'color' => 'text-sky-600 dark:text-sky-400', 'bg' => 'bg-sky-100 dark:bg-sky-900/30', 'border' => 'border-sky-200 dark:border-sky-800'],
+        ['module' => TenantModule::TAGS, 'permission' => 'view tags', 'color' => 'text-violet-600 dark:text-violet-400', 'bg' => 'bg-violet-100 dark:bg-violet-900/30', 'border' => 'border-violet-200 dark:border-violet-800'],
+        ['module' => TenantModule::USERS, 'permission' => 'view users', 'color' => 'text-blue-600 dark:text-blue-400', 'bg' => 'bg-blue-100 dark:bg-blue-900/30', 'border' => 'border-blue-200 dark:border-blue-800'],
+        ['module' => TenantModule::FILE_REQUESTS, 'permission' => 'view documents', 'color' => 'text-amber-600 dark:text-amber-400', 'bg' => 'bg-amber-100 dark:bg-amber-900/30', 'border' => 'border-amber-200 dark:border-amber-800'],
+        ['module' => TenantModule::SHARES, 'permission' => 'share documents', 'color' => 'text-emerald-600 dark:text-emerald-400', 'bg' => 'bg-emerald-100 dark:bg-emerald-900/30', 'border' => 'border-emerald-200 dark:border-emerald-800'],
+        ['module' => TenantModule::NOTIFICATIONS, 'permission' => 'view notifications', 'color' => 'text-rose-600 dark:text-rose-400', 'bg' => 'bg-rose-100 dark:bg-rose-900/30', 'border' => 'border-rose-200 dark:border-rose-800'],
+        ['module' => TenantModule::PROJECTS, 'permission' => null, 'color' => 'text-cyan-600 dark:text-cyan-400', 'bg' => 'bg-cyan-100 dark:bg-cyan-900/30', 'border' => 'border-cyan-200 dark:border-cyan-800'],
+        ['module' => TenantModule::HRM, 'permission' => null, 'color' => 'text-green-600 dark:text-green-400', 'bg' => 'bg-green-100 dark:bg-green-900/30', 'border' => 'border-green-200 dark:border-green-800'],
+        ['module' => TenantModule::STATS, 'permission' => null, 'color' => 'text-fuchsia-600 dark:text-fuchsia-400', 'bg' => 'bg-fuchsia-100 dark:bg-fuchsia-900/30', 'border' => 'border-fuchsia-200 dark:border-fuchsia-800'],
     ])->filter(function (array $card) use ($tenant, $authUser): bool {
         $enabled = $tenant?->hasModule($card['module']) ?? false;
         $allowed = $card['permission'] ? ($authUser?->can($card['permission']) ?? false) : true;
@@ -25,374 +25,260 @@
     });
 
     $userRoles = $authUser?->getRoleNames()->toArray() ?? [];
-    $isAdmin   = in_array('admin', $userRoles);
+    $isAdmin = in_array('admin', $userRoles);
     $isManager = in_array('manager', $userRoles);
 
     $canUpload = $authUser?->can('create documents') ?? false;
-    $canDocs   = ($tenant?->hasModule(TenantModule::DOCUMENTS) ?? false)
-                 && ($authUser?->can('view documents') ?? false);
-    $canTags   = ($tenant?->hasModule(TenantModule::TAGS) ?? false)
-                 && ($authUser?->can('view tags') ?? false);
-    $canUsers  = ($tenant?->hasModule(TenantModule::USERS) ?? false)
-                 && ($authUser?->can('view users') ?? false);
+    $canDocs = ($tenant?->hasModule(TenantModule::DOCUMENTS) ?? false)
+        && ($authUser?->can('view documents') ?? false);
+    $canTags = ($tenant?->hasModule(TenantModule::TAGS) ?? false)
+        && ($authUser?->can('view tags') ?? false);
+    $canUsers = ($tenant?->hasModule(TenantModule::USERS) ?? false)
+        && ($authUser?->can('view users') ?? false);
 @endphp
 
 @section('content')
 
-<div
-    class="dashboard-wrap"
-    x-data="{
-        /*
-         * Time-of-day greeting — computed once on mount and never re-evaluated,
-         * so it does not cause reactive churn on the page.
-         */
-        greeting: (function() {
-            const h = new Date().getHours();
-            return h < 12 ? 'Good morning'
-                 : h < 17 ? 'Good afternoon'
-                 :           'Good evening';
-        })(),
+    <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8" x-data="{
+                    /*
+                     * Time-of-day greeting — computed once on mount and never re-evaluated,
+                     * so it does not cause reactive churn on the page.
+                     */
+                    greeting: (function() {
+                        const h = new Date().getHours();
+                        return h < 12 ? 'Good morning'
+                             : h < 17 ? 'Good afternoon'
+                             :           'Good evening';
+                    })()
+                }">
 
-        /* Upload dropdown state */
-        uploadOpen: false,
-        closeUpload() { this.uploadOpen = false; }
-    }"
->
-
-    {{-- ── Page header ─────────────────────────────────────────────────── --}}
-    <div class="dash-header">
-        <div>
-            {{--
+        {{-- ── Page header ─────────────────────────────────────────────────── --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                {{--
                 Heading uses x-text so Alpine replaces "Welcome back" with the
-                time-aware greeting after JS loads.  The hard-coded text is the
+                time-aware greeting after JS loads. The hard-coded text is the
                 no-JS / pre-hydration fallback — identical appearance, just a
                 different salutation.
-            --}}
-            <h1 class="dash-title"
-                x-text="greeting + ', {{ addslashes($authUser?->name ?? 'User') }}'">
-                Welcome back, {{ $authUser?->name ?? 'User' }}
-            </h1>
-            <div class="dash-meta">
-                <span>{{ now()->format('l, F j, Y') }}</span>
-                <span class="dash-sep">&middot;</span>
-                <span class="tenant-badge">
-                    <i class="fas fa-shield-alt" style="font-size:0.6rem"></i>
-                    {{ ucfirst($userRoles[0] ?? 'Member') }}
-                </span>
-                @if ($tenant)
-                    <span class="dash-sep">&middot;</span>
-                    <span style="font-size:0.78rem;color:#94a3b8">
-                        <i class="fas fa-building" style="font-size:0.65rem"></i>
-                        {{ $tenant->organization_name }}
+                --}}
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
+                    x-text="greeting + ', {{ addslashes($authUser?->name ?? 'User') }}'">
+                    Welcome back, {{ $authUser?->name ?? 'User' }}
+                </h1>
+                <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    <span>{{ now()->format('l, F j, Y') }}</span>
+                    <span class="text-slate-300 dark:text-slate-600">&bull;</span>
+                    <span
+                        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs shadow-sm shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-slate-700">
+                        <i class="fas fa-shield-alt text-[0.6rem]"></i>
+                        {{ ucfirst($userRoles[0] ?? 'Member') }}
                     </span>
+                    @if ($tenant)
+                        <span class="text-slate-300 dark:text-slate-600">&bull;</span>
+                        <span
+                            class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 text-xs shadow-sm shadow-indigo-100 dark:shadow-none border border-indigo-100 dark:border-indigo-800">
+                            <i class="fas fa-building text-[0.65rem]"></i>
+                            {{ $tenant->organization_name }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            {{-- ── Quick actions (role-gated) ──────────────────────────── --}}
+            <div class="flex items-center flex-wrap gap-3">
+
+                @if ($canDocs)
+                    <a href="{{ route('documents.index') }}"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm shadow-indigo-200 dark:shadow-none transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Documents</span>
+                    </a>
                 @endif
+
+                {{-- Upload dropdown — Alpine-powered, calls existing JS helpers --}}
+                @if ($canUpload)
+                    <div class="relative z-20" x-data="{ open: false }" @click.outside="open = false"
+                        @close.stop="open = false">
+                        <button type="button"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                            @click="open = !open" :aria-expanded="open.toString()" aria-haspopup="true"
+                            aria-controls="uploadMenu">
+                            <i class="fas fa-upload text-indigo-500 dark:text-indigo-400"></i>
+                            <span>Upload</span>
+                            <i class="fas fa-chevron-down text-[0.62rem] text-slate-400 transition-transform duration-200"
+                                :class="open ? 'rotate-180' : ''" aria-hidden="true"></i>
+                        </button>
+
+                        <div id="uploadMenu"
+                            class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 divide-y divide-slate-100 dark:divide-slate-700 overflow-hidden transform origin-top-right transition-all"
+                            x-show="open" x-cloak x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-100"
+                            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 scale-95 -translate-y-2" role="menu" aria-orientation="vertical"
+                            aria-label="Upload options">
+                            <div class="py-1" role="none">
+                                <button type="button" role="menuitem"
+                                    class="group flex items-center w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none"
+                                    @click="uploadFiles(); open = false">
+                                    <i class="fas fa-file-lines w-5 text-center text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 mr-2"
+                                        aria-hidden="true"></i>
+                                    Upload Files
+                                </button>
+                                <button type="button" role="menuitem"
+                                    class="group flex items-center w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none"
+                                    @click="uploadFolder(); open = false">
+                                    <i class="fas fa-folder-open w-5 text-center text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 mr-2"
+                                        aria-hidden="true"></i>
+                                    Upload Folder
+                                </button>
+                                <button type="button" role="menuitem"
+                                    class="group flex items-center w-full px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors focus:outline-none"
+                                    @click="addUrlModal(); open = false">
+                                    <i class="fas fa-link w-5 text-center text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 mr-2"
+                                        aria-hidden="true"></i>
+                                    Add URL
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                @if ($canTags)
+                    <a href="{{ route('tags.index') }}"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
+                        <i class="fas fa-tags text-indigo-500 dark:text-indigo-400"></i>
+                        <span>Tags</span>
+                    </a>
+                @endif
+
             </div>
         </div>
 
-        {{-- ── Quick actions (role-gated) ──────────────────────────── --}}
-        <div class="dash-actions">
+        {{-- ── Live stats (Livewire — polls every 60 s) ────────────────────── --}}
+        <livewire:dashboard-stats />
 
-            @if ($canDocs)
-                <a href="{{ route('documents.index') }}" class="toolbar-btn toolbar-btn-primary">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Documents</span>
-                </a>
-            @endif
-
-            {{-- Upload dropdown — Alpine-powered, calls existing JS helpers --}}
-            @if ($canUpload)
-                <div class="relative" style="position:relative"
-                     x-data="{ open: false }" @click.outside="open = false">
-
-                    <button
-                        type="button"
-                        class="toolbar-btn toolbar-btn-outline"
-                        @click="open = !open"
-                        :aria-expanded="open.toString()"
-                        aria-haspopup="true"
-                        aria-controls="uploadMenu"
-                    >
-                        <i class="fas fa-upload"></i>
-                        <span>Upload</span>
-                        <i class="fas fa-chevron-down"
-                           :class="open ? 'dash-chevron-up' : 'dash-chevron-dn'"
-                           aria-hidden="true"></i>
-                    </button>
-
-                    <div
-                        id="uploadMenu"
-                        class="dash-upload-menu"
-                        x-show="open"
-                        x-cloak
-                        x-transition:enter="dash-menu-enter"
-                        x-transition:enter-start="dash-menu-enter-from"
-                        x-transition:enter-end="dash-menu-enter-to"
-                        x-transition:leave="dash-menu-leave"
-                        x-transition:leave-start="dash-menu-leave-from"
-                        x-transition:leave-end="dash-menu-leave-to"
-                        role="menu"
-                        aria-label="Upload options"
-                    >
-                        <button type="button" role="menuitem" class="dash-upload-item"
-                                @click="uploadFiles(); open = false">
-                            <i class="fas fa-file-lines" aria-hidden="true"></i>
-                            Upload Files
-                        </button>
-                        <button type="button" role="menuitem" class="dash-upload-item"
-                                @click="uploadFolder(); open = false">
-                            <i class="fas fa-folder-open" aria-hidden="true"></i>
-                            Upload Folder
-                        </button>
-                        <button type="button" role="menuitem" class="dash-upload-item"
-                                @click="addUrlModal(); open = false">
-                            <i class="fas fa-link" aria-hidden="true"></i>
-                            Add URL
-                        </button>
-                    </div>
+        {{-- ── Module launchpad ────────────────────────────────────────────── --}}
+        @if ($moduleCards->isNotEmpty())
+            <div class="mt-8">
+                <div class="flex items-center gap-3 mb-5">
+                    <h2 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                        Your Workspace Modules
+                    </h2>
+                    <span
+                        class="inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-bold leading-none text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-900/30 rounded-full">
+                        {{ $moduleCards->count() }}
+                    </span>
+                    <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
                 </div>
-            @endif
 
-            @if ($canTags)
-                <a href="{{ route('tags.index') }}" class="toolbar-btn toolbar-btn-outline">
-                    <i class="fas fa-tags"></i>
-                    <span>Tags</span>
-                </a>
-            @endif
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6" role="list"
+                    aria-label="Available workspace modules">
+                    @foreach ($moduleCards as $card)
+                        @php
+                            $mod = $card['module'];
+                            try {
+                                $landingUrl = route($mod->landingRoute());
+                            } catch (\Exception) {
+                                $landingUrl = '#';
+                            }
+                        @endphp
 
-        </div>
-    </div>
+                        <div class="group relative bg-white dark:bg-slate-800 flex flex-col justify-between p-6 overflow-hidden rounded-2xl shadow-sm hover:shadow-lg border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300"
+                            role="listitem">
 
-    {{-- ── Live stats (Livewire — polls every 60 s) ────────────────────── --}}
-    <livewire:dashboard-stats />
+                            {{-- Hover glow effect --}}
+                            <div
+                                class="absolute -right-12 -top-12 w-32 h-32 bg-gradient-to-br from-indigo-100 to-white dark:from-indigo-900/30 dark:to-slate-800 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                            </div>
 
-    {{-- ── Module launchpad ────────────────────────────────────────────── --}}
-    @if ($moduleCards->isNotEmpty())
-        <div class="dash-section-label">
-            Your Workspace Modules
-            <span class="dash-module-count">{{ $moduleCards->count() }}</span>
-        </div>
+                            <div class="relative z-10 flex items-start gap-4 mb-5">
+                                <div
+                                    class="flex items-center justify-center w-14 h-14 rounded-xl {{ $card['bg'] }} {{ $card['color'] }} border {{ $card['border'] }} shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:ring-4 group-hover:ring-{{ explode('-', $card['color'])[1] }}-50 dark:group-hover:ring-{{ explode('-', $card['color'])[1] }}-900/20">
+                                    <i class="fa-solid fa-{{ $mod->icon() }} text-2xl" aria-hidden="true"></i>
+                                </div>
+                                <div class="flex-1 mt-1">
+                                    <h3
+                                        class="text-base font-bold text-slate-900 dark:text-white mb-1.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                        {{ $mod->label() }}
+                                    </h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed font-medium">
+                                        {{ $mod->description() }}
+                                    </p>
+                                </div>
+                            </div>
 
-        <div class="module-grid" role="list" aria-label="Available workspace modules">
-            @foreach ($moduleCards as $card)
-                @php
-                    $mod = $card['module'];
-                    try { $landingUrl = route($mod->landingRoute()); } catch (\Exception) { $landingUrl = '#'; }
-                @endphp
-
-                <div class="module-card"
-                     role="listitem"
-                     x-data="{ hover: false }"
-                     @mouseenter="hover = true"
-                     @mouseleave="hover = false">
-
-                    <div class="module-card-icon"
-                         :style="hover
-                            ? 'color:{{ $card['color'] }};background:{{ str_replace('0.08', '0.15', $card['bg']) }};border-color:{{ str_replace('0.2', '0.4', $card['border']) }}'
-                            : 'color:{{ $card['color'] }};background:{{ $card['bg'] }};border-color:{{ $card['border'] }}'">
-                        <i class="fa-solid fa-{{ $mod->icon() }}" aria-hidden="true"></i>
-                    </div>
-
-                    <div class="module-card-body">
-                        <div class="module-card-title">{{ $mod->label() }}</div>
-                        <div class="module-card-desc">{{ $mod->description() }}</div>
-                    </div>
-
-                    @if ($landingUrl !== '#')
-                        <a href="{{ $landingUrl }}"
-                           class="module-card-btn"
-                           style="color:{{ $card['color'] }};border-color:{{ $card['border'] }}"
-                           aria-label="Open {{ $mod->label() }}">
-                            Open <i class="fas fa-arrow-right" aria-hidden="true" style="font-size:0.7rem"></i>
-                        </a>
-                    @endif
+                            @if ($landingUrl !== '#')
+                                <div
+                                    class="relative z-10 mt-auto pt-4 border-t border-slate-100 dark:border-slate-700/50 flex justify-end">
+                                    <a href="{{ $landingUrl }}"
+                                        class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider {{ $card['color'] }} hover:opacity-80 transition-opacity focus:outline-none focus:underline"
+                                        aria-label="Open {{ $mod->label() }}">
+                                        Open Module <i
+                                            class="fas fa-arrow-right text-[0.7rem] transition-transform group-hover:translate-x-1"
+                                            aria-hidden="true"></i>
+                                        {{-- Accessible tap target covers entire card --}}
+                                        <span class="absolute inset-0 z-20" aria-hidden="true"></span>
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
-            @endforeach
-        </div>
-    @else
-        <div class="module-empty">
-            <i class="fas fa-lock" aria-hidden="true"></i>
-            <p>No modules are currently available for your account.</p>
-            <p style="font-size:0.8rem;color:#94a3b8;margin-top:0.25rem">
-                Contact your workspace administrator to request access.
-            </p>
-        </div>
-    @endif
+            </div>
+        @else
+            <div
+                class="mt-8 py-16 px-6 text-center bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 border-dashed rounded-2xl flex flex-col items-center justify-center">
+                <div
+                    class="flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-700 mb-4 ring-4 ring-slate-50 dark:ring-slate-800">
+                    <i class="fas fa-lock text-3xl text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">No Modules Available</h3>
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-sm">
+                    No modules are currently enabled for your workspace account. Contact your administrator to request access.
+                </p>
+            </div>
+        @endif
 
-    {{-- ── Role hint bars ───────────────────────────────────────────────── --}}
-    @if ($isAdmin)
-        <div class="admin-hint-bar" role="note" aria-label="Administrator notice">
-            <i class="fas fa-user-shield" aria-hidden="true"></i>
-            <span>
-                You have <strong>Administrator</strong> access —
-                you can manage users, roles, and workspace settings.
-            </span>
-            @if ($canUsers)
-                <a href="{{ route('users.index') }}" class="admin-hint-link">Manage Users</a>
-            @endif
-        </div>
-    @elseif ($isManager)
-        <div class="admin-hint-bar" style="--hint-color:#0284c7" role="note" aria-label="Manager notice">
-            <i class="fas fa-user-tie" aria-hidden="true"></i>
-            <span>You have <strong>Manager</strong> access — you can view users and the audit log.</span>
-        </div>
-    @endif
+        {{-- ── Role hint bars ───────────────────────────────────────────────── --}}
+        @if ($isAdmin)
+            <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/60 shadow-sm"
+                role="note" aria-label="Administrator notice">
+                <div class="flex items-center gap-3 text-indigo-800 dark:text-indigo-300">
+                    <i class="fas fa-user-shield text-indigo-600 dark:text-indigo-400 w-5 text-center" aria-hidden="true"></i>
+                    <p class="text-sm">
+                        You have <strong class="font-bold">Administrator</strong> access — you can manage users, roles, and
+                        workspace settings.
+                    </p>
+                </div>
+                @if ($canUsers)
+                    <a href="{{ route('users.index') }}"
+                        class="sm:ml-auto inline-flex items-center justify-center px-4 py-2 text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700 rounded-lg hover:bg-indigo-100 dark:hover:bg-slate-700 hover:text-indigo-800 dark:hover:text-indigo-200 transition-colors focus:ring-2 focus:ring-indigo-500 focus:outline-none whitespace-nowrap">
+                        Manage Users
+                    </a>
+                @endif
+            </div>
+        @elseif ($isManager)
+            <div class="mt-8 flex items-start sm:items-center gap-4 p-5 rounded-2xl bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800/60 shadow-sm"
+                role="note" aria-label="Manager notice">
+                <i class="fas fa-user-tie text-sky-600 dark:text-sky-400 mt-0.5 sm:mt-0 text-lg" aria-hidden="true"></i>
+                <p class="text-sm text-sky-800 dark:text-sky-300">
+                    You have <strong class="font-bold">Manager</strong> access — you can view users and the audit log.
+                </p>
+            </div>
+        @endif
 
-</div>{{-- /dashboard-wrap --}}
+    </div>{{-- /dashboard-wrap --}}
 
-{{-- Show page content immediately on the home page --}}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var content = document.querySelector('.page-content');
-    if (content) content.style.display = 'block';
-    var overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.style.display = 'none';
-});
-</script>
-
-<style>
-/* Dashboard shell */
-.dashboard-wrap { padding: 1.5rem; }
-
-/* Header */
-.dash-header {
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;
-}
-.dash-title { font-size: 1.4rem; font-weight: 800; color: #1e293b; margin: 0; }
-.dash-meta {
-    display: flex; align-items: center; flex-wrap: wrap;
-    gap: 0.4rem; color: #64748b; font-size: 0.8rem; margin-top: 0.2rem;
-}
-.dash-sep { color: #cbd5e1; }
-.dash-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
-
-/* Chevron rotation for upload dropdown */
-.dash-chevron-dn, .dash-chevron-up {
-    font-size: 0.62rem;
-    transition: transform 0.15s ease;
-}
-.dash-chevron-up { transform: rotate(180deg); }
-
-/* Upload dropdown menu */
-.dash-upload-menu {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    min-width: 180px;
-    z-index: 100;
-    overflow: hidden;
-}
-.dash-upload-item {
-    display: flex; align-items: center; gap: 0.6rem;
-    width: 100%; padding: 0.65rem 1rem;
-    background: none; border: none;
-    color: #374151; font-size: 0.82rem; font-weight: 500;
-    font-family: inherit; cursor: pointer; text-align: left;
-    transition: background 0.12s, color 0.12s;
-}
-.dash-upload-item i { color: #7c3aed; font-size: 0.85rem; width: 1rem; text-align: center; }
-.dash-upload-item:hover { background: #f5f3ff; color: #4f46e5; }
-
-/* Alpine transition classes for upload menu */
-.dash-menu-enter      { transition: opacity 0.12s ease-out, transform 0.12s ease-out; }
-.dash-menu-enter-from { opacity: 0; transform: translateY(-4px) scale(0.97); }
-.dash-menu-enter-to   { opacity: 1; transform: translateY(0)    scale(1);    }
-.dash-menu-leave      { transition: opacity 0.08s ease-in, transform 0.08s ease-in; }
-.dash-menu-leave-from { opacity: 1; transform: translateY(0)    scale(1);    }
-.dash-menu-leave-to   { opacity: 0; transform: translateY(-4px) scale(0.97); }
-
-/* Section label */
-.dash-section-label {
-    display: flex; align-items: center; gap: 0.5rem;
-    font-size: 0.72rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    color: #94a3b8; margin: 2rem 0 0.875rem;
-}
-.dash-module-count {
-    background: rgba(124,58,237,0.1);
-    color: #7c3aed;
-    font-size: 0.65rem; font-weight: 700;
-    padding: 0.1rem 0.42rem; border-radius: 999px;
-}
-
-/* Module grid */
-.module-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 0.875rem;
-}
-
-/* Module card */
-.module-card {
-    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;
-    padding: 1.1rem 1.1rem 0.9rem;
-    display: flex; flex-direction: column; gap: 0.6rem;
-    transition: box-shadow 0.18s, border-color 0.18s, transform 0.15s;
-}
-.module-card:hover {
-    box-shadow: 0 4px 18px rgba(0,0,0,0.08); transform: translateY(-1px);
-}
-.module-card-icon {
-    width: 44px; height: 44px; border-radius: 10px; border: 1px solid;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.15rem; flex-shrink: 0;
-    transition: background 0.18s, border-color 0.18s;
-}
-.module-card-body { flex: 1; }
-.module-card-title { font-size: 0.88rem; font-weight: 700; color: #1e293b; margin-bottom: 0.2rem; }
-.module-card-desc { font-size: 0.76rem; color: #64748b; line-height: 1.45; }
-.module-card-btn {
-    display: inline-flex; align-items: center; gap: 0.35rem;
-    font-size: 0.75rem; font-weight: 600;
-    border: 1px solid; border-radius: 6px;
-    padding: 0.35rem 0.75rem;
-    align-self: flex-start;
-    transition: opacity 0.15s;
-}
-.module-card-btn:hover { opacity: 0.8; }
-
-/* Empty state */
-.module-empty {
-    text-align: center; padding: 3.5rem 1rem; color: #64748b; margin-top: 1.5rem;
-}
-.module-empty i { font-size: 2.25rem; opacity: 0.4; display: block; margin-bottom: 0.75rem; }
-.module-empty p { margin: 0; font-size: 0.875rem; }
-
-/* Admin hint bar */
-.admin-hint-bar {
-    --hint-color: #7c3aed;
-    display: flex; align-items: center; gap: 0.6rem;
-    margin-top: 1.5rem; padding: 0.75rem 1rem;
-    background: rgba(124,58,237,0.05);
-    border: 1px solid rgba(124,58,237,0.18);
-    border-left: 3px solid var(--hint-color);
-    border-radius: 8px; font-size: 0.8rem; color: #475569;
-}
-.admin-hint-bar i { color: var(--hint-color); font-size: 0.875rem; flex-shrink: 0; }
-.admin-hint-link {
-    margin-left: auto; font-size: 0.75rem; font-weight: 600;
-    color: var(--hint-color); white-space: nowrap;
-}
-.admin-hint-link:hover { text-decoration: underline; }
-
-/* Dark mode */
-body.dark-mode .module-card  { background: #1e293b; border-color: #334155; }
-body.dark-mode .module-card-title { color: #e2e8f0; }
-body.dark-mode .module-card-desc  { color: #94a3b8; }
-body.dark-mode .dash-title  { color: #f1f5f9; }
-body.dark-mode .admin-hint-bar { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.3); }
-body.dark-mode .dash-upload-menu { background: #1e293b; border-color: #334155; }
-body.dark-mode .dash-upload-item { color: #cbd5e1; }
-body.dark-mode .dash-upload-item:hover { background: #312e81; color: #a78bfa; }
-
-@media (max-width: 640px) {
-    .dashboard-wrap { padding: 1rem; }
-    .module-grid { grid-template-columns: 1fr; }
-}
-</style>
+    {{-- Show page content immediately on the home page --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var content = document.querySelector('.page-content');
+            if (content) content.style.display = 'block';
+            var overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = 'none';
+        });
+    </script>
 
 @endsection

@@ -194,7 +194,7 @@ body.dark-mode .sidebar-sort-btn, body.dark-mode .sidebar-dark-btn {
 {{-- ── Copyright Footer ──────────────────────────────────────────── --}}
 <div style="border-top:1px solid rgba(255,255,255,0.05);padding:0.5rem 1.25rem 0.7rem;flex-shrink:0;margin-top:auto">
     <div style="font-size:0.62rem;color:#334155;line-height:1.5;text-align:center">
-        &copy; {{ date('Y') }} EDMS Platform<br>
-        <span style="opacity:0.6">Laravel {{ app()->version() }} · v12</span>
+        &copy; {{ date('Y') }} NectarMetrics Solutions EDMS Platform<br>
+        <span style="opacity:0.6">Fayiloli {{ app()->version() }} · v12</span>
     </div>
 </div>

@@ -60,11 +60,11 @@ class TenantController extends Controller
             ->paginate(20);
 
         $stats = [
-            'total'     => Tenant::count(),
-            'active'    => Tenant::where('status', TenantStatus::ACTIVE)->count(),
-            'pending'   => Tenant::where('status', TenantStatus::PENDING)->count(),
+            'total' => Tenant::count(),
+            'active' => Tenant::where('status', TenantStatus::ACTIVE)->count(),
+            'pending' => Tenant::where('status', TenantStatus::PENDING)->count(),
             'suspended' => Tenant::where('status', TenantStatus::SUSPENDED)->count(),
-            'inactive'  => Tenant::where('status', TenantStatus::INACTIVE)->count(),
+            'inactive' => Tenant::where('status', TenantStatus::INACTIVE)->count(),
         ];
 
         return view('tenants.index', compact('tenants', 'stats'));
@@ -81,13 +81,13 @@ class TenantController extends Controller
         session(['tenant_provision_key' => $provisionKey]);
 
         return view('tenants.create', [
-            'tenantTypes'    => TenantType::cases(),
-            'tenantModules'  => TenantModule::cases(),
+            'tenantTypes' => TenantType::cases(),
+            'tenantModules' => TenantModule::cases(),
             'defaultModules' => TenantModule::defaults(),
-            'provisionKey'   => $provisionKey,
+            'provisionKey' => $provisionKey,
             // Domain suffix for the live JS preview widget.
             // e.g. ".localhost" | ".staging.fayiloli.ng" | ".fayiloli.ng"
-            'domainSuffix'   => $this->subdomainGenerator->domainSuffix(),
+            'domainSuffix' => $this->subdomainGenerator->domainSuffix(),
         ]);
     }
 
@@ -99,9 +99,9 @@ class TenantController extends Controller
         // state changes between FormRequest evaluation and controller entry
         // (e.g. two concurrent tab submissions).
         $submittedKey = $request->input('_provision_key');
-        $sessionKey   = session('tenant_provision_key');
+        $sessionKey = session('tenant_provision_key');
 
-        if (! $sessionKey || $submittedKey !== $sessionKey) {
+        if (!$sessionKey || $submittedKey !== $sessionKey) {
             return redirect()->route('tenants.create')
                 ->with('warning', 'Your provisioning session expired or the form was already submitted. Please fill in the details again.')
                 ->withInput($request->except('_provision_key'));
@@ -126,12 +126,12 @@ class TenantController extends Controller
 
         $tenant = Tenant::create([
             'organization_name' => $data['organization_name'],
-            'short_name'        => $data['short_name'],
-            'admin_email'       => $data['admin_email'],
-            'tenant_type'       => $data['tenant_type'],
-            'status'            => TenantStatus::PENDING,
-            'notes'             => $data['notes'] ?? null,
-            'settings'          => ['modules' => $modules],
+            'short_name' => $data['short_name'],
+            'admin_email' => $data['admin_email'],
+            'tenant_type' => $data['tenant_type'],
+            'status' => TenantStatus::PENDING,
+            'notes' => $data['notes'] ?? null,
+            'settings' => ['modules' => $modules],
         ]);
 
         // Attach the primary domain — fires DomainCreated event.
@@ -155,8 +155,8 @@ class TenantController extends Controller
         $tenant->load('domains');
 
         return view('tenants.show', [
-            'tenant'        => $tenant,
-            'transitions'   => $tenant->status?->allowedTransitions() ?? [],
+            'tenant' => $tenant,
+            'transitions' => $tenant->status?->allowedTransitions() ?? [],
             'tenantModules' => TenantModule::cases(),
         ]);
     }
@@ -168,25 +168,25 @@ class TenantController extends Controller
         $tenant->load('domains');
 
         return view('tenants.edit', [
-            'tenant'        => $tenant,
-            'tenantTypes'   => TenantType::cases(),
+            'tenant' => $tenant,
+            'tenantTypes' => TenantType::cases(),
             'tenantModules' => TenantModule::cases(),
         ]);
     }
 
     public function update(UpdateTenantRequest $request, Tenant $tenant): RedirectResponse
     {
-        $data     = $request->validated();
-        $modules  = $data['modules'] ?? [];
+        $data = $request->validated();
+        $modules = $data['modules'] ?? [];
         $settings = array_merge($tenant->settings ?? [], ['modules' => $modules]);
 
         $tenant->update([
             'organization_name' => $data['organization_name'],
-            'short_name'        => $data['short_name'],
-            'admin_email'       => $data['admin_email'],
-            'tenant_type'       => $data['tenant_type'],
-            'notes'             => $data['notes'] ?? null,
-            'settings'          => $settings,
+            'short_name' => $data['short_name'],
+            'admin_email' => $data['admin_email'],
+            'tenant_type' => $data['tenant_type'],
+            'notes' => $data['notes'] ?? null,
+            'settings' => $settings,
         ]);
 
         return redirect()
@@ -262,7 +262,9 @@ class TenantController extends Controller
     {
         $validated = $request->validate([
             'domain' => [
-                'required', 'string', 'max:255',
+                'required',
+                'string',
+                'max:255',
                 'regex:/^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?(\.[a-z0-9\-]{2,})+$/',
                 'unique:domains,domain',
             ],
@@ -290,5 +292,31 @@ class TenantController extends Controller
         return redirect()
             ->route('tenants.show', $tenant)
             ->with('success', 'Domain removed.');
+    }
+
+    // ── Single Sign-On ────────────────────────────────────────────────────────
+
+    public function impersonate(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $centralEmail = auth()->user()->email;
+
+        // Query the isolated tenant database to find the equivalent user
+        $tenantUserId = $tenant->run(function () use ($centralEmail) {
+            return \App\Models\User::where('email', $centralEmail)->value('id');
+        });
+
+        if (!$tenantUserId) {
+            return back()->with('error', "SSO Failed: No account found in the '{$tenant->organization_name}' workspace matching your central email ({$centralEmail}).");
+        }
+
+        // Issue a single-use impersonation token valid for the tenant domain
+        $token = tenancy()->impersonate($tenant, $tenantUserId, '/home', 'web');
+        $domain = $tenant->domains->firstOrFail()->domain;
+
+        $scheme = $request->getScheme();
+        $port = (int) $request->getPort();
+        $portSuffix = !in_array($port, [80, 443], strict: true) ? ":{$port}" : '';
+
+        return redirect("{$scheme}://{$domain}{$portSuffix}/impersonate/{$token->token}");
     }
 }

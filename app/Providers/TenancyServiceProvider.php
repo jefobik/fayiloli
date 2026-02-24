@@ -106,6 +106,12 @@ class TenancyServiceProvider extends ServiceProvider
         $this->mapRoutes();
         $this->configureTenancyMiddleware();
 
+        // Map tenant database columns to standard Laravel configs when tenancy is initialised.
+        \Stancl\Tenancy\Features\TenantConfig::$storageToConfigMap = [
+            'organization_name' => 'app.name',
+            'admin_email' => 'mail.from.address',
+        ];
+
         // NOTE: makeTenancyMiddlewareHighestPriority() was removed.
         // Laravel 12 does not bind Illuminate\Contracts\Http\Kernel in the
         // container; calling prependToMiddlewarePriority() on it throws a

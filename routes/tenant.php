@@ -47,9 +47,18 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
 
     // ─── Home ──────────────────────────────────────────────────────────────
     Route::get('/', function () {
-        dd(\App\Models\User::all());
-        return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
+        return redirect('/home');
     });
+
+    // ─── Authentication ────────────────────────────────────────────────────
+    // Handled centrally by routes/web.php using InitializeTenancyByDomain
+    // global middleware.
+
+    // ─── Single Sign-On / Impersonation ────────────────────────────────────
+    Route::get('/impersonate/{token}', function ($token) {
+        return \Stancl\Tenancy\Features\UserImpersonation::makeResponse($token);
+    })->name('impersonate');
+
     // ─── User Management (tenant-admin only) ──────────────────────────────
     Route::middleware(['auth', 'tenant.module:users'])->group(function () {
         Route::resource('users', UserManagementController::class);
@@ -59,8 +68,6 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
     Route::middleware('auth')->group(function () {
 
         // ── Dashboard / Home ───────────────────────────────────────────────
-        // The home route acts as the tenant landing page; it is not gated
-        // behind a specific module so users always have somewhere to land.
         Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
         // ── Documents ──────────────────────────────────────────────────────

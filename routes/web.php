@@ -59,14 +59,14 @@ Route::middleware(['auth', 'central-admin'])
         //  TenantPolicy::create() returns false for non-super-admins as a
         //  defence-in-depth backstop via authorizeResource().
         //  MUST be defined before /{tenant} to prevent "create" being resolved as a UUID.
-        Route::get('/create',  [TenantController::class, 'create'])->name('create')->middleware('super-admin');
-        Route::post('/',       [TenantController::class, 'store'])->name('store')->middleware('super-admin');
+        Route::get('/create', [TenantController::class, 'create'])->name('create')->middleware('super-admin');
+        Route::post('/', [TenantController::class, 'store'])->name('store')->middleware('super-admin');
 
         // ── Read + update (any central admin) ─────────────────────────────
-        Route::get('/',              [TenantController::class, 'index'])->name('index');
-        Route::get('/{tenant}',      [TenantController::class, 'show'])->name('show');
+        Route::get('/', [TenantController::class, 'index'])->name('index');
+        Route::get('/{tenant}', [TenantController::class, 'show'])->name('show');
         Route::get('/{tenant}/edit', [TenantController::class, 'edit'])->name('edit');
-        Route::put('/{tenant}',      [TenantController::class, 'update'])->name('update');
+        Route::put('/{tenant}', [TenantController::class, 'update'])->name('update');
 
         // ── Deletion (super-admin only — triple-gated) ────────────────────
         //  Gate 1: 'super-admin' middleware (EnsureSuperAdmin) — routing layer.
@@ -75,8 +75,11 @@ Route::middleware(['auth', 'central-admin'])
         Route::delete('/{tenant}', [TenantController::class, 'destroy'])->name('destroy')->middleware('super-admin');
 
         // ── Domain management (any central admin) ─────────────────────────
-        Route::post('/{tenant}/domains',   [TenantController::class, 'addDomain'])->name('domains.add');
+        Route::post('/{tenant}/domains', [TenantController::class, 'addDomain'])->name('domains.add');
         Route::delete('/{tenant}/domains', [TenantController::class, 'removeDomain'])->name('domains.remove');
+
+        // ── Tenant Impersonation (SSO) ────────────────────────────────────
+        Route::get('/{tenant}/impersonate', [TenantController::class, 'impersonate'])->name('impersonate');
 
         // ── Status lifecycle (any central admin) ──────────────────────────
         //  Target status is validated against the state machine in
