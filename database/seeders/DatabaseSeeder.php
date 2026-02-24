@@ -54,16 +54,16 @@ class DatabaseSeeder extends Seeder
     private function seedSuperAdmin(): void
     {
         User::updateOrCreate(
-            ['email' => 'superadmin@nectarmetrics.com.ng'],
+            ['email' => 'superadmin@fcta.gov.local'],
             [
-                'name'              => 'Super Administrator',
-                'user_name'         => 'superadmin',
-                'phone'             => '08000000001',
+                'name' => 'Super Administrator',
+                'user_name' => 'superadmin',
+                'phone' => '08000000001',
                 'email_verified_at' => now(),
-                'password'          => bcrypt('passw0rd!'),
-                'is_super_admin'    => true,
-                'is_admin'          => true,
-                'is_active'         => true,
+                'password' => bcrypt('passw0rd!'),
+                'is_super_admin' => true,
+                'is_admin' => true,
+                'is_active' => true,
             ]
         );
     }

@@ -43,71 +43,231 @@ class SubdomainGenerator
      */
     private const RESERVED = [
         // ── DNS / Network infrastructure ─────────────────────────────────────
-        'www', 'wwww',
-        'ns', 'ns0', 'ns1', 'ns2', 'ns3', 'ns4', 'ns5',
-        'mx', 'mx1', 'mx2', 'mx3',
-        'cdn', 'edge', 'static', 'assets', 'media', 'images', 'img',
-        'files', 'storage', 'uploads', 'download', 'downloads',
-        'ftp', 'sftp', 'ssh', 'vpn', 'proxy', 'gateway', 'relay',
-        'firewall', 'lb', 'balancer',
+        'www',
+        'wwww',
+        'ns',
+        'ns0',
+        'ns1',
+        'ns2',
+        'ns3',
+        'ns4',
+        'ns5',
+        'mx',
+        'mx1',
+        'mx2',
+        'mx3',
+        'cdn',
+        'edge',
+        'static',
+        'assets',
+        'media',
+        'images',
+        'img',
+        'files',
+        'storage',
+        'uploads',
+        'download',
+        'downloads',
+        'ftp',
+        'sftp',
+        'ssh',
+        'vpn',
+        'proxy',
+        'gateway',
+        'relay',
+        'firewall',
+        'lb',
+        'balancer',
 
         // ── Mail infrastructure ───────────────────────────────────────────────
-        'mail', 'mail1', 'mail2', 'smtp', 'smtps',
-        'pop', 'pop3', 'imap', 'imaps', 'webmail', 'email',
-        'mta', 'mda', 'mua', 'bounce', 'postmaster',
+        'mail',
+        'mail1',
+        'mail2',
+        'smtp',
+        'smtps',
+        'pop',
+        'pop3',
+        'imap',
+        'imaps',
+        'webmail',
+        'email',
+        'mta',
+        'mda',
+        'mua',
+        'bounce',
+        'postmaster',
 
         // ── Control panels ────────────────────────────────────────────────────
-        'cpanel', 'whm', 'plesk', 'directadmin', 'kloxo', 'hestia',
-        'webadmin', 'panel', 'hosting',
+        'cpanel',
+        'whm',
+        'plesk',
+        'directadmin',
+        'kloxo',
+        'hestia',
+        'webadmin',
+        'panel',
+        'hosting',
 
         // ── Platform internals ────────────────────────────────────────────────
-        'admin', 'superadmin', 'super', 'root', 'master', 'central',
-        'system', 'sys', 'internal', 'intranet', 'extranet',
-        'manage', 'management', 'console', 'control', 'hub',
+        'admin',
+        'superadmin',
+        'super',
+        'root',
+        'master',
+        'central',
+        'system',
+        'sys',
+        'internal',
+        'intranet',
+        'extranet',
+        'manage',
+        'management',
+        'console',
+        'control',
+        'hub',
 
         // ── Auth / Identity ───────────────────────────────────────────────────
-        'auth', 'oauth', 'oauth2', 'sso', 'saml', 'oidc', 'idp',
-        'login', 'logout', 'register', 'signup', 'signin', 'signout',
-        'account', 'accounts', 'identity', 'password', 'reset', 'forgot',
-        'verify', 'verification', 'confirm', 'activate', 'activate2',
+        'auth',
+        'oauth',
+        'oauth2',
+        'sso',
+        'saml',
+        'oidc',
+        'idp',
+        'login',
+        'logout',
+        'register',
+        'signup',
+        'signin',
+        'signout',
+        'account',
+        'accounts',
+        'identity',
+        'password',
+        'reset',
+        'forgot',
+        'verify',
+        'verification',
+        'confirm',
+        'activate',
+        'activate2',
 
         // ── API endpoints ─────────────────────────────────────────────────────
-        'api', 'api-v1', 'api-v2', 'api-v3', 'graphql', 'grpc',
-        'ws', 'wss', 'socket', 'io', 'realtime', 'stream',
-        'webhook', 'webhooks', 'callback', 'callbacks',
-        'rpc', 'rest',
+        'api',
+        'api-v1',
+        'api-v2',
+        'api-v3',
+        'graphql',
+        'grpc',
+        'ws',
+        'wss',
+        'socket',
+        'io',
+        'realtime',
+        'stream',
+        'webhook',
+        'webhooks',
+        'callback',
+        'callbacks',
+        'rpc',
+        'rest',
 
         // ── CI/CD / DevOps environments ───────────────────────────────────────
-        'dev', 'develop', 'development',
-        'test', 'testing', 'qa', 'qat', 'qe', 'uat', 'sit', 'fat',
-        'staging', 'stage', 'stg',
-        'prod', 'production',
-        'preview', 'demo', 'sandbox',
-        'canary', 'beta', 'alpha', 'rc', 'release', 'nightly',
-        'hotfix', 'feature', 'local',
+        'dev',
+        'develop',
+        'development',
+        'test',
+        'testing',
+        'qa',
+        'qat',
+        'qe',
+        'uat',
+        'sit',
+        'fat',
+        'staging',
+        'stage',
+        'stg',
+        'prod',
+        'production',
+        'preview',
+        'demo',
+        'sandbox',
+        'canary',
+        'beta',
+        'alpha',
+        'rc',
+        'release',
+        'nightly',
+        'hotfix',
+        'feature',
+        'local',
 
         // ── Documentation / Support ───────────────────────────────────────────
-        'help', 'support', 'docs', 'doc', 'documentation',
-        'kb', 'knowledge', 'wiki', 'faq',
-        'status', 'uptime', 'health', 'healthz', 'ping', 'monitor',
-        'blog', 'news', 'press', 'updates',
-        'about', 'contact',
+        'help',
+        'support',
+        'docs',
+        'doc',
+        'documentation',
+        'kb',
+        'knowledge',
+        'wiki',
+        'faq',
+        'status',
+        'uptime',
+        'health',
+        'healthz',
+        'ping',
+        'monitor',
+        'blog',
+        'news',
+        'press',
+        'updates',
+        'about',
+        'contact',
 
         // ── Analytics / Observability ─────────────────────────────────────────
-        'metrics', 'analytics', 'telemetry', 'logs', 'logging',
-        'grafana', 'kibana', 'sentry', 'datadog', 'newrelic',
-        'prometheus', 'elastic', 'splunk', 'loggly',
-        'track', 'tracking',
+        'metrics',
+        'analytics',
+        'telemetry',
+        'logs',
+        'logging',
+        'grafana',
+        'kibana',
+        'sentry',
+        'datadog',
+        'newrelic',
+        'prometheus',
+        'elastic',
+        'splunk',
+        'loggly',
+        'track',
+        'tracking',
 
         // ── Platform brand names ──────────────────────────────────────────────
-        'fayiloli', 'edms', 'nectarmetrics',
+        'fayiloli',
+        'edms',
+        'nectarmetrics',
 
         // ── Generic catch-all ─────────────────────────────────────────────────
-        'app', 'web', 'portal', 'dashboard', 'home',
-        'server', 'host', 'localhost', 'localdomain',
-        'secure', 'ssl', 'tls',
-        'cloud', 'cluster', 'node', 'worker',
-        'default', 'null', 'undefined',
+        'app',
+        'web',
+        'portal',
+        'dashboard',
+        'home',
+        'server',
+        'host',
+        'localhost',
+        'localdomain',
+        'secure',
+        'ssl',
+        'tls',
+        'cloud',
+        'cluster',
+        'node',
+        'worker',
+        'default',
+        'null',
+        'undefined',
     ];
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -124,7 +284,7 @@ class SubdomainGenerator
      */
     public function generate(string $organizationName): string
     {
-        $slug       = $this->toSlug($organizationName);
+        $slug = $this->toSlug($organizationName);
         $uniqueSlug = $this->resolveUniqueSlug($slug);
 
         return $this->buildFqdn($uniqueSlug);
@@ -204,13 +364,13 @@ class SubdomainGenerator
      */
     public function buildFqdn(string $slug): string
     {
-        $env        = config('tenancy.deployment_environment', 'local');
+        $env = config('tenancy.deployment_environment', 'local');
         $baseDomain = config('tenancy.tenant_base_domain', 'localhost');
 
         return match ($env) {
-            'local'   => "{$slug}.localhost",
+            'local' => "{$slug}.{$baseDomain}",
             'staging' => "{$slug}.staging.{$baseDomain}",
-            default   => "{$slug}.{$baseDomain}",  // production + any unknown env
+            default => "{$slug}.{$baseDomain}",  // production + any unknown env
         };
     }
 
@@ -228,13 +388,13 @@ class SubdomainGenerator
      */
     public function domainSuffix(): string
     {
-        $env        = config('tenancy.deployment_environment', 'local');
+        $env = config('tenancy.deployment_environment', 'local');
         $baseDomain = config('tenancy.tenant_base_domain', 'localhost');
 
         return match ($env) {
-            'local'   => '.localhost',
+            'local' => ".{$baseDomain}",
             'staging' => ".staging.{$baseDomain}",
-            default   => ".{$baseDomain}",
+            default => ".{$baseDomain}",
         };
     }
 
@@ -262,14 +422,14 @@ class SubdomainGenerator
         }
 
         // Step 2 — optimistic quick path.
-        if (! $this->fqdnExists($this->buildFqdn($slug))) {
+        if (!$this->fqdnExists($this->buildFqdn($slug))) {
             return $slug;
         }
 
         // Step 3 — numeric suffix: finance-2, finance-3 … finance-999.
         for ($i = 2; $i <= 999; $i++) {
             $candidate = "{$slug}-{$i}";
-            if (! $this->fqdnExists($this->buildFqdn($candidate))) {
+            if (!$this->fqdnExists($this->buildFqdn($candidate))) {
                 return $candidate;
             }
         }

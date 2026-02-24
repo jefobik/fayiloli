@@ -184,7 +184,15 @@
             @if ($org)
                 <div class="auth-divider"><span>Need another workspace?</span></div>
                 <div style="text-align:center">
-                    <a href="{{ route('portal.discover') }}" class="auth-link" style="font-size:0.95rem;display:inline-flex;align-items:center;gap:0.5rem">
+                    {{--
+                        Always build an absolute URL to the central domain's /portal page.
+                        Using config('app.url') instead of route('portal.discover') ensures
+                        this link works correctly even when rendered from a tenant subdomain,
+                        where the router's APP_URL base and the current Host header differ.
+                    --}}
+                    <a href="{{ rtrim(config('app.url'), '/') }}/portal"
+                       class="auth-link"
+                       style="font-size:0.95rem;display:inline-flex;align-items:center;gap:0.5rem">
                         <i class="fas fa-arrow-left" aria-hidden="true" style="font-size:0.8rem"></i>
                         Find a different organisation
                     </a>

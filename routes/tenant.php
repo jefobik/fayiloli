@@ -12,7 +12,7 @@ use App\Http\Controllers\ShareDocumentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserManagementController;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
-
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 /*
 |--------------------------------------------------------------------------
 | Tenant Routes
@@ -27,7 +27,8 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 | super-admin side.  On tenant domains it switches the DB connection
 | before any controller or auth guard runs.
 |
-| Auth::routes() is also NOT repeated here; the single registration in
+| Auth::routes() is also NOT repeated here; the single r
+egistration in
 | routes/web.php covers both central and tenant auth.  On a tenant domain,
 | the global InitializeTenancyByDomain switches the DB connection before
 | the auth guard runs, so credentials are validated against the correct
@@ -44,6 +45,11 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(function () {
 
+    // ─── Home ──────────────────────────────────────────────────────────────
+    Route::get('/', function () {
+        dd(\App\Models\User::all());
+        return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
+    });
     // ─── User Management (tenant-admin only) ──────────────────────────────
     Route::middleware(['auth', 'tenant.module:users'])->group(function () {
         Route::resource('users', UserManagementController::class);
@@ -107,12 +113,17 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
 
         // ── Projects ───────────────────────────────────────────────────────
         Route::middleware('tenant.module:projects')->group(function () {
-            Route::get('/projects', fn () => view('projects.index'))->name('projects.index');
+            Route::get('/projects', fn() => view('projects.index'))->name('projects.index');
         });
 
-        // ── Contacts ───────────────────────────────────────────────────────
-        Route::middleware('tenant.module:contacts')->group(function () {
-            Route::get('/contacts', fn () => view('contacts.index'))->name('contacts.index');
+        // ── HRM ───────────────────────────────────────────────────────
+        Route::middleware('tenant.module:hrm')->group(function () {
+            Route::get('/hrm', fn() => view('hrm.index'))->name('hrm.index');
+        });
+
+        // ── Stats ───────────────────────────────────────────────────────
+        Route::middleware('tenant.module:stats')->group(function () {
+            Route::get('/stats', fn() => view('stats.index'))->name('stats.index');
         });
     });
 

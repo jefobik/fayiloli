@@ -36,7 +36,9 @@ use RuntimeException;
  */
 class SampleTenantSeeder extends Seeder
 {
-    public function __construct(private readonly SubdomainGenerator $subdomainGenerator) {}
+    public function __construct(private readonly SubdomainGenerator $subdomainGenerator)
+    {
+    }
 
     public function run(): void
     {
@@ -50,40 +52,40 @@ class SampleTenantSeeder extends Seeder
         $this->provisionAll([
             [
                 'organization_name' => 'Office of the Honourable Minister FCTA',
-                'short_name'        => 'ohm',
-                'admin_email'       => 'registry@ohm.fcta.gov.ng',
-                'tenant_type'       => TenantType::DEPARTMENT,
+                'short_name' => 'ohm',
+                'admin_email' => 'admin@ohm.fcta.gov.local',
+                'tenant_type' => TenantType::DEPARTMENT,
             ],
             [
                 'organization_name' => 'Office of the Honourable Minister of State FCTA',
-                'short_name'        => 'ohms',
-                'admin_email'       => 'registry@ohms.fcta.gov.ng',
-                'tenant_type'       => TenantType::DEPARTMENT,
+                'short_name' => 'ohms',
+                'admin_email' => 'admin@ohms.fcta.gov.local',
+                'tenant_type' => TenantType::DEPARTMENT,
             ],
             [
                 'organization_name' => 'Permanent Secretary Common Services Secretariat FCTA',
-                'short_name'        => 'pscss',
-                'admin_email'       => 'registry@pscss.fcta.gov.ng',
-                'tenant_type'       => TenantType::SECRETARIAT,
+                'short_name' => 'css',
+                'admin_email' => 'admin@css.fcta.gov.local',
+                'tenant_type' => TenantType::SECRETARIAT,
             ],
             [
                 'organization_name' => 'Head of Service FCTA',
-                'short_name'        => 'hos',
-                'admin_email'       => 'registry@hos.fcta.gov.ng',
-                'tenant_type'       => TenantType::DEPARTMENT,
+                'short_name' => 'hos',
+                'admin_email' => 'admin@hos.fcta.gov.local',
+                'tenant_type' => TenantType::DEPARTMENT,
             ],
             [
                 'organization_name' => 'Procurement Department of FCTA',
-                'short_name'        => 'procurement',
-                'admin_email'       => 'registry@procurement.fcta.gov.ng',
-                'tenant_type'       => TenantType::SECRETARIAT,
+                'short_name' => 'procurement',
+                'admin_email' => 'admin@fctproc.fcta.gov.local',
+                'tenant_type' => TenantType::SECRETARIAT,
             ],
 
             [
                 'organization_name' => 'Treasury and Budget Secretariat',
-                'short_name'        => 'treasury',
-                'admin_email'       => 'registry@treasury.fcta.gov.ng',
-                'tenant_type'       => TenantType::SECRETARIAT,
+                'short_name' => 'tb',
+                'admin_email' => 'admin@tb.fcta.gov.local',
+                'tenant_type' => TenantType::SECRETARIAT,
             ],
         ]);
     }
@@ -103,11 +105,11 @@ class SampleTenantSeeder extends Seeder
             // → MigrateDatabase → SeedDatabase(TenantDatabaseSeeder).
             $tenant = Tenant::create([
                 'organization_name' => $data['organization_name'],
-                'short_name'        => $data['short_name'],
-                'admin_email'       => $data['admin_email'],
-                'tenant_type'       => $data['tenant_type'],
-                'status'            => TenantStatus::PENDING,
-                'settings'          => ['modules' => TenantModule::defaults()],
+                'short_name' => $data['short_name'],
+                'admin_email' => $data['admin_email'],
+                'tenant_type' => $data['tenant_type'],
+                'status' => TenantStatus::PENDING,
+                'settings' => ['modules' => TenantModule::defaults()],
             ]);
 
             // Attach primary domain using the same generator as TenantController::store().

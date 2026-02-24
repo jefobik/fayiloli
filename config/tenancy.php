@@ -28,7 +28,7 @@ return [
     // Only used in staging and production environments.
     // Example: 'fayiloli.ng'  →  tenant workspace: 'finance.fayiloli.ng'
     //
-    'tenant_base_domain' => env('TENANT_BASE_DOMAIN', 'fayiloli.ng'),
+    'tenant_base_domain' => env('TENANT_BASE_DOMAIN', 'fcta.gov.local'),
 
     /**
      * The list of domains hosting your central app.
@@ -42,6 +42,7 @@ return [
     'central_domains' => array_values(array_filter([
         '127.0.0.1',
         'localhost',
+        'fcta.gov.local',
         env('CENTRAL_DOMAIN'),   // e.g. admin.fayiloli.ng  (staging/prod only)
     ])),
 
@@ -75,7 +76,7 @@ return [
          * Tenant database names are created like this:
          * prefix + tenant_id + suffix.
          */
-        'prefix' => 'tenant',
+        'prefix' => 'tenant_',
         'suffix' => '',
 
         /**
@@ -86,16 +87,16 @@ return [
             'mysql' => Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
             'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
 
-        /**
-         * Use this database manager for MySQL to have a DB user created for each tenant database.
-         * You can customize the grants given to these users by changing the $grants property.
-         */
+            /**
+             * Use this database manager for MySQL to have a DB user created for each tenant database.
+             * You can customize the grants given to these users by changing the $grants property.
+             */
             // 'mysql' => Stancl\Tenancy\TenantDatabaseManagers\PermissionControlledMySQLDatabaseManager::class,
 
-        /**
-         * Disable the pgsql manager above, and enable the one below if you
-         * want to separate tenant DBs by schemas rather than databases.
-         */
+            /**
+             * Disable the pgsql manager above, and enable the one below if you
+             * want to separate tenant DBs by schemas rather than databases.
+             */
             // 'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLSchemaManager::class, // Separate by schema instead of database
         ],
     ],
