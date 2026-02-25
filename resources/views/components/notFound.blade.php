@@ -1,7 +1,7 @@
 @props(['message' => 'No document found', 'size' => '60'])
 <div class="col-md-12 mb-3 documentContentClass">
     <div class="no-document-found">
-        <img src="{{ asset('img/empty-document.png') }}" alt="No Document Found Image">
+        <img src="{{ global_asset('img/empty-document.png') }}" alt="No Document Found Image">
         <p>{{ $message }}</p>
     </div>
 </div>
@@ -14,7 +14,9 @@
             padding: 20px;
             margin: auto;
             background-color: whitesmoke;
-            width: {{ $size }}vw;
+            width:
+                {{ $size }}
+                vw;
         }
 
         .no-document-found img {

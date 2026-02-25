@@ -1,6 +1,6 @@
 <!-- Upload Modal -->
-<div class="modal fade custom-modal" id="shareDocumentModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel"
-    aria-hidden="true">
+<div class="modal fade custom-modal" id="shareDocumentModal" tabindex="-1" role="dialog"
+    aria-labelledby="uploadModalLabel" aria-hidden="true">
     <div class="modal-dialog custom-dialog modal-lg" role="document">
         <div class="modal-content custom-content">
             <div class="modal-header custom-header p-1">
@@ -20,8 +20,8 @@
                     <label for="folderIdInput" class="custom-label col-md-3">URL</label>
                     <div class="form-group col-md-12">
                         <div class="input-group form-group">
-                            <input type="url" readonly class="form-control custom-input-lg col-md-9"
-                                id="sharedUrlId" name="url">
+                            <input type="url" readonly class="form-control custom-input-lg col-md-9" id="sharedUrlId"
+                                name="url">
                             <div class="btn btn-xs" onclick="copyUrl()">Copy</div>
                         </div>
                     </div>
@@ -76,5 +76,5 @@
 
 
 @once
-    <script src="{{ asset('custom-js/share.js') }}"></script>
+    <script src="{{ global_asset('custom-js/share.js') }}"></script>
 @endonce

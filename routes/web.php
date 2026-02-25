@@ -64,6 +64,10 @@ Route::middleware(['auth', 'central-admin'])
 
         // ── Read + update (any central admin) ─────────────────────────────
         Route::get('/', [TenantController::class, 'index'])->name('index');
+
+        // ── Tenant Impersonation (SSO) ────────────────────────────────────
+        Route::get('/{tenant}/impersonate', \App\Http\Controllers\TenantImpersonationController::class)->name('impersonate');
+
         Route::get('/{tenant}', [TenantController::class, 'show'])->name('show');
         Route::get('/{tenant}/edit', [TenantController::class, 'edit'])->name('edit');
         Route::put('/{tenant}', [TenantController::class, 'update'])->name('update');
@@ -77,9 +81,6 @@ Route::middleware(['auth', 'central-admin'])
         // ── Domain management (any central admin) ─────────────────────────
         Route::post('/{tenant}/domains', [TenantController::class, 'addDomain'])->name('domains.add');
         Route::delete('/{tenant}/domains', [TenantController::class, 'removeDomain'])->name('domains.remove');
-
-        // ── Tenant Impersonation (SSO) ────────────────────────────────────
-        Route::get('/{tenant}/impersonate', [TenantController::class, 'impersonate'])->name('impersonate');
 
         // ── Status lifecycle (any central admin) ──────────────────────────
         //  Target status is validated against the state machine in

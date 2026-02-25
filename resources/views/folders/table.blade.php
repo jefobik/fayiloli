@@ -56,68 +56,67 @@
 </style>
 
 @if ($folders->isNotEmpty())
-    <table class="custom-table" id="folders-table">
-        <thead>
-            <tr>
-                <th><input type="checkbox" id="checkAll"></th>
-                <th>Workspaces</th>
-                <th>Tag Categories</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($folders as $folder)
-                <tr class="tree-parent" data-id="{{ $folder->id }}">
-                    <td><input type="checkbox" name="folder_ids[]" value="{{ $folder->id }}"></td>
-                    <td>
-                        @if ($folder->subfolders->isNotEmpty())
-                            <i class="fa fa-caret-right toggle-icon" onclick="toggleChildRows(this)"></i>
-                        @endif
-                        <i class="fa fa-arrows"></i> {{ $folder->name }}
-
-                        <ul class="child-list" style="display: none;"> <!-- Nested UL for child rows -->
-                            @foreach ($folder->subfolders as $subfolder)
-                                <li class="tree-child" data-id="{{ $subfolder->id }}">
-                                    <input type="checkbox" name="folder_ids[]" value="{{ $subfolder->id }}">
-                                    <i class="fa fa-arrows"></i> {{ $subfolder->name }}
-                                    <ul class="subfolder-list"> <!-- Nested UL for subfolders -->
-                                        @foreach ($subfolder->subfolders as $subsubfolder)
-                                            <li class="tree-child" data-id="{{ $subsubfolder->id }}">
-                                                <input type="checkbox" name="folder_ids[]"
-                                                    value="{{ $subsubfolder->id }}">
-                                                <i class="fa fa-arrows"></i> {{ $subsubfolder->name }}
-                                                <ul class="category-list"> <!-- Nested UL for categories -->
-                                                    @foreach ($subsubfolder->categories as $category)
-                                                        <li>
-                                                            <label for=""
-                                                                class="badge small info">{{ $category->name }}</label>
-                                                        </li>
-                                                    @endforeach
-                                                </ul>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                    <ul class="category-list"> <!-- Nested UL for categories -->
-                                        @foreach ($subfolder->categories as $category)
-                                            <li>
-                                                <label for=""
-                                                    class="badge small info">{{ $category->name }}</label>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </li>
-                            @endforeach
-                        </ul>
-
-                    </td>
-                    <td>
-                        @foreach ($folder->categories as $category)
-                            <label for="" class="badge small info">{{ $category->name }}</label>
-                        @endforeach
-                    </td>
+    <div class="table-responsive">
+        <table class="custom-table" id="folders-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="checkAll"></th>
+                    <th>Workspaces</th>
+                    <th>Tag Categories</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($folders as $folder)
+                    <tr class="tree-parent" data-id="{{ $folder->id }}">
+                        <td><input type="checkbox" name="folder_ids[]" value="{{ $folder->id }}"></td>
+                        <td>
+                            @if ($folder->subfolders->isNotEmpty())
+                                <i class="fa fa-caret-right toggle-icon" onclick="toggleChildRows(this)"></i>
+                            @endif
+                            <i class="fa fa-arrows"></i> {{ $folder->name }}
+
+                            <ul class="child-list" style="display: none;"> <!-- Nested UL for child rows -->
+                                @foreach ($folder->subfolders as $subfolder)
+                                    <li class="tree-child" data-id="{{ $subfolder->id }}">
+                                        <input type="checkbox" name="folder_ids[]" value="{{ $subfolder->id }}">
+                                        <i class="fa fa-arrows"></i> {{ $subfolder->name }}
+                                        <ul class="subfolder-list"> <!-- Nested UL for subfolders -->
+                                            @foreach ($subfolder->subfolders as $subsubfolder)
+                                                <li class="tree-child" data-id="{{ $subsubfolder->id }}">
+                                                    <input type="checkbox" name="folder_ids[]" value="{{ $subsubfolder->id }}">
+                                                    <i class="fa fa-arrows"></i> {{ $subsubfolder->name }}
+                                                    <ul class="category-list"> <!-- Nested UL for categories -->
+                                                        @foreach ($subsubfolder->categories as $category)
+                                                            <li>
+                                                                <label for="" class="badge small info">{{ $category->name }}</label>
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                        <ul class="category-list"> <!-- Nested UL for categories -->
+                                            @foreach ($subfolder->categories as $category)
+                                                <li>
+                                                    <label for="" class="badge small info">{{ $category->name }}</label>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </li>
+                                @endforeach
+                            </ul>
+
+                        </td>
+                        <td>
+                            @foreach ($folder->categories as $category)
+                                <label for="" class="badge small info">{{ $category->name }}</label>
+                            @endforeach
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 @else
     <x-notFound message="No Folder " />
 @endif
@@ -135,7 +134,7 @@
     function downloadFolder() {
         // Get selected folder IDs
         var folderIds = [];
-        $('input[name="folder_ids[]"]:checked').each(function() {
+        $('input[name="folder_ids[]"]:checked').each(function () {
             folderIds.push($(this).val());
         });
 
@@ -147,7 +146,7 @@
                 _token: '{{ csrf_token() }}',
                 folder_ids: folderIds
             },
-            success: function(response) {
+            success: function (response) {
                 // Send AJAX request to download zip file
                 $.ajax({
                     url: '/folders/download-zip',
@@ -159,7 +158,7 @@
                     xhrFields: {
                         responseType: 'blob' // Set response type to blob
                     },
-                    success: function(data) {
+                    success: function (data) {
                         // Create blob URL for the ZIP file
                         var blob = new Blob([data], {
                             type: 'application/zip'
@@ -177,7 +176,7 @@
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         // Display validation error message
                         // console.error('Error generating zip file:', error);
                         var errorMessage = xhr.responseJSON ? xhr.responseJSON.error :
@@ -189,7 +188,7 @@
                     }
                 });
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
 
@@ -212,15 +211,15 @@
         });
     }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Check All checkbox
-        $('#checkAll').change(function() {
+        $('#checkAll').change(function () {
             $('input[name="folder_ids[]"]').prop('checked', $(this).prop('checked'));
             updateDeleteButton(); // Call updateDeleteButton function when Check All checkbox changes
         });
 
         // Individual checkbox
-        $('input[name="folder_ids[]"]').change(function() {
+        $('input[name="folder_ids[]"]').change(function () {
             if ($(this).prop('checked') == false) {
                 $('#checkAll').prop('checked', false);
             } else {
@@ -242,7 +241,7 @@
     }
 
     // Function to setup the sortable lists
-    window.setupSortableLists = function() {
+    window.setupSortableLists = function () {
         // Initialize sortable for parent rows
         $('#folders-table tbody').sortable({
             handle: '.fa-arrows',
@@ -253,7 +252,7 @@
             opacity: 0.5,
             scroll: true,
             items: "> .tree-parent", // Only allow sorting of parent rows
-            update: function(event, ui) {
+            update: function (event, ui) {
                 orderFolder();
             }
         });
@@ -268,7 +267,7 @@
             opacity: 0.5,
             scroll: true,
             connectWith: '.child-list',
-            update: function(event, ui) {
+            update: function (event, ui) {
                 orderChildFolder($(this).closest('.tree-parent'));
             }
         });
@@ -277,7 +276,7 @@
     function orderFolder() {
         var csrfToken = $('meta[name="csrf-token"]').attr('content');
         var positions = {};
-        $('#folders-table tbody > .tree-parent').each(function(index) {
+        $('#folders-table tbody > .tree-parent').each(function (index) {
             positions[$(this).data('id')] = index + 1;
         });
 
@@ -288,10 +287,10 @@
                 _token: csrfToken,
                 positions: positions
             },
-            success: function(response) {
+            success: function (response) {
                 console.log('Positions updated successfully for parent rows');
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('Error updating positions for parent rows:', error);
                 $('#error-message').text('Server Error: ' + xhr.responseText);
             }
@@ -303,7 +302,7 @@
         var parentId = parentRow.data('id');
         var positions = {};
 
-        parentRow.find('.child-list > .tree-child').each(function(index) {
+        parentRow.find('.child-list > .tree-child').each(function (index) {
             positions[$(this).data('id')] = index + 1;
         });
 
@@ -315,10 +314,10 @@
                 parent_id: parentId,
                 positions: positions
             },
-            success: function(response) {
+            success: function (response) {
                 console.log('Positions updated successfully for child rows of parent with ID: ' + parentId);
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('Error updating positions for child rows of parent with ID ' + parentId + ':',
                     error);
                 $('#error-message').text('Server Error: ' + xhr.responseText);
@@ -342,7 +341,7 @@
     }
 
     function deleteSelectedFolders() {
-        var folderIds = $('input[name="folder_ids[]"]:checked').map(function() {
+        var folderIds = $('input[name="folder_ids[]"]:checked').map(function () {
             return $(this).val();
         }).get();
 
@@ -353,21 +352,21 @@
                 _token: $('meta[name="csrf-token"]').attr('content'),
                 folder_ids: folderIds
             },
-            success: function(response) {
+            success: function (response) {
                 $('#error-message').text(response.message);
                 $('#renderFolderTableHtml').html(response.html);
                 localStorage.setItem('selectedFolderId', '');
                 localStorage.setItem('selectedShareDocumentFolder', '');
 
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 var errors = xhr.responseJSON.errors;
                 $('#error-message').text(errors);
             }
         });
     }
 
-    $(function() {
+    $(function () {
         setupSortableLists();
         updateDeleteButton(); // Update delete button initially
     });

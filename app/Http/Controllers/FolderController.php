@@ -18,6 +18,13 @@ class FolderController extends Controller
     }
 
 
+    public function index()
+    {
+        $folders = Folder::with('categories', 'subfolders')->whereNull('parent_id')->get();
+
+        return view('folders.create', compact('folders'));
+    }
+
     public function create()
     {
         $folders = Folder::with('categories', 'subfolders')->whereNull('parent_id')->get();
@@ -93,7 +100,7 @@ class FolderController extends Controller
             $folder->deleteFolder();
         }
 
-        return response()->json(['html' =>  $this->getParentFolders(), 'message' => 'Folder and its related records deleted successfully'], 200);
+        return response()->json(['html' => $this->getParentFolders(), 'message' => 'Folder and its related records deleted successfully'], 200);
     }
 
 

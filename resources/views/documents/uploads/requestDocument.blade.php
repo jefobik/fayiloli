@@ -1,4 +1,5 @@
-<x-modal modalId="requestDocumentModal" modalTitle="Request File" backDrop="static" buttonText="Request" onclick="submitRequestFormFolder()">
+<x-modal modalId="requestDocumentModal" modalTitle="Request File" backDrop="static" buttonText="Request"
+    onclick="submitRequestFormFolder()">
     <form id="requestFolderForm">
         <div class="error-message"></div>
         <!-- URL Input -->
@@ -70,5 +71,5 @@
 </x-modal>
 
 @once
-    <script src="{{ asset('custom-js/request.js') }}"></script>
+    <script src="{{ global_asset('custom-js/request.js') }}"></script>
 @endonce

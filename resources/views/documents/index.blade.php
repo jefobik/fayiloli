@@ -2,30 +2,32 @@
 
 
 @section('content')
-    <div class="errorMessage"></div>
+    <div class="container-fluid py-4 px-3 px-md-4">
+        <div class="errorMessage"></div>
 
-    <div class="row">
-        <div class="col-md-9 " id="documentContent">
-            <div id="renderDocumentContentHtml">
-                @if ($documents->isEmpty())
-                    <x-notFound />
-                @endif
-            </div>
-        </div>
-
-        <div class="col-md-3 pl-0" id="documentProperty">
-
-            <div class="row">
-                <div class="col-md-12">
-
-                    @include('documents.info')
-
-                </div>
-                <div class="col-md-7" id="documentCommentSection" style="display: none">
-                    <div id="renderDocumentCommentHtml"></div>
+        <div class="row">
+            <div class="col-md-9 " id="documentContent">
+                <div id="renderDocumentContentHtml">
+                    @if ($documents->isEmpty())
+                        <x-notFound />
+                    @endif
                 </div>
             </div>
 
+            <div class="col-md-3 pl-0 mt-4 mt-md-0" id="documentProperty">
+
+                <div class="row">
+                    <div class="col-md-12">
+
+                        @include('documents.info')
+
+                    </div>
+                    <div class="col-md-7" id="documentCommentSection" style="display: none">
+                        <div id="renderDocumentCommentHtml"></div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 

@@ -7,16 +7,14 @@
                 <div class="{{ !in_array($document->extension, getImageExtensions()) ? 'img-container' : 'img-container-file' }}"
                     onclick="previewCourseFile('{{ $document->extension }}', '{{ asset($document->file_path) }}')"
                     data-previewFile="{{ $document->getFileIcon() }}">
-                    <img src="{{ $document->getFileIcon() }}" width="0" height="0" alt=""
-                        id="filePreviewId" />
+                    <img src="{{ $document->getFileIcon() }}" width="0" height="0" alt="" id="filePreviewId" />
                 </div>
 
-                <div class="card-content" onclick="selectCard(this)" data-id="{{ $document->id }}",
-                    data-name="{{ $document->name }}" data-url="{{ $document->url }}"
-                    data-path="{{ $document->file_path }}" data-folder="{{ $document->folder_id }}"
-                    data-owner="{{ $document->owner }}" data-contact="{{ $document->contact }}"
-                    data-img="{{ $document->getFileIcon() }}" data-visibility="{{ $document->isPublic() }}"
-                    data-file_type="{{ $document->extension }}">
+                <div class="card-content" onclick="selectCard(this)" data-id="{{ $document->id }}" ,
+                    data-name="{{ $document->name }}" data-url="{{ $document->url }}" data-path="{{ $document->file_path }}"
+                    data-folder="{{ $document->folder_id }}" data-owner="{{ $document->owner }}"
+                    data-contact="{{ $document->contact }}" data-img="{{ $document->getFileIcon() }}"
+                    data-visibility="{{ $document->isPublic() }}" data-file_type="{{ $document->extension }}">
                     <div class="d-flex justify-content-between">
                         <div class="card-title">{{ $document->name }} <br>
                             @if ($document->tags)
@@ -26,8 +24,7 @@
                             @endif
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" class="card-radio" type="radio" id="radio1"
-                                name="radio">
+                            <input class="form-check-input" class="card-radio" type="radio" id="radio1" name="radio">
                             @if ($document->visibility === 'public')
                                 <i class="fa fa-unlock mr-5" style="margin-right: 1rem"></i>
                             @else
@@ -47,7 +44,7 @@
     @empty
         <div class="col-md-6 mb-3 documentContentClass">
             <div class="no-document-found">
-                <img src="{{ asset('img/empty-document.png') }}" alt="No Document Found Image">
+                <img src="{{ global_asset('img/empty-document.png') }}" alt="No Document Found Image">
                 <p>No document found</p>
             </div>
         </div>
@@ -93,11 +90,11 @@
 </style>
 
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $("#sortable").sortable({
             containment: "parent", // Contain within the parent element
             cursor: "move",
-            update: function(event, ui) {
+            update: function (event, ui) {
                 updateDocumentOrder();
             }
         });
@@ -118,10 +115,10 @@
                 headers: {
                     'X-CSRF-TOKEN': csrfToken
                 },
-                success: function(response) {
+                success: function (response) {
                     console.log('Document order updated successfully.');
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     // Handle error
                     console.error('Error updating document order:', error);
                     alert('Error updating document order:', error)

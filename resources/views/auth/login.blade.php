@@ -36,7 +36,7 @@
             @else
                 {{-- Central / generic left panel --}}
                 <div class="auth-visual-icon" style="background: #fff; padding: 1rem; border-radius: 20px;">
-                    <img src="{{ asset('img/fayiloli-icon.svg') }}"
+                    <img src="{{ global_asset('img/fayiloli-icon.svg') }}"
                          alt=""
                          aria-hidden="true"
                          width="80" height="80">
@@ -72,7 +72,7 @@
             <div class="auth-form-header">
                 {{-- Logo / Brand --}}
                 <div class="auth-form-logo" aria-hidden="true">
-                    <img src="{{ asset('img/fayiloli-icon.svg') }}"
+                    <img src="{{ global_asset('img/fayiloli-icon.svg') }}"
                          alt=""
                          aria-hidden="true"
                          width="40" height="40"

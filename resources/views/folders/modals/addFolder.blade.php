@@ -31,5 +31,5 @@
 
 
 @once
-    <script src="{{ asset('custom-js/addFolder.js') }}"></script>
+    <script src="{{ global_asset('custom-js/addFolder.js') }}"></script>
 @endonce

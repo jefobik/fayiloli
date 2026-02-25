@@ -10,8 +10,7 @@
         <!-- Name Input -->
         <div class="form-group">
             <label for="urlnameInput" class="custom-label">Name</label>
-            <input type="text" class="form-control custom-input" id="urlnameInput" name="name"
-                placeholder="Enter Name">
+            <input type="text" class="form-control custom-input" id="urlnameInput" name="name" placeholder="Enter Name">
         </div>
         <!-- Visibility Checkbox -->
         <div class="form-check">
@@ -25,5 +24,5 @@
 </x-modal>
 
 @once
-    <script src="{{ asset('custom-js/addUrl.js') }}"></script>
+    <script src="{{ global_asset('custom-js/addUrl.js') }}"></script>
 @endonce

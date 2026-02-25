@@ -1,7 +1,7 @@
 @props(['width' => 50, 'height' => 50])
 
 <a href="#" class="circle">
-    <img height="{{ $width }}" width="{{ $height }}" src="{{ asset('img/profile.jpg') }}"
+    <img height="{{ $width }}" width="{{ $height }}" src="{{ global_asset('img/profile.jpg') }}"
         alt="{{ Auth::user()->name }}">
 </a>
 
@@ -31,7 +31,7 @@
             transition: linear 0.25s;
             /* Swap width and height */
             /* width: 10px;
-                        height: 10px; */
+                            height: 10px; */
         }
 
         .circle img {
@@ -41,8 +41,8 @@
 
         .circle:hover {
             /* transition: ease-out 0.2s;
-                        border: 1px solid rgba(0, 0, 0, 0.2);
-                        -webkit-transition: ease-out 0.2s; */
+                            border: 1px solid rgba(0, 0, 0, 0.2);
+                            -webkit-transition: ease-out 0.2s; */
         }
 
         a.circle {

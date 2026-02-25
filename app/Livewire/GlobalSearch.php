@@ -18,6 +18,11 @@ class GlobalSearch extends Component
 
     public function updatedQuery(): void
     {
+        $this->executeSearch();
+    }
+
+    public function executeSearch(): void
+    {
         $q = trim($this->query);
         if (strlen($q) < 2) {
             $this->results = [];

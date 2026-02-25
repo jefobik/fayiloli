@@ -296,27 +296,4 @@ class TenantController extends Controller
 
     // ── Single Sign-On ────────────────────────────────────────────────────────
 
-    public function impersonate(Request $request, Tenant $tenant): RedirectResponse
-    {
-        $centralEmail = auth()->user()->email;
-
-        // Query the isolated tenant database to find the equivalent user
-        $tenantUserId = $tenant->run(function () use ($centralEmail) {
-            return \App\Models\User::where('email', $centralEmail)->value('id');
-        });
-
-        if (!$tenantUserId) {
-            return back()->with('error', "SSO Failed: No account found in the '{$tenant->organization_name}' workspace matching your central email ({$centralEmail}).");
-        }
-
-        // Issue a single-use impersonation token valid for the tenant domain
-        $token = tenancy()->impersonate($tenant, $tenantUserId, '/home', 'web');
-        $domain = $tenant->domains->firstOrFail()->domain;
-
-        $scheme = $request->getScheme();
-        $port = (int) $request->getPort();
-        $portSuffix = !in_array($port, [80, 443], strict: true) ? ":{$port}" : '';
-
-        return redirect("{$scheme}://{$domain}{$portSuffix}/impersonate/{$token->token}");
-    }
 }

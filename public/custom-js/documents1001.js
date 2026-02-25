@@ -18,11 +18,19 @@ function isImageFileType(fileType) {
 $(document).ready(function () {
     var selectedFolder = localStorage.getItem('selectedFolder');
 
-    if (selectedFolder) {
+    if (selectedFolder && selectedFolder !== 'undefined') {
         fetchFiles(selectedFolder, 'folder');
     } else {
-        var defaultFolder = $('.folders li:first-child a').attr('href');
-        fetchFiles(defaultFolder, 'folder');
+        var firstFolderLink = $('.folders li:first-child a');
+        if (firstFolderLink.length > 0 && firstFolderLink.attr('href')) {
+            var defaultFolder = firstFolderLink.attr('href');
+            fetchFiles(defaultFolder, 'folder');
+        } else {
+            // Fallback when no folders exist in the DOM yet or the href is missing
+            // Do not attempt to fetch files via AJAX, as the server's initial Blade
+            // rendering handles the empty UI state naturally.
+            console.info("No default folders available to auto-fetch.");
+        }
     }
 
     // reCheckedTags();
@@ -139,9 +147,16 @@ function fetchFiles(url, folder = null) {
 
         },
         error: function (xhr, status, error) {
-            // Handle error
+            // Handle error gracefully, especially stale LocalStorage URLs
+            if (xhr.status === 404 && localStorage.getItem('selectedFolder')) {
+                console.warn('Stale folder URL detected in LocalStorage. Purging and reloading...');
+                localStorage.removeItem('selectedFolder');
+                localStorage.removeItem('selectedFolderId');
+                window.location.href = '/'; // Reload to the base documents index
+                return;
+            }
             console.error('Error fetching files:', error);
-            $('.errorMessage').html(error);
+            $('.errorMessage').html('<div class="alert alert-danger">Error fetching files: ' + error + '</div>');
         }
     });
 }

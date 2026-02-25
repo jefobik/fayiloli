@@ -45,12 +45,14 @@
         </div>
     </div>
 
-    {{-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> --}}
-    {{-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> --}}
+    {{--
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> --}}
+    {{--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-    <script src="{{ asset('custom-js/documents.js') }}"></script>
+    <script src="{{ global_asset('custom-js/documents.js') }}"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -66,7 +68,7 @@
         /* border-radius: 10px; */
         /* padding: 20px; */
         /* box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); */
-        background-image: url('{{ asset('img/bg-audio.jpg') }}');
+        background-image: url('{{ global_asset('img/bg-audio.jpg') }}');
 
     }
 
@@ -104,12 +106,12 @@
             headers: {
                 'X-CSRF-TOKEN': csrfToken // Pass the CSRF token in the headers
             },
-            success: function(response) {
+            success: function  (response) {
                 // Handle success response
                 console.log('Email sent successfully!');
                 $('#renderDocumentCommentHtml').html(response.html)
             },
-            error: function(xhr, status, error) {
+            error: functio n (xhr, status, error) {
                 // Handle error response
                 console.error('Error sending email:', error);
             }
@@ -122,7 +124,7 @@
         fileInput.type = 'file';
         fileInput.multiple = true; // Allow multiple files to be selected
         fileInput.style.display = 'none';
-        fileInput.addEventListener('change', function() {
+        fileInput.addEventListener('change', functi on () {
             const files = fileInput.files;
             if (files.length > 0) {
                 uploadToServer(files, 'files');
@@ -139,7 +141,7 @@
         fileInput.multiple = true; // Allow multiple files to be selected
         fileInput.webkitdirectory = true; // Allow selection of directories
         fileInput.style.display = 'none';
-        fileInput.addEventListener('change', function() {
+        fileInput.addEventListener('change', funct ion () {
             const files = fileInput.files;
             if (files.length > 0) {
                 // You can now handle the selected files or folders here
@@ -176,10 +178,10 @@
             data: formData, // Pass the FormData object containing files, token, folder_id, and document_id
             processData: false,
             contentType: false,
-            success: function(response) {
+            success: func tion (response) {
                 fetchFiles(response.url, 'folder');
             },
-            error: function(xhr, status, error) {
+            error: fun ction (xhr, status, error) {
                 console.error('Error uploading files:', error);
             }
         });

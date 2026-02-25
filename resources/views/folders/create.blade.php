@@ -2,12 +2,14 @@
 @section('content')
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> <!-- jQuery UI CSS -->
 
-    <!-- Font Awesome CSS -->
-    @include('folders.modals.addFolder')
-    @include('folders.modals.addTag')
+    <div class="container-fluid py-4 px-3 px-md-4">
+        <!-- Font Awesome CSS -->
+        @include('folders.modals.addFolder')
+        @include('folders.modals.addTag')
 
-    <div id="renderFolderTableHtml">
-        @include('folders.table')
+        <div id="renderFolderTableHtml">
+            @include('folders.table')
+        </div>
     </div>
 
     <style>
@@ -188,7 +190,7 @@
 
 
         // Capture blur event on input fields
-        $(document).on('blur', 'input[type="text"]', function() {
+        $(document).on('blur', 'input[type="text"]', function () {
             var lastRowInputs = $('.inputRow:last input[type="text"]');
             if (lastRowInputs.length === 2 && lastRowInputs[0].value.trim() === '' && lastRowInputs[1].value
                 .trim() === '') {

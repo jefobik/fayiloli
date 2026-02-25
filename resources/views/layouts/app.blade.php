@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,8 +10,8 @@
 
     {{-- Favicon — SVG (modern) + ICO (legacy fallback) --}}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/x-icon"  href="/favicon.ico">
-    <link rel="apple-touch-icon"          href="/img/fayiloli-icon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/img/fayiloli-icon.svg">
 
     {{-- Tailwind v4 + Alpine.js + Chart.js (via Vite) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -28,290 +29,285 @@
     {{-- Trix rich text --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/trix/1.1.1/trix.css">
     {{-- Custom document CSS (legacy) --}}
-    <link rel="stylesheet" href="{{ asset('custom-css/documents12.css') }}">
-    {{-- jQuery UI CSS (must be in <head> to avoid FOUC) --}}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+    <link rel="stylesheet" href="{{ global_asset('custom-css/documents12.css') }}">
+    {{-- jQuery UI CSS (must be in
 
-    {{-- SortableJS (needed in <head> so sidebar-enhancements.js finds it) --}}
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <head> to avoid FOUC) --}}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
 
-    {{-- Dark mode FOUC prevention: apply class before first paint --}}
-    <script>
-        (function () {
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.documentElement.classList.add('dark-mode');
-                document.addEventListener('DOMContentLoaded', function () {
-                    document.body.classList.add('dark-mode');
-                    var icon = document.getElementById('darkModeIcon');
-                    if (icon) { icon.classList.replace('fa-moon', 'fa-sun'); }
-                });
-            }
-        })();
-    </script>
-</head>
+        {{-- SortableJS (needed in
 
-<body class="h-full" @auth style="overflow:hidden" @endauth>
+        <head> so sidebar-enhancements.js finds it) --}}
+            <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
-@auth
-    {{-- ── Loading Overlay ─────────────────────────── --}}
-    <div id="loadingOverlay" style="display:none">
-        <div class="spinner-border" role="status"></div>
-    </div>
+            {{-- Dark mode FOUC prevention: apply class before first paint --}}
+            <script>
+                (function () {
+                    if (localStorage.getItem('darkMode') === 'true') {
+                        document.documentElement.classList.add('dark-mode');
+                        document.addEventListener('DOMContentLoaded', function () {
+                            document.body.classList.add('dark-mode');
+                            var icon = document.getElementById('darkModeIcon');
+                            if (icon) { icon.classList.replace('fa-moon', 'fa-sun'); }
+                        });
+                    }
+                })();
+            </script>
+        </head>
 
-    {{-- ── File Preview Modal ───────────────────────── --}}
-    @include('documents.previewDocument')
+    <body class="h-full" @auth style="overflow:hidden" @endauth>
 
-    {{-- ── Toast Container ─────────────────────────── --}}
-    <div id="toast-container"></div>
-
-    {{-- ── App Shell (Alpine-controlled) ──────────────────────────────── --}}
-    <div
-        class="edms-shell"
-        id="appShell"
-        x-data="{
-            sidebarOpen: window.innerWidth >= 1024,
-            init() {
-                window.addEventListener('resize', () => {
-                    this.sidebarOpen = window.innerWidth >= 1024;
-                });
-            }
-        }"
-        x-init="init()"
-    >
-        {{-- ── Sidebar ─────────────────────────────────────────────────── --}}
-        <aside
-            class="edms-sidebar"
-            :class="{ 'collapsed': !sidebarOpen }"
-            id="renderSidebarHtmlId"
-        >
-            @include('layouts.sidebar')
-        </aside>
-
-        {{-- ── Main Area ────────────────────────────────────────────────── --}}
-        <div class="edms-main">
-
-            {{-- ── Header ─────────────────────────────────────────────── --}}
-            @if (!isset($shareDocument))
-                @include('layouts.header')
-            @endif
-
-            {{--
-                Page Content visibility strategy
-                ─────────────────────────────────
-                • documents.index  → start HIDDEN; documents1001.js reveals it after
-                                     the AJAX folder-load completes (prevents flash of
-                                     empty content while the file list is fetching).
-                • all other routes → start VISIBLE immediately; SSR content is ready
-                                     the moment the HTML is parsed, so hiding it would
-                                     just cause a blank-screen flash after every login
-                                     redirect and every page navigation.
-            --}}
-            <div class="page-content"
-                 style="{{ Route::is('documents.index') ? 'display:none' : 'display:block' }}">
-                @if (!isset($shareDocument) && !Route::is('home'))
-                    @include('layouts.navbar-search')
-                @endif
-                @yield('content')
+        @auth
+            {{-- ── Loading Overlay ─────────────────────────── --}}
+            <div id="loadingOverlay" style="display:none">
+                <div class="spinner-border" role="status"></div>
             </div>
 
-        </div>
-    </div>
+            {{-- ── File Preview Modal ───────────────────────── --}}
+            @include('documents.previewDocument')
 
-@else
-    {{--
-        Unauthenticated layout — auth shell owns its own min-height and layout.
-        Do NOT wrap in .page-content: that class carries EDMS-app CSS
-        (background:#f8fafc, overflow-x:hidden, flex:1) that conflicts with
-        the full-bleed auth-shell design.
-    --}}
-    @yield('content')
-@endauth
+            {{-- ── Toast Container ─────────────────────────── --}}
+            <div id="toast-container"></div>
 
-{{-- ── Scripts ─────────────────────────────────────────────────────────── --}}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-@auth
-{{-- EDMS-specific JS — only needed on authenticated pages (not login/portal) --}}
-<script src="{{ asset('custom-js/documents1001.js') }}"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-@endauth
-@livewireScripts
-{{-- TallStackUI scripts --}}
-@tallStackUiScript
+            {{-- ── App Shell (Alpine-controlled) ──────────────────────────────── --}}
+            <div class="edms-shell" id="appShell" x-data="{
+                sidebarOpen: window.innerWidth >= 1024,
+                init() {
+                    window.addEventListener('resize', () => {
+                        this.sidebarOpen = window.innerWidth >= 1024;
+                    });
+                }
+            }" x-init="init()">
+                {{-- ── Sidebar ─────────────────────────────────────────────────── --}}
+                <aside class="edms-sidebar" :class="{ 'collapsed': !sidebarOpen }" id="renderSidebarHtmlId">
+                    @include('layouts.sidebar')
+                </aside>
 
-@auth
-<script>
-// ─── Dark mode toggle ──────────────────────────────────────────────────────
-function edmsDarkModeToggle() {
-    var isDark = document.body.classList.toggle('dark-mode');
-    localStorage.setItem('darkMode', isDark);
-    var icon = document.getElementById('darkModeIcon');
-    if (icon) {
-        icon.classList.toggle('fa-moon', !isDark);
-        icon.classList.toggle('fa-sun',  isDark);
-    }
-}
+                {{-- ── Main Area ────────────────────────────────────────────────── --}}
+                <div class="edms-main">
 
-// ─── Sidebar toggle — bridge Alpine.js ↔ existing JS ──────────────────────
-document.addEventListener('alpine:init', () => {
-    Alpine.effect(() => {
-        const shell = document.getElementById('appShell');
-        if (!shell) return;
-        const alpineData = Alpine.$data(shell);
-        if (!alpineData) return;
-        // mirror old 'nav-closed' class for any legacy JS that checks it
-        if (alpineData.sidebarOpen) {
-            shell.classList.remove('nav-closed');
-        } else {
-            shell.classList.add('nav-closed');
-        }
-    });
-});
+                    {{-- ── Header ─────────────────────────────────────────────── --}}
+                    @if (!isset($shareDocument))
+                        @include('layouts.header')
+                    @endif
 
-// ─── Email helper ──────────────────────────────────────────────────────────
-function sendEmail(formId) {
-    var csrfToken = $('meta[name="csrf-token"]').attr('content');
-    var formData  = new FormData($('#' + formId)[0]);
-    formData.append('_token', csrfToken);
-    formData.append('title', $('#documentTitle').val());
-    formData.append('folder_id', localStorage.getItem('selectedFolderId'));
-    formData.append('document_id', localStorage.getItem('selectedDocumentId'));
-    $.ajax({
-        url: '{{ route('send.email') }}', type: 'POST', data: formData,
-        processData: false, contentType: false,
-        headers: { 'X-CSRF-TOKEN': csrfToken },
-        success: function(r) { $('#renderDocumentCommentHtml').html(r.html); edmsToast('Email sent successfully!', 'success'); },
-        error: function()    { edmsToast('Failed to send email', 'error'); }
-    });
-}
+                    {{--
+                    Page Content visibility strategy
+                    ─────────────────────────────────
+                    • documents.index → start HIDDEN; documents1001.js reveals it after
+                    the AJAX folder-load completes (prevents flash of
+                    empty content while the file list is fetching).
+                    • all other routes → start VISIBLE immediately; SSR content is ready
+                    the moment the HTML is parsed, so hiding it would
+                    just cause a blank-screen flash after every login
+                    redirect and every page navigation.
+                    --}}
+                    <div class="page-content" style="{{ Route::is('documents.index') ? 'display:none' : 'display:block' }}">
+                        @if (!isset($shareDocument) && !Route::is('home'))
+                            @include('layouts.navbar-search')
+                        @endif
+                        @yield('content')
+                    </div>
 
-// ─── File upload helpers ───────────────────────────────────────────────────
-function uploadFiles() {
-    const input = document.createElement('input');
-    input.type = 'file'; input.multiple = true; input.style.display = 'none';
-    input.addEventListener('change', function () {
-        if (input.files.length > 0) uploadToServer(input.files, 'files');
-    });
-    document.body.appendChild(input); input.click();
-}
-function uploadFolder() {
-    const input = document.createElement('input');
-    input.type = 'file'; input.multiple = true;
-    input.webkitdirectory = true; input.style.display = 'none';
-    input.addEventListener('change', function () {
-        if (input.files.length > 0) uploadToServer(input.files, 'folder');
-    });
-    document.body.appendChild(input); input.click();
-}
-function uploadToServer(files, type) {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const formData  = new FormData();
-    formData.append('_token', csrfToken);
-    formData.append('folder_id', localStorage.getItem('selectedFolderId'));
-    formData.append('document_id', localStorage.getItem('selectedDocumentId'));
-    formData.append('type', type);
-    for (let i = 0; i < files.length; i++) formData.append('files[]', files[i]);
-    $.ajax({
-        url: '/upload', type: 'POST', data: formData,
-        processData: false, contentType: false,
-        beforeSend: () => edmsToast('Uploading…', 'info', 0),
-        success: function(r) {
-            document.querySelectorAll('.toast-notif').forEach(t => t.remove());
-            edmsToast('Upload complete!', 'success');
-            fetchFiles(r.url, 'folder');
-        },
-        error: () => { document.querySelectorAll('.toast-notif').forEach(t => t.remove()); edmsToast('Upload failed', 'error'); }
-    });
-}
+                </div>
+            </div>
 
-// ─── Subfolder toggle ──────────────────────────────────────────────────────
-function toggleSubfolders(button) {
-    var sf = button.nextElementSibling;
-    sf.style.display = sf.style.display === 'none' ? 'block' : 'none';
-    var folderId = button.parentNode.dataset.folderId;
-    var sfOpen   = JSON.parse(localStorage.getItem('subfoldersOpen')) || {};
-    sfOpen[folderId] = sf.style.display === 'block';
-    localStorage.setItem('subfoldersOpen', JSON.stringify(sfOpen));
-}
-function selectSubfolder(id) { localStorage.setItem('selectedSubfolder', id); }
+        @else
+            {{--
+            Unauthenticated layout — auth shell owns its own min-height and layout.
+            Do NOT wrap in .page-content: that class carries EDMS-app CSS
+            (background:#f8fafc, overflow-x:hidden, flex:1) that conflicts with
+            the full-bleed auth-shell design.
+            --}}
+            @yield('content')
+        @endauth
 
-function previewDocumentImageFile(el) {
-    var url = el.dataset.preview;
-    var Ext = $('.previewFileExtension').val();
-    previewCourseFile(Ext, url);
-}
+        {{-- ── Scripts ─────────────────────────────────────────────────────────── --}}
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        @auth
+            {{-- EDMS-specific JS — only needed on authenticated pages (not login/portal) --}}
+            <script src="{{ global_asset('custom-js/documents1001.js') }}"></script>
+            <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        @endauth
+        @livewireScripts
+        {{-- TallStackUI scripts --}}
+        @tallStackUiScript
 
-// ─── Modal helpers ─────────────────────────────────────────────────────────
-function addUrlModal()    { $('#uploadModal').modal('show'); }
-function closeOverlay()   { $('#previewModal').modal('hide'); }
-function openModal(id) {
-    var $m = $('#' + id);
-    $m.find('.error-message').html('');
-    $m.find('.invalid-feedback').remove();
-    $m.find('.is-invalid').removeClass('is-invalid');
-    var form = $m.find('#FolderCreateForm')[0];
-    if (form) form.reset();
-    $m.find('#renderFolderCategoryHtml').empty();
-    $m.modal('show');
-}
-function closeModal(id) { $('#' + id).modal('hide'); $('.error-message').html(''); }
+        @auth
+            <script>
+                // ─── Dark mode toggle ──────────────────────────────────────────────────────
+                function edmsDarkModeToggle() {
+                    var isDark = document.body.classList.toggle('dark-mode');
+                    localStorage.setItem('darkMode', isDark);
+                    var icon = document.getElementById('darkModeIcon');
+                    if (icon) {
+                        icon.classList.toggle('fa-moon', !isDark);
+                        icon.classList.toggle('fa-sun', isDark);
+                    }
+                }
 
-// ─── Validation helper ─────────────────────────────────────────────────────
-function validation(xhr, $form) {
-    if (xhr.status === 422) {
-        var errors = xhr.responseJSON.errors;
-        $form.find('.invalid-feedback').remove();
-        $form.find('.is-invalid').removeClass('is-invalid');
-        for (var key in errors) {
-            var $input = $form.find('[name="' + key + '"]');
-            $input.addClass('is-invalid');
-            $form.find('.error-message').html('<div class="p-2 bg-danger text-white rounded">' + errors[key][0] + '</div>');
-        }
-    } else {
-        $form.find('.error-message').html('<div class="p-2 bg-danger text-white rounded">' + xhr + '</div>');
-    }
-}
-function saveForm(route, formId, cb) {
-    var form = document.getElementById(formId);
-    var $form = $('#' + formId);
-    var data  = new FormData(form);
-    $.ajax({
-        url: route, type: 'POST', data: data, processData: false, contentType: false,
-        success: function(r) { if (typeof cb === 'function') cb(r); },
-        error:   function(xhr) { validation(xhr, $form); }
-    });
-}
+                // ─── Sidebar toggle — bridge Alpine.js ↔ existing JS ──────────────────────
+                document.addEventListener('alpine:init', () => {
+                    Alpine.effect(() => {
+                        const shell = document.getElementById('appShell');
+                        if (!shell) return;
+                        const alpineData = Alpine.$data(shell);
+                        if (!alpineData) return;
+                        // mirror old 'nav-closed' class for any legacy JS that checks it
+                        if (alpineData.sidebarOpen) {
+                            shell.classList.remove('nav-closed');
+                        } else {
+                            shell.classList.add('nav-closed');
+                        }
+                    });
+                });
 
-// ─── Misc helpers ──────────────────────────────────────────────────────────
-function copyUrl() {
-    var el = document.getElementById('sharedUrlId');
-    el.select(); el.setSelectionRange(0, 99999);
-    document.execCommand('copy');
-    el.blur();
-    edmsToast('URL copied to clipboard!', 'success');
-}
-function generateRandomToken() {
-    var ts = new Date().getTime().toString(16);
-    return ts + '_' + Math.random().toString(36).substring(2, 10);
-}
-function showFilters() { $('.custom-dropdown').css('display', 'flex'); }
-</script>
+                // ─── Email helper ──────────────────────────────────────────────────────────
+                function sendEmail(formId) {
+                    var csrfToken = $('meta[name="csrf-token"]').attr('content');
+                    var formData = new FormData($('#' + formId)[0]);
+                    formData.append('_token', csrfToken);
+                    formData.append('title', $('#documentTitle').val());
+                    formData.append('folder_id', localStorage.getItem('selectedFolderId'));
+                    formData.append('document_id', localStorage.getItem('selectedDocumentId'));
+                    $.ajax({
+                        url: '{{ route('send.email') }}', type: 'POST', data: formData,
+                        processData: false, contentType: false,
+                        headers: { 'X-CSRF-TOKEN': csrfToken },
+                        success: function (r) { $('#renderDocumentCommentHtml').html(r.html); edmsToast('Email sent successfully!', 'success'); },
+                        error: function () { edmsToast('Failed to send email', 'error'); }
+                    });
+                }
 
-{{-- ── Server-side flash → edmsToast bridge ────────────────────────────── --}}
-{{-- Converts redirect()->with('success'/'error'/'warning'/'info') into the   --}}
-{{-- same toast UX used by AJAX responses, so both paths look identical.      --}}
-@if(session()->hasAny(['success', 'error', 'warning', 'info']))
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    if (typeof edmsToast !== 'function') return;
-    @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
-    @if(session('error'))   edmsToast(@json(session('error')),   'error');   @endif
-    @if(session('warning')) edmsToast(@json(session('warning')), 'warning'); @endif
-    @if(session('info'))    edmsToast(@json(session('info')),    'info');    @endif
-});
-</script>
-@endif
-@endauth
+                // ─── File upload helpers ───────────────────────────────────────────────────
+                function uploadFiles() {
+                    const input = document.createElement('input');
+                    input.type = 'file'; input.multiple = true; input.style.display = 'none';
+                    input.addEventListener('change', function () {
+                        if (input.files.length > 0) uploadToServer(input.files, 'files');
+                    });
+                    document.body.appendChild(input); input.click();
+                }
+                function uploadFolder() {
+                    const input = document.createElement('input');
+                    input.type = 'file'; input.multiple = true;
+                    input.webkitdirectory = true; input.style.display = 'none';
+                    input.addEventListener('change', function () {
+                        if (input.files.length > 0) uploadToServer(input.files, 'folder');
+                    });
+                    document.body.appendChild(input); input.click();
+                }
+                function uploadToServer(files, type) {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    const formData = new FormData();
+                    formData.append('_token', csrfToken);
+                    formData.append('folder_id', localStorage.getItem('selectedFolderId'));
+                    formData.append('document_id', localStorage.getItem('selectedDocumentId'));
+                    formData.append('type', type);
+                    for (let i = 0; i < files.length; i++) formData.append('files[]', files[i]);
+                    $.ajax({
+                        url: '/upload', type: 'POST', data: formData,
+                        processData: false, contentType: false,
+                        beforeSend: () => edmsToast('Uploading…', 'info', 0),
+                        success: function (r) {
+                            document.querySelectorAll('.toast-notif').forEach(t => t.remove());
+                            edmsToast('Upload complete!', 'success');
+                            fetchFiles(r.url, 'folder');
+                        },
+                        error: () => { document.querySelectorAll('.toast-notif').forEach(t => t.remove()); edmsToast('Upload failed', 'error'); }
+                    });
+                }
 
-</body>
+                // ─── Subfolder toggle ──────────────────────────────────────────────────────
+                function toggleSubfolders(button) {
+                    var sf = button.nextElementSibling;
+                    sf.style.display = sf.style.display === 'none' ? 'block' : 'none';
+                    var folderId = button.parentNode.dataset.folderId;
+                    var sfOpen = JSON.parse(localStorage.getItem('subfoldersOpen')) || {};
+                    sfOpen[folderId] = sf.style.display === 'block';
+                    localStorage.setItem('subfoldersOpen', JSON.stringify(sfOpen));
+                }
+                function selectSubfolder(id) { localStorage.setItem('selectedSubfolder', id); }
+
+                function previewDocumentImageFile(el) {
+                    var url = el.dataset.preview;
+                    var Ext = $('.previewFileExtension').val();
+                    previewCourseFile(Ext, url);
+                }
+
+                // ─── Modal helpers ─────────────────────────────────────────────────────────
+                function addUrlModal() { $('#uploadModal').modal('show'); }
+                function closeOverlay() { $('#previewModal').modal('hide'); }
+                function openModal(id) {
+                    var $m = $('#' + id);
+                    $m.find('.error-message').html('');
+                    $m.find('.invalid-feedback').remove();
+                    $m.find('.is-invalid').removeClass('is-invalid');
+                    var form = $m.find('#FolderCreateForm')[0];
+                    if (form) form.reset();
+                    $m.find('#renderFolderCategoryHtml').empty();
+                    $m.modal('show');
+                }
+                function closeModal(id) { $('#' + id).modal('hide'); $('.error-message').html(''); }
+
+                // ─── Validation helper ─────────────────────────────────────────────────────
+                function validation(xhr, $form) {
+                    if (xhr.status === 422) {
+                        var errors = xhr.responseJSON.errors;
+                        $form.find('.invalid-feedback').remove();
+                        $form.find('.is-invalid').removeClass('is-invalid');
+                        for (var key in errors) {
+                            var $input = $form.find('[name="' + key + '"]');
+                            $input.addClass('is-invalid');
+                            $form.find('.error-message').html('<div class="p-2 bg-danger text-white rounded">' + errors[key][0] + '</div>');
+                        }
+                    } else {
+                        $form.find('.error-message').html('<div class="p-2 bg-danger text-white rounded">' + xhr + '</div>');
+                    }
+                }
+                function saveForm(route, formId, cb) {
+                    var form = document.getElementById(formId);
+                    var $form = $('#' + formId);
+                    var data = new FormData(form);
+                    $.ajax({
+                        url: route, type: 'POST', data: data, processData: false, contentType: false,
+                        success: function (r) { if (typeof cb === 'function') cb(r); },
+                        error: function (xhr) { validation(xhr, $form); }
+                    });
+                }
+
+                // ─── Misc helpers ──────────────────────────────────────────────────────────
+                function copyUrl() {
+                    var el = document.getElementById('sharedUrlId');
+                    el.select(); el.setSelectionRange(0, 99999);
+                    document.execCommand('copy');
+                    el.blur();
+                    edmsToast('URL copied to clipboard!', 'success');
+                }
+                function generateRandomToken() {
+                    var ts = new Date().getTime().toString(16);
+                    return ts + '_' + Math.random().toString(36).substring(2, 10);
+                }
+                function showFilters() { $('.custom-dropdown').css('display', 'flex'); }
+            </script>
+
+            {{-- ── Server-side flash → edmsToast bridge ────────────────────────────── --}}
+            {{-- Converts redirect()->with('success'/'error'/'warning'/'info') into the --}}
+            {{-- same toast UX used by AJAX responses, so both paths look identical. --}}
+            @if(session()->hasAny(['success', 'error', 'warning', 'info']))
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                if (typeof edmsToast !== 'function') return;
+                    @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
+                                @if(session('error'))   edmsToast(@json(session('error')), 'error'); @endif
+                                @if(session('warning')) edmsToast(@json(session('warning')), 'warning'); @endif
+                                @if(session('info'))    edmsToast(@json(session('info')), 'info'); @endif
+                });
+                        </script>
+            @endif
+        @endauth
+
+    </body>
+
 </html>

@@ -38,14 +38,14 @@
     <a href="{{ route('home') }}"
        class="sidebar-link {{ Route::is('home') ? 'active' : '' }}"
        {{ Route::is('home') ? 'aria-current=page' : '' }}>
-        <i class="fas fa-home" aria-hidden="true"></i> Dashboard
+        <i class="fas fa-home" aria-hidden="true"></i> <span class="nav-text">Dashboard</span>
     </a>
 
     @if ($canDocs)
         <a href="{{ route('documents.index') }}"
            class="sidebar-link {{ Route::is('documents.index') ? 'active' : '' }}"
            {{ Route::is('documents.index') ? 'aria-current=page' : '' }}>
-            <i class="fas fa-file-alt" aria-hidden="true"></i> Documents
+            <i class="fas fa-file-alt" aria-hidden="true"></i> <span class="nav-text">Documents</span>
             <span class="badge" id="sidebar-doc-count" aria-live="polite"></span>
         </a>
     @endif
@@ -54,7 +54,7 @@
         <a href="{{ route('tags.index') }}"
            class="sidebar-link {{ Route::is('tags.*') ? 'active' : '' }}"
            {{ Route::is('tags.*') ? 'aria-current=page' : '' }}>
-            <i class="fas fa-tags" aria-hidden="true"></i> Tags
+            <i class="fas fa-tags" aria-hidden="true"></i> <span class="nav-text">Tags</span>
         </a>
     @endif
 
@@ -82,7 +82,7 @@
             <a href="{{ route('users.index') }}"
                class="sidebar-link {{ Route::is('users.*') ? 'active' : '' }}"
                {{ Route::is('users.*') ? 'aria-current=page' : '' }}>
-                <i class="fas fa-users" aria-hidden="true"></i> Users
+                <i class="fas fa-users" aria-hidden="true"></i> <span class="nav-text">Users</span>
             </a>
         @endif
 
@@ -90,7 +90,7 @@
             <a href="{{ route('projects.index') }}"
                class="sidebar-link {{ Route::is('projects.*') ? 'active' : '' }}"
                {{ Route::is('projects.*') ? 'aria-current=page' : '' }}>
-                <i class="fas fa-project-diagram" aria-hidden="true"></i> Projects
+                <i class="fas fa-project-diagram" aria-hidden="true"></i> <span class="nav-text">Projects</span>
             </a>
         @endif
 
@@ -98,7 +98,7 @@
             <a href="{{ route('contacts.index') }}"
                class="sidebar-link {{ Route::is('contacts.*') ? 'active' : '' }}"
                {{ Route::is('contacts.*') ? 'aria-current=page' : '' }}>
-                <i class="fas fa-address-book" aria-hidden="true"></i> Human Resources
+                <i class="fas fa-address-book" aria-hidden="true"></i> <span class="nav-text">Human Resources</span>
             </a>
         @endif
 
@@ -106,7 +106,7 @@
             <a href="{{ route('stats.index') }}"
                class="sidebar-link {{ Route::is('stats.*') ? 'active' : '' }}"
                {{ Route::is('stats.*') ? 'aria-current=page' : '' }}>
-                <i class="fas fa-chart-bar" aria-hidden="true"></i> Statistics
+                <i class="fas fa-chart-bar" aria-hidden="true"></i> <span class="nav-text">Statistics</span>
             </a>
         @endif
     @endif
@@ -119,7 +119,7 @@
              style="width:28px;height:28px;font-size:0.7rem;background:linear-gradient(135deg,#4f46e5,#7c3aed)">
             {{ strtoupper(substr(Auth::user()?->name ?? 'U', 0, 1)) }}{{ strtoupper(substr(explode(' ', Auth::user()?->name ?? 'U ')[1] ?? '', 0, 1)) }}
         </div>
-        <div style="flex:1;min-width:0;overflow:hidden">
+        <div class="sidebar-footer-text" style="flex:1;min-width:0;overflow:hidden">
             <div title="{{ Auth::user()?->name }}"
                  style="font-size:0.78rem;font-weight:600;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                 {{ Auth::user()?->name }}
@@ -136,7 +136,7 @@
 </div>
 
 {{-- Hidden folder icon ref for legacy JS --}}
-<img id="getFolderIcon" src="{{ asset('img/folder.png') }}" style="display:none" alt="">
+<img id="getFolderIcon" src="{{ global_asset('img/folder.png') }}" style="display:none" alt="">
 
 <style>
 /* Subfolder indentation */
@@ -192,7 +192,7 @@ body.dark-mode .sidebar-sort-btn, body.dark-mode .sidebar-dark-btn {
 <script src="/custom-js/sidebar-enhancements.js"></script>
 
 {{-- ── Copyright Footer ──────────────────────────────────────────── --}}
-<div style="border-top:1px solid rgba(255,255,255,0.05);padding:0.5rem 1.25rem 0.7rem;flex-shrink:0;margin-top:auto">
+<div class="sidebar-footer-copyright" style="border-top:1px solid rgba(255,255,255,0.05);padding:0.5rem 1.25rem 0.7rem;flex-shrink:0;margin-top:auto">
     <div style="font-size:0.62rem;color:#334155;line-height:1.5;text-align:center">
         &copy; {{ date('Y') }} NectarMetrics Solutions EDMS Platform<br>
         <span style="opacity:0.6">Fayiloli {{ app()->version() }} · v12</span>
