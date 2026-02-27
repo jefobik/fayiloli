@@ -51,7 +51,7 @@
 </head>
 
 <body
-    class="h-full bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-300 font-sans antialiased text-[0.9375rem] leading-[1.625] tracking-[-0.01em]"
+    class="min-h-screen bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200 font-sans antialiased text-[0.9375rem] leading-[1.625] tracking-[-0.01em] transition-colors duration-200 ease-in-out"
     onload="if(window.__authDarkMode) document.body.classList.add('dark-mode')">
 
     {{-- ── Session Flash Toasts (Alpine-based, no Bootstrap dependency) ────── --}}
@@ -66,7 +66,8 @@
                             style="color:{{ $color }};font-size:1rem;flex-shrink:0;margin-top:1px"></i>
                         <div style="flex:1;min-width:0">
                             <div style="font-weight:700;font-size:0.78rem;text-transform:capitalize;margin-bottom:0.15rem">
-                                {{ ucfirst($type) }}</div>
+                                {{ ucfirst($type) }}
+                            </div>
                             <div style="font-size:0.82rem;opacity:0.85;line-height:1.4">{{ session($type) }}</div>
                         </div>
                     </div>

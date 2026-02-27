@@ -23,7 +23,7 @@
             font-size: 0.9375rem;
             line-height: 1.625;
             color: #1e293b;
-            background: #f8fafc;
+            background: #f1f5f9;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             letter-spacing: -0.01em;

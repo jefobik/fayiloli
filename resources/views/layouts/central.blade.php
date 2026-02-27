@@ -54,7 +54,7 @@
         html { height: 100%; }
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #f8fafc;
+            background: #f1f5f9;
             color: #1e293b;
             min-height: 100%;
             -webkit-font-smoothing: antialiased;
@@ -128,7 +128,7 @@
             font-weight: 500;
             color: #cbd5e1;
             text-decoration: none;
-            transition: background 0.15s, color 0.15s;
+            transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
             white-space: nowrap;
         }
         .central-nav-link:hover { background: rgba(255,255,255,0.09); color: #f1f5f9; }
@@ -149,7 +149,7 @@
             background: none;
             border: none;
             color: #cbd5e1;
-            transition: background 0.15s;
+            transition: background 0.2s ease-in-out;
         }
         .central-nav-user:hover { background: rgba(255,255,255,0.07); }
         .central-nav-user .u-name {
@@ -203,7 +203,7 @@
             font-size: 0.875rem;
             color: #e2e8f0;
             text-decoration: none;
-            transition: background 0.1s;
+            transition: background 0.2s ease-in-out;
         }
         .central-dropdown-item:hover { background: #334155; color: #f8fafc; }
         .central-dropdown-item i { width: 14px; text-align: center; color: #94a3b8; }
@@ -220,7 +220,7 @@
             border-radius: 6px;
             color: #94a3b8;
             cursor: pointer;
-            transition: background 0.15s;
+            transition: background 0.2s ease-in-out;
             flex-shrink: 0;
         }
         .central-nav-toggle:hover { background: rgba(255,255,255,0.07); color: #f1f5f9; }
@@ -290,7 +290,7 @@
         .form-control, .form-select {
             font-size: 0.9rem; border-radius: 8px;
             border: 1.5px solid #e2e8f0; color: #1e293b;
-            transition: border-color 0.15s, box-shadow 0.15s;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
         .form-control:focus, .form-select:focus {
             border-color: #7c3aed;
@@ -317,11 +317,14 @@
         /* These override Tailwind bg-white / text-slate-* classes when dark mode
            is active, since Bootstrap dark mode and Tailwind dark: classes both
            need the html.dark class to activate simultaneously. */
+        html.dark body {
+            background-color: #020617 !important;
+        }
         html.dark .bg-white {
-            background-color: #1e293b !important;
+            background-color: #0f172a !important;
         }
         html.dark .bg-slate-50 {
-            background-color: #162032 !important;
+            background-color: #020617 !important;
         }
         html.dark .bg-slate-100 {
             background-color: #334155 !important;
