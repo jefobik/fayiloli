@@ -29,7 +29,6 @@ $(document).ready(function () {
             // Fallback when no folders exist in the DOM yet or the href is missing
             // Do not attempt to fetch files via AJAX, as the server's initial Blade
             // rendering handles the empty UI state naturally.
-            console.info("No default folders available to auto-fetch.");
         }
     }
 

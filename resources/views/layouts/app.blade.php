@@ -1,3 +1,9 @@
+@php
+    $theme = 'system';
+    if (auth()->check()) {
+        $theme = auth()->user()->theme ?? 'system';
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
 
@@ -6,7 +12,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'FAYILOLI') }} — Enterprise Document Management</title>
+    <title>{{ config('app.name', 'OSTRICH') }} — Enterprise Document Management</title>
 
     {{-- Favicon — SVG (modern) + ICO (legacy fallback) --}}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -19,8 +25,20 @@
     {{-- Livewire styles --}}
     @livewireStyles
 
-    {{-- TallStackUI styles --}}
+    {{-- TallStackUI styles & scripts --}}
     @tallStackUiStyle
+    @tallStackUiScript
+
+    {{-- Livewire scripts (forced in head for SPA) --}}
+    @livewireScripts
+
+    {{-- Global Scripts (Moved to head to prevent wire:navigate double-execution) --}}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    @auth
+        <script src="{{ global_asset('custom-js/documents1001.js') }}"></script>
+    @endauth
 
     {{-- Bootstrap CSS (keeps existing inner-page components working) --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -40,11 +58,14 @@
         <head> so sidebar-enhancements.js finds it) --}}
             <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
-            {{-- Dark mode FOUC prevention: apply class before first paint --}}
             <script>
                 (function () {
-                    if (localStorage.getItem('darkMode') === 'true') {
-                        document.documentElement.classList.add('dark-mode');
+                    var theme = '{{ $theme }}';
+                    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    var isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+
+                    if (isDark) {
+                        document.documentElement.classList.add('dark', 'dark-mode');
                         document.addEventListener('DOMContentLoaded', function () {
                             document.body.classList.add('dark-mode');
                             var icon = document.getElementById('darkModeIcon');
@@ -53,9 +74,34 @@
                     }
                 })();
             </script>
+
+            {{-- ── Tenant Custom Branding Injection ── --}}
+            @php
+                $currentTenant = tenancy()->initialized ? tenancy()->tenant : null;
+                $primaryColor = $currentTenant->settings['brand_color'] ?? null;
+            @endphp
+            @if($primaryColor)
+                <style>
+                    :root {
+                        /* Applying customized tenant branding overriding default Violet */
+                        --color-primary-500:
+                            {{ $primaryColor }}
+                        ;
+                        --color-primary-600:
+                            {{ $primaryColor }}
+                        ;
+                        /* Dynamic focus rings reflecting brand color */
+                        --tw-ring-color:
+                            {{ $primaryColor }}
+                        ;
+                    }
+                </style>
+            @endif
         </head>
 
-    <body class="h-full" @auth style="overflow:hidden" @endauth>
+    <body
+        class="h-full bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased text-[0.95rem] md:text-base leading-relaxed"
+        style="transition: background-color 0.2s ease, color 0.15s ease; @auth overflow:hidden; @endauth">
 
         @auth
             {{-- ── Loading Overlay ─────────────────────────── --}}
@@ -66,48 +112,78 @@
             {{-- ── File Preview Modal ───────────────────────── --}}
             @include('documents.previewDocument')
 
-            {{-- ── Toast Container ─────────────────────────── --}}
-            <div id="toast-container"></div>
+            {{-- ── TALLStackUI Interactions ─────────────────── --}}
+            <x-ts-toast />
+            <x-ts-dialog />
 
-            {{-- ── App Shell (Alpine-controlled) ──────────────────────────────── --}}
-            <div class="edms-shell" id="appShell" x-data="{
-                sidebarOpen: window.innerWidth >= 1024,
-                init() {
-                    window.addEventListener('resize', () => {
-                        this.sidebarOpen = window.innerWidth >= 1024;
-                    });
-                }
-            }" x-init="init()">
-                {{-- ── Sidebar ─────────────────────────────────────────────────── --}}
-                <aside class="edms-sidebar" :class="{ 'collapsed': !sidebarOpen }" id="renderSidebarHtmlId">
-                    @include('layouts.sidebar')
+            {{-- ── App Shell (Alpine & Tailwind) ──────────────────────────────── --}}
+            <div x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true' }"
+                @keydown.window.escape="sidebarOpen = false"
+                class="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden">
+
+                {{-- ── Mobile Sidebar Backdrop ─────────────────────────────────── --}}
+                <div x-show="sidebarOpen" class="relative z-50 lg:hidden"
+                    x-description="Off-canvas menu for mobile, show/hide based on off-canvas menu state." role="dialog"
+                    aria-modal="true">
+
+                    <div x-show="sidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300"
+                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition-opacity ease-linear duration-300"
+                        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                        class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" @click="sidebarOpen = false"
+                        aria-hidden="true"></div>
+
+                    <div class="fixed inset-0 flex">
+                        <div x-show="sidebarOpen" x-transition:enter="transition ease-in-out duration-300 transform"
+                            x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+                            x-transition:leave="transition ease-in-out duration-300 transform"
+                            x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
+                            class="relative mr-16 flex w-full max-w-xs flex-1">
+
+                            <div class="absolute left-full top-0 flex w-16 justify-center pt-5">
+                                <button type="button" class="-m-2.5 p-2.5" @click="sidebarOpen = false">
+                                    <span class="sr-only">Close sidebar</span>
+                                    <i class="fas fa-times text-white text-xl" aria-hidden="true"></i>
+                                </button>
+                            </div>
+
+                            {{-- Mobile Sidebar Content --}}
+                            <div
+                                class="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-slate-800 px-6 pb-4 border-r border-slate-200 dark:border-slate-700 shadow-xl">
+                                @include('layouts.sidebar')
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ── Desktop Sidebar ─────────────────────────────────────────── --}}
+                <aside class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300 ease-in-out"
+                       :class="sidebarCollapsed ? 'lg:w-18' : 'lg:w-72'"
+                       id="renderSidebarHtmlId">
+                    <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-slate-800 pb-4 border-r border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-300"
+                         :class="sidebarCollapsed ? 'px-2' : 'px-6'">
+                        @include('layouts.sidebar')
+                    </div>
                 </aside>
 
                 {{-- ── Main Area ────────────────────────────────────────────────── --}}
-                <div class="edms-main">
+                <div class="flex flex-1 flex-col h-full w-full transition-all duration-300 ease-in-out"
+                     :class="sidebarCollapsed ? 'lg:pl-18' : 'lg:pl-72'">
 
                     {{-- ── Header ─────────────────────────────────────────────── --}}
                     @if (!isset($shareDocument))
                         @include('layouts.header')
                     @endif
 
-                    {{--
-                    Page Content visibility strategy
-                    ─────────────────────────────────
-                    • documents.index → start HIDDEN; documents1001.js reveals it after
-                    the AJAX folder-load completes (prevents flash of
-                    empty content while the file list is fetching).
-                    • all other routes → start VISIBLE immediately; SSR content is ready
-                    the moment the HTML is parsed, so hiding it would
-                    just cause a blank-screen flash after every login
-                    redirect and every page navigation.
-                    --}}
-                    <div class="page-content" style="{{ Route::is('documents.index') ? 'display:none' : 'display:block' }}">
-                        @if (!isset($shareDocument) && !Route::is('home'))
-                            @include('layouts.navbar-search')
-                        @endif
-                        @yield('content')
-                    </div>
+                    <main class="flex-1 overflow-x-hidden overflow-y-auto w-full page-content focus:outline-none"
+                        style="{{ Route::is('documents.index') ? 'display:none' : 'display:block' }}">
+                        <div class="w-full mx-auto p-4 sm:p-6 lg:p-8">
+                            @if (!isset($shareDocument) && !Route::is('home') && !Route::is('documents.index'))
+                                @include('layouts.navbar-search')
+                            @endif
+                            @yield('content')
+                        </div>
+                    </main>
 
                 </div>
             </div>
@@ -122,23 +198,13 @@
             @yield('content')
         @endauth
 
-        {{-- ── Scripts ─────────────────────────────────────────────────────────── --}}
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-        @auth
-            {{-- EDMS-specific JS — only needed on authenticated pages (not login/portal) --}}
-            <script src="{{ global_asset('custom-js/documents1001.js') }}"></script>
-            <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-        @endauth
-        @livewireScripts
-        {{-- TallStackUI scripts --}}
-        @tallStackUiScript
-
         @auth
             <script>
                 // ─── Dark mode toggle ──────────────────────────────────────────────────────
                 function edmsDarkModeToggle() {
                     var isDark = document.body.classList.toggle('dark-mode');
+                    document.documentElement.classList.toggle('dark', isDark);
+
                     localStorage.setItem('darkMode', isDark);
                     var icon = document.getElementById('darkModeIcon');
                     if (icon) {
@@ -296,15 +362,15 @@
             {{-- Converts redirect()->with('success'/'error'/'warning'/'info') into the --}}
             {{-- same toast UX used by AJAX responses, so both paths look identical. --}}
             @if(session()->hasAny(['success', 'error', 'warning', 'info']))
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function () {
-                                if (typeof edmsToast !== 'function') return;
-                    @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
-                                @if(session('error'))   edmsToast(@json(session('error')), 'error'); @endif
-                                @if(session('warning')) edmsToast(@json(session('warning')), 'warning'); @endif
-                                @if(session('info'))    edmsToast(@json(session('info')), 'info'); @endif
-                });
-                        </script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        if (typeof edmsToast !== 'function') return;
+                                                                    @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
+                        @if(session('error'))   edmsToast(@json(session('error')), 'error'); @endif
+                        @if(session('warning')) edmsToast(@json(session('warning')), 'warning'); @endif
+                        @if(session('info'))    edmsToast(@json(session('info')), 'info'); @endif
+                                                                });
+                </script>
             @endif
         @endauth
 

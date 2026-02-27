@@ -35,6 +35,7 @@ class User extends Authenticatable
         'is_active',
         'is_locked',
         'is_2fa_enabled',
+        'theme',
     ];
 
     /**
@@ -56,17 +57,17 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_super_admin'    => 'boolean',
-            'is_admin'          => 'boolean',
-            'is_active'         => 'boolean',
-            'is_locked'         => 'boolean',
-            'is_2fa_enabled'    => 'boolean',
+            'password' => 'hashed',
+            'is_super_admin' => 'boolean',
+            'is_admin' => 'boolean',
+            'is_active' => 'boolean',
+            'is_locked' => 'boolean',
+            'is_2fa_enabled' => 'boolean',
             // Tracking columns — exist in tenant users table; central table gains
             // them via migration 2026_02_22_000001_add_tracking_to_central_users.php
-            'last_login_at'     => 'datetime',
-            'locked_at'         => 'datetime',
-            'deleted_at'        => 'datetime',
+            'last_login_at' => 'datetime',
+            'locked_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 
@@ -123,7 +124,7 @@ class User extends Authenticatable
     public function getAvatarInitialsAttribute(): string
     {
         $words = explode(' ', $this->name);
-        $initials = collect($words)->take(2)->map(fn ($w) => strtoupper($w[0]))->implode('');
+        $initials = collect($words)->take(2)->map(fn($w) => strtoupper($w[0]))->implode('');
         return $initials ?: 'U';
     }
 }

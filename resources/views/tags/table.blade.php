@@ -1,38 +1,44 @@
 <div id="error-message"></div>
 
-<table class="custom-table" id="folders-table">
-    <thead>
-        <tr>
-            <th><input type="checkbox" id="checkAll"></th>
-            <th>Workspace</th>
-            <th>Category</th>
-            <th>Tags</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach ($folders as $folder)
-            <tr class="tree-parent" data-id="{{ $folder->id }}">
-                <td><input type="checkbox" name="folder_ids[]" value="{{ $folder->id }}"></td>
-                <td>
-                    <i class="fa fa-arrows"></i> {{ $folder->name }}
-                    @foreach ($folder->subfolders as $subfolder)
-                        / {{ $subfolder->name }}
-                    @endforeach
-                </td>
-                <td>
-                    @foreach ($folder->categories as $category)
-                        <span class="badge small info">{{ $category->name }}</span>
-                        @foreach ($category->tags as $tag)
-                            <span class="badge small">{{ $tag->name }}</span>
-                        @endforeach
-                    @endforeach
-                </td>
+<div
+    class="table-responsive overflow-y-auto max-h-[65vh] rounded-b-lg scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
+    <table class="table table-hover align-middle mb-0 w-full" id="folders-table" aria-label="Tags list">
+        <thead
+            class="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700">
+            <tr>
+                <th scope="col" class="ps-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-12">
+                    <input type="checkbox" id="checkAll" class="form-check-input"></th>
+                <th scope="col" class="py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Workspace
+                </th>
+                <th scope="col" class="py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Category</th>
+                <th scope="col" class="py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tags</th>
             </tr>
-        @endforeach
-    </tbody>
-
-
-</table>
+        </thead>
+        <tbody>
+            @foreach ($folders as $folder)
+                <tr class="tree-parent group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
+                    data-id="{{ $folder->id }}">
+                    <td class="ps-4"><input type="checkbox" name="folder_ids[]" value="{{ $folder->id }}"
+                            class="form-check-input"></td>
+                    <td>
+                        <i class="fa fa-arrows"></i> {{ $folder->name }}
+                        @foreach ($folder->subfolders as $subfolder)
+                            / {{ $subfolder->name }}
+                        @endforeach
+                    </td>
+                    <td>
+                        @foreach ($folder->categories as $category)
+                            <span class="badge small info">{{ $category->name }}</span>
+                            @foreach ($category->tags as $tag)
+                                <span class="badge small">{{ $tag->name }}</span>
+                            @endforeach
+                        @endforeach
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
 
 <!-- jQuery library -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -43,7 +49,7 @@
 
 
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Get CSRF token from meta tag
         var csrfToken = $('meta[name="csrf-token"]').attr('content');
 
@@ -53,10 +59,10 @@
             handle: '.fa-arrows', // Use .fa-arrows class as the handle for dragging
             opacity: 0.5, // Set opacity while dragging
             cursor: 'move', // Set cursor style while dragging
-            stop: function(event, ui) {
+            stop: function (event, ui) {
                 // Get the updated positions
                 var positions = {};
-                $('#folders-table tbody tr').each(function(index) {
+                $('#folders-table tbody tr').each(function (index) {
                     positions[$(this).data('id')] = index + 1;
                 });
 
@@ -68,10 +74,10 @@
                         _token: csrfToken, // Include CSRF token in the request
                         positions: positions
                     },
-                    success: function(response) {
+                    success: function (response) {
                         console.log('Positions updated successfully');
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         console.error('Error updating positions:', error);
                         $('#error-message').text('Server Error: ' + xhr.responseText);
                     }
@@ -140,7 +146,7 @@
     function downloadFolder() {
         // Get selected folder IDs
         var folderIds = [];
-        $('input[name="folder_ids[]"]:checked').each(function() {
+        $('input[name="folder_ids[]"]:checked').each(function () {
             folderIds.push($(this).val());
         });
 
@@ -152,7 +158,7 @@
                 _token: '{{ csrf_token() }}',
                 folder_ids: folderIds
             },
-            success: function(response) {
+            success: function (response) {
                 // Send AJAX request to download zip file
                 $.ajax({
                     url: '/folders/download-zip',
@@ -164,7 +170,7 @@
                     xhrFields: {
                         responseType: 'blob' // Set response type to blob
                     },
-                    success: function(data) {
+                    success: function (data) {
                         // Create blob URL for the ZIP file
                         var blob = new Blob([data], {
                             type: 'application/zip'
@@ -182,7 +188,7 @@
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         // Display validation error message
                         console.error('Error generating zip file:', error);
                         var errorMessage = xhr.responseJSON ? xhr.responseJSON.error :
@@ -191,7 +197,7 @@
                     }
                 });
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('Error generating zip file:', error);
                 var errorMessage = xhr.responseJSON ? xhr.responseJSON.error :
                     'Error generating zip file';
@@ -202,14 +208,14 @@
 </script>
 
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Check All checkbox
-        $('#checkAll').change(function() {
+        $('#checkAll').change(function () {
             $('input[name="folder_ids[]"]').prop('checked', $(this).prop('checked'));
         });
 
         // Individual checkbox
-        $('input[name="folder_ids[]"]').change(function() {
+        $('input[name="folder_ids[]"]').change(function () {
             if ($(this).prop('checked') == false) {
                 $('#checkAll').prop('checked', false);
             } else {

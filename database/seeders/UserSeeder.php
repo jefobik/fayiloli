@@ -62,7 +62,7 @@ class UserSeeder extends Seeder
                     'phone' => $data['phone'],
                     'email_verified_at' => now(),
                     'phone_verified_at' => now(),
-                    'password' => bcrypt($data['password']),
+                    'password' => $data['password'],
                     'is_active' => true,
                     'is_admin' => $data['is_admin'],
                 ]

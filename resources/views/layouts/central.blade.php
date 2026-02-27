@@ -1,3 +1,9 @@
+@php
+    $theme = 'system';
+    if (auth()->check()) {
+        $theme = auth()->user()->theme ?? 'system';
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -6,7 +12,23 @@
     {{-- Allow pinch-zoom on all devices (WCAG 1.4.4) --}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin') — {{ config('app.name', 'Fayiloli') }}</title>
+    <title>@yield('title', 'Admin') — {{ config('app.name', 'Ostrich') }}</title>
+
+    <script>
+        (function() {
+            var theme = '{{ $theme }}';
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+            document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
+            /* Also activate Tailwind dark: classes and app.css body.dark-mode rules */
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                document.addEventListener('DOMContentLoaded', function () {
+                    document.body.classList.add('dark-mode');
+                });
+            }
+        })();
+    </script>
 
     {{-- Favicon --}}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -22,6 +44,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     {{-- Font Awesome 6 --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    {{-- Livewire Styles --}}
+    @livewireStyles
 
     <style>
         /* ── Reset & Base ───────────────────────────────────────────────── */
@@ -71,15 +96,15 @@
             white-space: nowrap;
         }
         .central-nav-brand .brand-badge {
-            font-size: 0.6rem;
+            font-size: 0.7rem;
             font-weight: 700;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
             background: rgba(124,58,237,0.25);
-            color: #a78bfa;
-            padding: 0.15rem 0.4rem;
+            color: #c4b5fd;
+            padding: 0.2rem 0.5rem;
             border-radius: 4px;
-            border: 1px solid rgba(124,58,237,0.3);
+            border: 1px solid rgba(124,58,237,0.35);
         }
 
         /* divider */
@@ -95,18 +120,18 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.35rem 0.75rem;
+            padding: 0.4rem 0.75rem;
             border-radius: 6px;
-            font-size: 0.82rem;
+            font-size: 0.875rem;
             font-weight: 500;
-            color: #94a3b8;
+            color: #cbd5e1;
             text-decoration: none;
             transition: background 0.15s, color 0.15s;
             white-space: nowrap;
         }
-        .central-nav-link:hover { background: rgba(255,255,255,0.07); color: #f1f5f9; }
-        .central-nav-link.active { background: rgba(124,58,237,0.2); color: #c4b5fd; }
-        .central-nav-link i { font-size: 0.8rem; width: 14px; text-align: center; }
+        .central-nav-link:hover { background: rgba(255,255,255,0.09); color: #f1f5f9; }
+        .central-nav-link.active { background: rgba(124,58,237,0.22); color: #c4b5fd; }
+        .central-nav-link i { font-size: 0.875rem; width: 14px; text-align: center; }
 
         /* spacer */
         .central-nav-spacer { flex: 1; }
@@ -126,7 +151,7 @@
         }
         .central-nav-user:hover { background: rgba(255,255,255,0.07); }
         .central-nav-user .u-name {
-            font-size: 0.82rem;
+            font-size: 0.875rem;
             font-weight: 600;
             color: #f1f5f9;
             max-width: 140px;
@@ -135,8 +160,8 @@
             white-space: nowrap;
         }
         .central-nav-user .u-role {
-            font-size: 0.68rem;
-            color: #64748b;
+            font-size: 0.75rem;
+            color: #94a3b8;
         }
         .central-nav-avatar {
             width: 30px; height: 30px;
@@ -166,21 +191,21 @@
             padding: 0.85rem 1rem;
             border-bottom: 1px solid #334155;
         }
-        .central-dropdown-header .d-name { font-size: 0.85rem; font-weight: 700; color: #f1f5f9; }
-        .central-dropdown-header .d-email { font-size: 0.72rem; color: #64748b; margin-top: 0.1rem; }
+        .central-dropdown-header .d-name { font-size: 0.9rem; font-weight: 700; color: #f1f5f9; }
+        .central-dropdown-header .d-email { font-size: 0.8rem; color: #94a3b8; margin-top: 0.2rem; }
         .central-dropdown-item {
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            padding: 0.6rem 1rem;
-            font-size: 0.82rem;
-            color: #cbd5e1;
+            padding: 0.65rem 1rem;
+            font-size: 0.875rem;
+            color: #e2e8f0;
             text-decoration: none;
             transition: background 0.1s;
         }
-        .central-dropdown-item:hover { background: #334155; color: #f1f5f9; }
-        .central-dropdown-item i { width: 14px; text-align: center; color: #64748b; }
-        .central-dropdown-item.danger { color: #f87171; }
+        .central-dropdown-item:hover { background: #334155; color: #f8fafc; }
+        .central-dropdown-item i { width: 14px; text-align: center; color: #94a3b8; }
+        .central-dropdown-item.danger { color: #fca5a5; }
         .central-dropdown-item.danger i { color: #f87171; }
         .central-dropdown-divider { height: 1px; background: #334155; }
 
@@ -253,15 +278,15 @@
         .badge { font-weight: 600; letter-spacing: 0.01em; }
 
         /* ── Table overrides ─────────────────────────────────────────────── */
-        .table { font-size: 0.875rem; }
-        .table th { font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; }
+        .table { font-size: 0.9rem; }
+        .table th { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; }
         .table td { vertical-align: middle; color: #374151; }
         .table-hover tbody tr:hover { background: #f8fafc; }
 
         /* ── Form overrides ─────────────────────────────────────────────── */
-        .form-label { font-size: 0.82rem; font-weight: 600; color: #374151; }
+        .form-label { font-size: 0.875rem; font-weight: 600; color: #374151; }
         .form-control, .form-select {
-            font-size: 0.875rem; border-radius: 8px;
+            font-size: 0.9rem; border-radius: 8px;
             border: 1.5px solid #e2e8f0; color: #1e293b;
             transition: border-color 0.15s, box-shadow 0.15s;
         }
@@ -269,31 +294,97 @@
             border-color: #7c3aed;
             box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
         }
-        .invalid-feedback { font-size: 0.78rem; }
-        .form-text { font-size: 0.78rem; color: #64748b; }
+        .invalid-feedback { font-size: 0.8rem; }
+        .form-text { font-size: 0.8rem; color: #64748b; }
 
         /* ── Button overrides ───────────────────────────────────────────── */
-        .btn { font-weight: 600; border-radius: 8px; font-size: 0.875rem; }
+        .btn { font-weight: 600; border-radius: 8px; font-size: 0.9rem; }
         .btn-primary { background: #7c3aed; border-color: #7c3aed; }
         .btn-primary:hover { background: #6d28d9; border-color: #6d28d9; }
         .btn-outline-primary { color: #7c3aed; border-color: #7c3aed; }
         .btn-outline-primary:hover { background: #7c3aed; border-color: #7c3aed; }
-        .btn-sm { font-size: 0.78rem; border-radius: 6px; }
+        .btn-sm { font-size: 0.8rem; border-radius: 6px; }
 
         /* ── Alert overrides ────────────────────────────────────────────── */
-        .alert { border-radius: 10px; font-size: 0.875rem; }
+        .alert { border-radius: 10px; font-size: 0.9rem; }
 
         /* ── Pagination ─────────────────────────────────────────────────── */
-        .pagination { --bs-pagination-font-size: 0.82rem; }
+        .pagination { --bs-pagination-font-size: 0.875rem; }
+
+        /* ── Dark mode: content area overrides for Tailwind-based elements ── */
+        /* These override Tailwind bg-white / text-slate-* classes when dark mode
+           is active, since Bootstrap dark mode and Tailwind dark: classes both
+           need the html.dark class to activate simultaneously. */
+        html.dark .bg-white {
+            background-color: #1e293b !important;
+        }
+        html.dark .bg-slate-50 {
+            background-color: #162032 !important;
+        }
+        html.dark .bg-slate-100 {
+            background-color: #334155 !important;
+        }
+        html.dark .border-slate-100 {
+            border-color: #334155 !important;
+        }
+        html.dark .border-slate-200 {
+            border-color: #334155 !important;
+        }
+        html.dark .text-slate-900 {
+            color: #f1f5f9 !important;
+        }
+        html.dark .text-slate-800 {
+            color: #e2e8f0 !important;
+        }
+        html.dark .text-slate-700 {
+            color: #cbd5e1 !important;
+        }
+        html.dark .text-slate-600 {
+            color: #94a3b8 !important;
+        }
+        html.dark .text-slate-500 {
+            color: #94a3b8 !important;
+        }
+        html.dark .text-slate-400 {
+            color: #94a3b8 !important;
+        }
+        html.dark .hover\:bg-slate-50:hover {
+            background-color: #253347 !important;
+        }
+        html.dark .card {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #e2e8f0;
+        }
+        html.dark .card-footer {
+            background-color: #1e293b !important;
+            border-top-color: #334155 !important;
+        }
+        /* Table rows in dark */
+        html.dark .table td { color: #cbd5e1; }
+        html.dark .table th { color: #94a3b8; }
+        html.dark .table-hover tbody tr:hover { background: rgba(99,102,241,0.08) !important; }
+        html.dark .border-b.border-slate-100 { border-color: #334155 !important; }
+        /* Pending row amber tint in dark */
+        html.dark .bg-amber-50\/60 {
+            background-color: rgba(180, 120, 20, 0.15) !important;
+        }
+        /* Breadcrumb in dark */
+        html.dark .breadcrumb-item.active { color: #94a3b8; }
 
         /* ── Footer ─────────────────────────────────────────────────────── */
         .central-footer {
             text-align: center;
             padding: 0.9rem 1.5rem;
-            font-size: 0.72rem;
-            color: #94a3b8;
+            font-size: 0.8rem;
+            color: #64748b;
             border-top: 1px solid #e2e8f0;
             background: #fff;
+        }
+        html.dark .central-footer {
+            color: #94a3b8;
+            background: #0f172a;
+            border-top-color: #1e293b;
         }
 
         /* ── Stats card accent ──────────────────────────────────────────── */
@@ -338,13 +429,13 @@
 <nav class="central-nav" x-data="{ open: false }" @click.outside="open = false">
 
     {{-- Brand --}}
-    <a href="{{ route('tenants.index') }}" class="central-nav-brand" aria-label="Fayiloli Admin — go to tenants">
+    <a href="{{ route('tenants.index') }}" class="central-nav-brand" aria-label="Ostrich Admin — go to tenants">
         <img src="/img/fayiloli-icon.svg"
              alt=""
              aria-hidden="true"
              width="32" height="32"
              style="border-radius:8px;flex-shrink:0">
-        <span class="brand-name">Fayiloli</span>
+        <span class="brand-name">Ostrich</span>
         <span class="brand-badge" aria-label="Central Admin">Admin</span>
     </a>
 
@@ -396,7 +487,7 @@
                 <div class="d-name">
                     {{ Auth::user()?->name }}
                     @if(Auth::user()?->isSuperAdmin())
-                        <span style="font-size:.58rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;background:rgba(220,38,38,.18);color:#f87171;padding:.1rem .3rem;border-radius:3px;border:1px solid rgba(220,38,38,.3);vertical-align:middle;margin-left:.35rem">SUPER</span>
+                        <span style="font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(220,38,38,.18);color:#fca5a5;padding:.15rem .4rem;border-radius:3px;border:1px solid rgba(220,38,38,.3);vertical-align:middle;margin-left:.35rem">SUPER</span>
                     @endif
                 </div>
                 <div class="d-email">{{ Auth::user()?->email }}</div>
@@ -405,6 +496,12 @@
             <a class="central-dropdown-item" role="menuitem" href="{{ route('tenants.index') }}">
                 <i class="fas fa-building-user" aria-hidden="true"></i> Tenant Management
             </a>
+
+            <div class="central-dropdown-divider" role="separator"></div>
+
+            <div class="px-3 py-2">
+                <livewire:global-theme-switcher />
+            </div>
 
             <div class="central-dropdown-divider" role="separator"></div>
 
@@ -467,7 +564,7 @@
 {{-- ── Footer ───────────────────────────────────────────────────────────── --}}
 <footer class="central-footer" role="contentinfo">
     &copy; {{ date('Y') }} NectarMetrics Solutions Limited &middot;
-    Fayiloli EDMS &middot; Central Admin
+    Ostrich &middot; Central Admin
 </footer>
 
 {{-- ── Global Flash Toasts ──────────────────────────────────────────────── --}}
@@ -481,7 +578,7 @@
     $centralFlashes = array_filter($centralFlashes, fn($f) => $f[3]);
 @endphp
 @if(count($centralFlashes) > 0)
-<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1200"
+<div class="toast-container position-fixed top-0 inset-e-0 p-3" style="z-index:1200"
      aria-live="polite" aria-atomic="true">
     @foreach($centralFlashes as $type => [$icon, $bgClass, $lightClose, $message])
     <div class="toast align-items-center {{ $bgClass }} border-0 mb-2"
@@ -504,6 +601,9 @@
     @endforeach
 </div>
 @endif
+
+{{-- Livewire Scripts --}}
+@livewireScripts
 
 {{-- Alpine.js --}}
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

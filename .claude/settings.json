@@ -78,7 +78,8 @@
     "additionalDirectories": [
       "/",
       "/var/www/laravel/fayiloli",
-      "/var/www/laravel/fayiloli/database/migrations"
+      "/var/www/laravel/fayiloli/database/migrations",
+      "/var/www/laravel/fayiloli/vendor/stancl/tenancy/src"
     ]
   }
 }

@@ -212,16 +212,13 @@ class TenancyServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             if (file_exists(base_path('routes/tenant.php'))) {
                 Route::namespace(static::$controllerNamespace)
-                    // Apply tenancy initialisation and central-domain protection at the
-                    // route-group registration level.  This means:
-                    //   (a) route:list clearly shows these guards on every tenant route;
-                    //   (b) the central domain cannot match tenant routes before the
-                    //       middleware group has run, closing a defence-in-depth gap.
-                    // InitializeTenancyByDomain::$onFail (configured above) will pass
-                    // through silently for central domains, so this does not affect the
-                    // central admin panel.
+                    // PreventAccessFromCentralDomains is listed here so route:list
+                    // shows this guard at the group level as an early outer check.
+                    // InitializeTenancyByDomain is intentionally OMITTED here —
+                    // it is already prepended to the global 'web' group in
+                    // bootstrap/app.php, and tenant.php routes explicitly include
+                    // 'web', so adding it here too would run it twice per request.
                     ->middleware([
-                        Middleware\InitializeTenancyByDomain::class,
                         Middleware\PreventAccessFromCentralDomains::class,
                     ])
                     ->group(base_path('routes/tenant.php'));

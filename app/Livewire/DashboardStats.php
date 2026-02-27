@@ -35,6 +35,7 @@ class DashboardStats extends Component
     #[Locked] public array $monthlyLabels = [];
     #[Locked] public array $monthlyData = [];
     #[Locked] public array $recentActivity = [];
+    #[Locked] public array $recentDocuments = [];
 
     #[Locked] public string $lastUpdated = '';
 
@@ -56,6 +57,7 @@ class DashboardStats extends Component
                 'labels' => $this->monthlyLabels,
                 'data' => $this->monthlyData,
             ],
+            recentDocuments: $this->recentDocuments,
         );
     }
 
@@ -136,6 +138,24 @@ class DashboardStats extends Component
             // Log silently and fall back to empty — dashboard still loads.
             logger()->warning('[DashboardStats] MongoDB activity fetch failed: ' . $e->getMessage());
             $this->recentActivity = [];
+        }
+
+        // Recent documents — last 8 uploaded, used by the "Recent Documents" panel.
+        try {
+            $this->recentDocuments = Document::withoutGlobalScope('position')
+                ->latest()
+                ->limit(8)
+                ->select('id', 'name', 'original_name', 'extension', 'created_at')
+                ->get()
+                ->map(fn($doc) => [
+                    'id'        => (string) $doc->id,
+                    'name'      => $doc->original_name ?: $doc->name,
+                    'extension' => strtoupper($doc->extension ?? ''),
+                    'date'      => $doc->created_at->diffForHumans(),
+                ])->toArray();
+        } catch (\Throwable $e) {
+            logger()->warning('[DashboardStats] Recent docs fetch failed: ' . $e->getMessage());
+            $this->recentDocuments = [];
         }
     }
 

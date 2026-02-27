@@ -1,69 +1,56 @@
 @if (!Route::is('home'))
-<div class="edms-toolbar"
-     role="toolbar"
-     aria-label="{{ Route::is('documents.index') ? 'Document actions' : (isset($shareDocument) ? 'Shared folder actions' : 'Folder actions') }}">
+    <div class="flex flex-wrap items-center gap-2 mb-6" role="toolbar"
+        aria-label="{{ Route::is('documents.index') ? 'Document actions' : (isset($shareDocument) ? 'Shared folder actions' : 'Folder actions') }}">
 
-    @if (Route::is('documents.index'))
-        {{-- ── Document page toolbar ─────────────────────────────────── --}}
-        <button type="button" class="toolbar-btn toolbar-btn-outline"
-                onclick="openModal('uploadFolderModal')"
-                aria-label="Upload folder">
-            <i class="fas fa-folder-plus" aria-hidden="true"></i> Upload Folder
-        </button>
-        <button type="button" class="toolbar-btn toolbar-btn-primary"
-                onclick="uploadFiles()"
-                aria-label="Upload files">
-            <i class="fas fa-upload" aria-hidden="true"></i> Upload Files
-        </button>
-        <button type="button" class="toolbar-btn toolbar-btn-outline"
-                onclick="openModal('uploadModal')"
+        @if (Route::is('documents.index'))
+            {{-- ── Document page toolbar ─────────────────────────────────── --}}
+            <x-ts-button color="slate" variant="outline" icon="folder-open" position="left"
+                onclick="openModal('uploadFolderModal')" aria-label="Upload folder">
+                Upload Folder
+            </x-ts-button>
+            <x-ts-button color="indigo" icon="arrow-up-tray" position="left" onclick="uploadFiles()" aria-label="Upload files">
+                Upload Files
+            </x-ts-button>
+            <x-ts-button color="slate" variant="outline" icon="link" position="left" onclick="openModal('uploadModal')"
                 aria-label="Add URL document">
-            <i class="fas fa-link" aria-hidden="true"></i> Add URL
-        </button>
+                Add URL
+            </x-ts-button>
 
-        <div class="toolbar-divider" role="separator" aria-hidden="true"></div>
+            <div class="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" role="separator" aria-hidden="true"></div>
 
-        <button type="button" class="toolbar-btn toolbar-btn-outline"
-                onclick="requestDocument()"
-                data-bs-toggle="modal" data-bs-target="#requestDocumentModal"
-                aria-label="Request a document" aria-haspopup="dialog">
-            <i class="fas fa-file-import" aria-hidden="true"></i> Request
-        </button>
-        <button type="button" class="toolbar-btn toolbar-btn-outline"
-                data-bs-toggle="modal"
-                onclick="shareDocument()"
-                data-bs-target="#shareDocumentModal"
-                aria-label="Share document" aria-haspopup="dialog">
-            <i class="fas fa-share-alt" aria-hidden="true"></i> Share
-        </button>
+            <x-ts-button color="slate" variant="outline" icon="arrow-down-tray" position="left" onclick="requestDocument()"
+                data-bs-toggle="modal" data-bs-target="#requestDocumentModal" aria-label="Request a document"
+                aria-haspopup="dialog">
+                Request
+            </x-ts-button>
+            <x-ts-button color="slate" variant="outline" icon="share" position="left" data-bs-toggle="modal"
+                onclick="shareDocument()" data-bs-target="#shareDocumentModal" aria-label="Share document"
+                aria-haspopup="dialog">
+                Share
+            </x-ts-button>
 
-    @elseif(!Route::is('getSharedDocuments'))
-        {{-- ── Folder / workspace page toolbar ──────────────────────── --}}
-        <button type="button" class="toolbar-btn toolbar-btn-primary"
-                onclick="openModal('createFolderModal')"
+        @elseif(!Route::is('getSharedDocuments'))
+            {{-- ── Folder / workspace page toolbar ──────────────────────── --}}
+            <x-ts-button color="indigo" icon="plus" position="left" onclick="openModal('createFolderModal')"
                 aria-label="Create new folder" aria-haspopup="dialog">
-            <i class="fas fa-plus" aria-hidden="true"></i> New Folder
-        </button>
-        <button type="button" class="toolbar-btn toolbar-btn-outline"
-                onclick="downloadFolder()"
+                New Folder
+            </x-ts-button>
+            <x-ts-button color="slate" variant="outline" icon="cloud-arrow-down" position="left" onclick="downloadFolder()"
                 aria-label="Download selected folder">
-            <i class="fas fa-cloud-download-alt" aria-hidden="true"></i> Download
-        </button>
-        <button type="button" class="toolbar-btn toolbar-btn-danger"
-                id="delete-button"
-                onclick="deleteSelectedRecord()"
-                aria-label="Delete selected items">
-            <i class="fas fa-trash-alt" aria-hidden="true"></i> Delete
-        </button>
+                Download
+            </x-ts-button>
+            <x-ts-button color="red" variant="outline" icon="trash" position="left" id="delete-button"
+                onclick="deleteSelectedRecord()" aria-label="Delete selected items">
+                Delete
+            </x-ts-button>
 
-    @elseif(isset($shareDocument) && $shareDocument->slug === 'folder')
-        {{-- ── Shared folder toolbar ─────────────────────────────────── --}}
-        <button type="button" class="toolbar-btn toolbar-btn-outline"
-                onclick="downloadFolder()"
+        @elseif(isset($shareDocument) && $shareDocument->slug === 'folder')
+            {{-- ── Shared folder toolbar ─────────────────────────────────── --}}
+            <x-ts-button color="slate" variant="outline" icon="cloud-arrow-down" position="left" onclick="downloadFolder()"
                 aria-label="Download folder">
-            <i class="fas fa-cloud-download-alt" aria-hidden="true"></i> Download
-        </button>
-    @endif
+                Download
+            </x-ts-button>
+        @endif
 
-</div>
+    </div>
 @endif

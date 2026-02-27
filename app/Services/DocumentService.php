@@ -122,7 +122,7 @@ class DocumentService
             $this->uploadFiles($request);
         }
 
-        return  $folderId;
+        return $folderId;
     }
 
 
@@ -205,12 +205,12 @@ class DocumentService
     protected function uploadFolder($request)
     {
         // dd($request);
-        // Get the folder ID from the request
-        $folderId = $request->input('folder_id');
-        $parentFolderName = Folder::find($folderId)?->name;
+        $folderId = $request->input('folder_id') === 'null' ? null : $request->input('folder_id');
+        $parentFolderObj = $folderId ? Folder::find($folderId) : null;
+        $parentFolderName = $parentFolderObj ? $parentFolderObj->name : '';
         $createdChildFolder = null;
-        $childFolderName =  $request->input('folder_name') ?? uniqid();
-        $visibility =  $request->input('visibility') ?? 'public';
+        $childFolderName = $request->input('folder_name') ?? uniqid();
+        $visibility = $request->input('visibility') ?? 'public';
         $parentFolder = public_path('documents/' . $parentFolderName);
 
 
@@ -266,7 +266,7 @@ class DocumentService
                 $document->original_name = $file->getClientOriginalName();
                 $document->extension = $file->getClientOriginalExtension();
                 $document->file_path = $parentStringFolderPath;
-                $document->size =  $fileSize;
+                $document->size = $fileSize;
                 $document->folder_id = $createdChildFolder;
                 $document->visibility = 'public';
                 $document->owner = User::first()->id;
@@ -283,8 +283,9 @@ class DocumentService
     protected function uploadFiles($request)
     {
         // Get the folder ID from the request
-        $folderId = $request->input('folder_id');
-        $folderName = Folder::find($folderId)->name;
+        $folderId = $request->input('folder_id') === 'null' ? null : $request->input('folder_id');
+        $folderObj = $folderId ? Folder::find($folderId) : null;
+        $folderName = $folderObj ? $folderObj->name : '';
         $createdChildFolder = null;
         $childFolderName = uniqid();
         $parentFolder = public_path('documents/' . $folderName);
@@ -313,8 +314,8 @@ class DocumentService
                     }
 
                     // Create a unique ID for the child folder
-                    $childFolder = $parentFolder . '/' . $childFolderName;
-                    $parentStringFolderPath = 'documents/' . $folderName . '/' . $childFolderName . '/' . $file->getClientOriginalName();
+                    $childFolder = $parentFolder . ($folderName ? '/' : '') . $childFolderName;
+                    $parentStringFolderPath = 'documents/' . ($folderName ? $folderName . '/' : '') . $childFolderName . '/' . $file->getClientOriginalName();
 
                     // Create the child folder if it doesn't exist
                     if (!file_exists($childFolder) && is_null($createdChildFolder)) {
@@ -341,7 +342,7 @@ class DocumentService
                     $document->original_name = $file->getClientOriginalName();
                     $document->extension = $file->getClientOriginalExtension();
                     $document->file_path = $parentStringFolderPath;
-                    $document->size =  $fileSize;
+                    $document->size = $fileSize;
                     $document->folder_id = $createdChildFolder;
                     $document->visibility = 'public';
                     $document->owner = User::first()->id;
@@ -349,7 +350,7 @@ class DocumentService
                     $document->save();
                 } else {
 
-                    $parentStringFolderPath = 'documents/' . $folderName . '/' . $file->getClientOriginalName();
+                    $parentStringFolderPath = 'documents/' . ($folderName ? $folderName . '/' : '') . $file->getClientOriginalName();
                     // Store the file directly in the 'uploads' folder
                     $file->move($parentFolder, $file->getClientOriginalName());
 
@@ -364,7 +365,7 @@ class DocumentService
                     $document->original_name = $file->getClientOriginalName();
                     $document->extension = $file->getClientOriginalExtension();
                     $document->file_path = $parentStringFolderPath;
-                    $document->size =  $fileSize;
+                    $document->size = $fileSize;
                     $document->folder_id = $folderId; // No folder ID
                     $document->visibility = 'public';
                     $document->owner = User::first()->id;
@@ -395,14 +396,14 @@ class DocumentService
         $document->extension = $this->isYouTubeUrl($url) ? 'youtube' : '';
         $document->file_path = $url;
         $document->url = $url;
-        $document->size =  0;
+        $document->size = 0;
         $document->folder_id = $folderId; // No folder ID
         $document->visibility = $visibility;
         $document->owner = User::first()->id;
         $document->date = now();
         $document->save();
 
-        return  $document;
+        return $document;
     }
 
     protected function getFolderInfo($folderId)

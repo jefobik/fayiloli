@@ -53,18 +53,33 @@ class TenantController extends Controller
 
     // ── List ──────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $tenants = Tenant::with('domains')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $query = Tenant::with('domains')->orderBy('created_at', 'desc');
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('organization_name', 'ilike', "%{$search}%")
+                  ->orWhere('admin_email', 'ilike', "%{$search}%");
+            });
+        }
+
+        if ($type = $request->input('type')) {
+            $query->where('plan', $type);
+        }
+
+        if ($status = $request->input('status')) {
+            $query->where('status', TenantStatus::from($status));
+        }
+
+        $tenants = $query->paginate(20)->withQueryString();
 
         $stats = [
-            'total' => Tenant::count(),
-            'active' => Tenant::where('status', TenantStatus::ACTIVE)->count(),
-            'pending' => Tenant::where('status', TenantStatus::PENDING)->count(),
+            'total'     => Tenant::count(),
+            'active'    => Tenant::where('status', TenantStatus::ACTIVE)->count(),
+            'pending'   => Tenant::where('status', TenantStatus::PENDING)->count(),
             'suspended' => Tenant::where('status', TenantStatus::SUSPENDED)->count(),
-            'inactive' => Tenant::where('status', TenantStatus::INACTIVE)->count(),
+            'inactive'  => Tenant::where('status', TenantStatus::INACTIVE)->count(),
         ];
 
         return view('tenants.index', compact('tenants', 'stats'));

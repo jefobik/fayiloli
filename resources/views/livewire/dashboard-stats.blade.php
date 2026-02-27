@@ -1,13 +1,14 @@
 <div>
     {{-- Poll trigger: calls refresh() every 60 s. Placed inside (not on) the root
     div — Livewire v4 recommended pattern. Refresh() dispatches 'stats-refreshed'
-    so Chart.js can re-draw after each DOM morph. --}}
-    <div wire:poll.60s="refresh" style="display:none" aria-hidden="true"></div>
+    so Chart.js can re-draw after each DOM morph. Using .keep-alive prevents
+    unnecessary polling when navigating away or dropping connection momentarily. --}}
+    <div wire:poll.60s.keep-alive="refresh" style="display:none" aria-hidden="true"></div>
 
     {{-- ══════════════════════════════════════════════════════════════════════
     EDMS DASHBOARD GRID
     ═══════════════════════════════════════════════════════════════════════ --}}
-    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 mt-2 sm:mt-4">
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 mt-2 sm:mt-4">
 
         {{-- ── LEFT COLUMN: MAIN METRICS & ACTIVITY ── --}}
         <div class="xl:col-span-8 space-y-6 lg:space-y-8">
@@ -15,225 +16,218 @@
             {{-- ══════════════════════════════════════════════════════════════════════
             KPI CARDS
             ═══════════════════════════════════════════════════════════════════════ --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 transition-opacity duration-300 relative"
+            <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 transition-opacity duration-300 relative"
                 wire:loading.class="opacity-50 pointer-events-none">
 
                 {{-- ── Skeleton (shown only while Livewire is fetching) ── --}}
                 <div wire:loading.flex class="absolute inset-0 z-10 w-full h-full flex flex-wrap gap-4 sm:gap-6"
                     aria-hidden="true" style="display: none;">
                     @for ($i = 0; $i < 6; $i++)
-                        <div
-                            class="flex-1 min-w-[150px] flex flex-col justify-between bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm animate-pulse">
+                        <x-ts-card class="flex-1 min-w-[150px] flex flex-col justify-between animate-pulse">
                             <div class="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-700 mb-4"></div>
                             <div>
                                 <div class="h-8 bg-slate-200 dark:bg-slate-700 rounded-lg w-1/2 mb-2"></div>
                                 <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-4"></div>
                             </div>
-                        </div>
+                        </x-ts-card>
                     @endfor
                 </div>
 
                 {{-- ── Real KPI cards (hidden while loading) ── --}}
-                <div wire:loading.remove
-                    class="group bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
-                    <div
-                        class="absolute -right-6 -top-6 w-24 h-24 bg-violet-50 dark:bg-violet-900/20 rounded-full blur-xl group-hover:bg-violet-100 dark:group-hover:bg-violet-900/40 transition-colors pointer-events-none">
-                    </div>
-                    <div
-                        class="w-12 h-12 flex items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 mb-5 ring-1 ring-violet-200 dark:ring-violet-800 relative z-10 transition-transform duration-300 group-hover:scale-105">
-                        <i class="fas fa-file-alt text-xl" aria-hidden="true"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-                            aria-label="{{ number_format($documentCount) }} total documents">
-                            {{ number_format($documentCount) }}
-                        </div>
-                        <div
-                            class="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
-                            Total Documents</div>
-                        <div class="mt-3.5 flex items-center text-xs font-semibold text-slate-500 dark:text-slate-500">
-                            <i class="fas fa-database mr-1.5" aria-hidden="true"></i> All files
-                        </div>
-                    </div>
-                </div>
-
-                <div wire:loading.remove
-                    class="group bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-amber-300 dark:hover:border-amber-600 transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
-                    <div
-                        class="absolute -right-6 -top-6 w-24 h-24 bg-amber-50 dark:bg-amber-900/20 rounded-full blur-xl group-hover:bg-amber-100 dark:group-hover:bg-amber-900/40 transition-colors pointer-events-none">
-                    </div>
-                    <div
-                        class="w-12 h-12 flex items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 mb-5 ring-1 ring-amber-200 dark:ring-amber-800 relative z-10 transition-transform duration-300 group-hover:scale-105">
-                        <i class="fas fa-folder text-xl" aria-hidden="true"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-                            aria-label="{{ number_format($folderCount) }} workspaces">
-                            {{ number_format($folderCount) }}
-                        </div>
-                        <div
-                            class="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
-                            Workspaces</div>
-                        <div class="mt-3.5 flex items-center text-xs font-semibold text-slate-500 dark:text-slate-500">
-                            <i class="fas fa-layer-group mr-1.5" aria-hidden="true"></i> Organised
-                        </div>
-                    </div>
-                </div>
-
-                <div wire:loading.remove
-                    class="group bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
-                    <div
-                        class="absolute -right-6 -top-6 w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full blur-xl group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-colors pointer-events-none">
-                    </div>
-                    <div
-                        class="w-12 h-12 flex items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mb-5 ring-1 ring-blue-200 dark:ring-blue-800 relative z-10 transition-transform duration-300 group-hover:scale-105">
-                        <i class="fas fa-tags text-xl" aria-hidden="true"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-                            aria-label="{{ number_format($tagCount) }} tags">{{ number_format($tagCount) }}
-                        </div>
-                        <div
-                            class="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
-                            Tags
-                            &amp; Labels</div>
-                        <div
-                            class="mt-3.5 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-500">
-                            <i class="fas fa-arrow-trend-up mr-1.5" aria-hidden="true"></i> Active
-                        </div>
-                    </div>
-                </div>
-
-                <div wire:loading.remove
-                    class="group bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
-                    <div
-                        class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-full blur-xl group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/40 transition-colors pointer-events-none">
-                    </div>
-                    <div
-                        class="w-12 h-12 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mb-5 ring-1 ring-emerald-200 dark:ring-emerald-800 relative z-10 transition-transform duration-300 group-hover:scale-105">
-                        <i class="fas fa-share-nodes text-xl" aria-hidden="true"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-                            aria-label="{{ number_format($sharedCount) }} shared links">
-                            {{ number_format($sharedCount) }}
-                        </div>
-                        <div
-                            class="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
-                            Shared Links</div>
-                        <div
-                            class="mt-3.5 flex items-center text-xs font-semibold {{ $sharedCount > 0 ? 'text-emerald-600 dark:text-emerald-500' : 'text-slate-500 dark:text-slate-500' }}">
-                            <i class="fas fa-link mr-1.5" aria-hidden="true"></i>
-                            {{ $sharedCount > 0 ? 'Active Sharing' : 'None Active' }}
-                        </div>
-                    </div>
-                </div>
-
-                <div wire:loading.remove
-                    class="group bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-rose-300 dark:hover:border-rose-600 transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
-                    <div
-                        class="absolute -right-6 -top-6 w-24 h-24 bg-rose-50 dark:bg-rose-900/20 rounded-full blur-xl group-hover:bg-rose-100 dark:group-hover:bg-rose-900/40 transition-colors pointer-events-none">
-                    </div>
-                    <div
-                        class="w-12 h-12 flex items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 mb-5 ring-1 ring-rose-200 dark:ring-rose-800 relative z-10 transition-transform duration-300 group-hover:scale-105">
-                        <i class="fas fa-bell text-xl" aria-hidden="true"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-                            aria-label="{{ number_format($unreadCount) }} unread notifications">
-                            {{ number_format($unreadCount) }}
-                        </div>
-                        <div
-                            class="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
-                            Unread Alerts</div>
-                        @if($unreadCount > 0)
-                            <div class="mt-3.5 flex items-center text-xs font-semibold text-rose-600 dark:text-rose-500">
-                                <i class="fas fa-exclamation-circle mr-1.5" aria-hidden="true"></i> Needs attention
+                <div wire:loading.remove>
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                                <i class="fas fa-file-alt text-violet-600 dark:text-violet-400 text-base" aria-hidden="true"></i>
                             </div>
-                        @else
-                            <div
-                                class="mt-3.5 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-500">
-                                <i class="fas fa-check-circle mr-1.5" aria-hidden="true"></i> All clear
+                            <div class="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                <i class="fas fa-arrow-trend-up text-[0.65rem]" aria-hidden="true"></i>
+                                <span>All time</span>
                             </div>
-                        @endif
+                        </div>
+                        <div class="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{{ number_format($documentCount) }}</div>
+                        <div class="text-xs font-semibold text-slate-500 dark:text-slate-300 mt-1">Total Documents</div>
                     </div>
                 </div>
-
-                <div wire:loading.remove
-                    class="group bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-green-300 dark:hover:border-green-600 transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
-                    <div
-                        class="absolute -right-6 -top-6 w-24 h-24 bg-green-50 dark:bg-green-900/20 rounded-full blur-xl group-hover:bg-green-100 dark:group-hover:bg-green-900/40 transition-colors pointer-events-none">
-                    </div>
-                    <div
-                        class="w-12 h-12 flex items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 mb-5 ring-1 ring-green-200 dark:ring-green-800 relative z-10 transition-transform duration-300 group-hover:scale-105">
-                        <i class="fas fa-users text-xl" aria-hidden="true"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-                            aria-label="{{ number_format($userCount) }} workspace members">
-                            {{ number_format($userCount) }}
+                <div wire:loading.remove>
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                                <i class="fas fa-folder text-amber-600 dark:text-amber-400 text-base" aria-hidden="true"></i>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                <i class="fas fa-circle-check text-[0.6rem]" aria-hidden="true"></i>
+                                <span>Active</span>
+                            </div>
                         </div>
-                        <div
-                            class="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
-                            Members</div>
-                        <div class="mt-3.5 flex items-center text-xs font-semibold text-slate-500 dark:text-slate-500">
-                            <i class="fas fa-user mr-1.5" aria-hidden="true"></i> Active users
+                        <div class="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{{ number_format($folderCount) }}</div>
+                        <div class="text-xs font-semibold text-slate-500 dark:text-slate-300 mt-1">Workspaces</div>
+                    </div>
+                </div>
+                <div wire:loading.remove>
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                                <i class="fas fa-tag text-blue-600 dark:text-blue-400 text-base" aria-hidden="true"></i>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                <i class="fas fa-arrow-trend-up text-[0.6rem]" aria-hidden="true"></i>
+                                <span>Labeled</span>
+                            </div>
                         </div>
+                        <div class="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{{ number_format($tagCount) }}</div>
+                        <div class="text-xs font-semibold text-slate-500 dark:text-slate-300 mt-1">Tags &amp; Labels</div>
+                    </div>
+                </div>
+                <div wire:loading.remove>
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                                <i class="fas fa-link text-emerald-600 dark:text-emerald-400 text-base" aria-hidden="true"></i>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                <span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span></span>
+                                <span>Live</span>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{{ number_format($sharedCount) }}</div>
+                        <div class="text-xs font-semibold text-slate-500 dark:text-slate-300 mt-1">Shared Links</div>
+                    </div>
+                </div>
+                <div wire:loading.remove>
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-rose-100 dark:bg-rose-900/30">
+                                <i class="fas fa-bell text-rose-600 dark:text-rose-400 text-base" aria-hidden="true"></i>
+                            </div>
+                            @if($unreadCount > 0)
+                                <div class="flex items-center gap-1 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                                    <i class="fas fa-exclamation text-[0.6rem]" aria-hidden="true"></i>
+                                    <span>Pending</span>
+                                </div>
+                            @else
+                                <div class="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                    <i class="fas fa-circle-check text-[0.6rem]" aria-hidden="true"></i>
+                                    <span>Clear</span>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{{ number_format($unreadCount) }}</div>
+                        <div class="text-xs font-semibold text-slate-500 dark:text-slate-300 mt-1">Unread Alerts</div>
+                    </div>
+                </div>
+                <div wire:loading.remove>
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
+                                <i class="fas fa-users text-green-600 dark:text-green-400 text-base" aria-hidden="true"></i>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                <i class="fas fa-circle-check text-[0.6rem]" aria-hidden="true"></i>
+                                <span>Active</span>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{{ number_format($userCount) }}</div>
+                        <div class="text-xs font-semibold text-slate-500 dark:text-slate-300 mt-1">Members</div>
                     </div>
                 </div>
             </div>
 
             {{-- ══════════════════════════════════════════════════════════════════════
+            RECENT DOCUMENTS
+            ═══════════════════════════════════════════════════════════════════════ --}}
+            <x-ts-card class="border-slate-200 dark:border-slate-700 shadow-sm">
+                <x-slot:header>
+                    <div class="flex items-center justify-between w-full">
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fas fa-clock-rotate-left text-violet-500 dark:text-violet-400" aria-hidden="true"></i>
+                            Recent Documents
+                        </h3>
+                        <a href="{{ route('documents.index') }}"
+                           class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                           wire:navigate>View all →</a>
+                    </div>
+                </x-slot:header>
+                <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                    @forelse($recentDocuments as $doc)
+                        <div class="flex items-center gap-3 py-2.5 group" wire:key="rdoc-{{ $doc['id'] }}">
+                            <div class="w-9 h-9 shrink-0 rounded-lg bg-slate-100 dark:bg-slate-700/60
+                                        flex items-center justify-center text-[0.55rem] font-extrabold
+                                        text-slate-500 dark:text-slate-300 uppercase
+                                        border border-slate-200 dark:border-slate-600">
+                                {{ $doc['extension'] ?: 'FILE' }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate
+                                           group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                    {{ $doc['name'] }}
+                                </p>
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                                    {{ $doc['date'] }}
+                                </p>
+                            </div>
+                            <i class="fas fa-chevron-right text-[0.6rem] text-slate-300 dark:text-slate-600
+                                       group-hover:text-indigo-400 transition-colors shrink-0"
+                               aria-hidden="true"></i>
+                        </div>
+                    @empty
+                        <div class="flex flex-col items-center justify-center py-8 text-center">
+                            <i class="fas fa-file-circle-plus text-3xl text-slate-300 dark:text-slate-600 mb-3"
+                               aria-hidden="true"></i>
+                            <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">No documents yet</p>
+                            <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                                Upload your first document to get started.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </x-ts-card>
+
+            {{-- ══════════════════════════════════════════════════════════════════════
             MONTHLY UPLOAD ACTIVITY (MAIN COLUMN)
             ═══════════════════════════════════════════════════════════════════════ --}}
-            <div
-                class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col">
-                <div
-                    class="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-700/50">
-                    <div>
-                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Upload Activity</h3>
-                        <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Last 6 months</p>
+            <x-ts-card class="h-full border-slate-200 dark:border-slate-700 shadow-sm">
+                <x-slot:header>
+                    <div class="flex items-center justify-between w-full">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Upload Activity</h3>
+                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Last 6 months</p>
+                        </div>
+                        <x-ts-badge color="emerald" light>
+                            <span class="relative flex h-2 w-2 mr-1">
+                                <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            Live
+                        </x-ts-badge>
                     </div>
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold tracking-wide border border-emerald-100 dark:border-emerald-800/50 uppercase"
-                        aria-live="polite" aria-label="Last updated at {{ $lastUpdated }}">
-                        <span class="relative flex h-2 w-2">
-                            <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        Live
-                    </div>
-                </div>
-                <div class="p-6 flex-1 flex items-center justify-center min-h-[300px]" wire:key="bar-chart-wrap"
+                </x-slot:header>
+                <div class="flex-1 flex items-center justify-center min-h-[300px]" wire:key="bar-chart-wrap"
                     wire:ignore.self>
                     <div class="relative w-full h-full aspect-[4/3] sm:aspect-[16/9] xl:aspect-[21/9]">
                         <canvas id="uploadChart" wire:key="bar-chart-canvas" aria-label="Monthly upload activity chart"
                             role="img"></canvas>
                     </div>
                 </div>
-            </div>
+            </x-ts-card>
 
             {{-- ══════════════════════════════════════════════════════════════════════
             RECENT ACTIVITY LOG
             ═══════════════════════════════════════════════════════════════════════ --}}
-            <div
-                class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden relative min-h-[300px]">
-                <div
-                    class="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 z-20 relative">
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
-                        <i class="fas fa-history text-indigo-500 dark:text-indigo-400" aria-hidden="true"></i>
-                        Recent Activity Log
-                    </h3>
-                    <div class="flex items-center gap-3">
-                        <span
-                            class="text-xs font-bold tracking-wider text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 py-1.5 px-3 rounded-full uppercase"
-                            aria-live="polite">
+            <x-ts-card class="relative min-h-[300px] border-slate-200 dark:border-slate-700 shadow-sm">
+                <x-slot:header>
+                    <div class="flex items-center justify-between w-full">
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
+                            <i class="fas fa-history text-indigo-500 dark:text-indigo-400" aria-hidden="true"></i>
+                            Recent Activity Log
+                        </h3>
+                        <x-ts-badge color="slate" light>
                             {{ count($recentActivity) }} events
-                        </span>
+                        </x-ts-badge>
                     </div>
-                </div>
+                </x-slot:header>
 
-                <div class="p-6">
+                <div>
                     {{-- Loading skeleton for activity log --}}
                     <div wire:loading.block
                         class="space-y-6 w-full h-full absolute inset-x-6 top-24 z-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm"
@@ -263,12 +257,19 @@
 
                                 <div class="w-6 h-6 rounded-full flex items-center justify-center bg-white dark:bg-slate-800 ring-4 ring-white dark:ring-slate-800 z-10 shadow-sm border border-slate-100 dark:border-slate-700"
                                     title="{{ ucfirst($log['event']) }}" aria-label="Event: {{ $log['event'] }}">
-                                    <div class="w-2.5 h-2.5 rounded-full 
-                                                @if($log['event'] === 'created') bg-emerald-500 
-                                                @elseif($log['event'] === 'deleted') bg-rose-500 
-                                                @else bg-blue-500 @endif">
+                                    <div class="w-2.5 h-2.5 rounded-full
+                                                                    @if($log['event'] === 'created') bg-emerald-500
+                                                                    @elseif($log['event'] === 'deleted') bg-rose-500
+                                                                    @else bg-blue-500 @endif">
                                     </div>
                                 </div>
+
+                                {{-- Causer initials avatar --}}
+                                @php $causerInitial = strtoupper(substr($log['causer'] ?? 'U', 0, 1)); @endphp
+                                <div class="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-white text-[0.55rem] font-bold mt-0.5 shadow-sm"
+                                     style="background: linear-gradient(135deg, #7c3aed, #4f46e5);"
+                                     title="{{ $log['causer'] }}"
+                                     aria-hidden="true">{{ $causerInitial }}</div>
 
                                 <div class="flex-1 min-w-0 pb-0 mt-0.5">
                                     <div class="text-sm text-slate-800 dark:text-slate-200 leading-relaxed break-words">
@@ -276,21 +277,23 @@
                                             class="font-extrabold text-slate-900 dark:text-white">{{ $log['causer'] }}</strong>
 
                                         <span
-                                            class="mx-1.5 inline-flex font-mono px-1.5 py-0.5 max-h-5 rounded bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-[0.65rem] font-bold uppercase tracking-widest leading-none items-center shadow-sm
-                                                        @if($log['event'] === 'created') text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-900/10
-                                                        @elseif($log['event'] === 'deleted') text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800/50 bg-rose-50 dark:bg-rose-900/10
-                                                        @else text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-900/10 @endif">{{ $log['event'] }}</span>
+                                            class="mx-1.5 inline-flex font-mono px-1.5 py-0.5 max-h-5 rounded bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-xs font-bold uppercase tracking-widest leading-none items-center shadow-sm
+                                                                            @if($log['event'] === 'created') text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-900/10
+                                                                            @elseif($log['event'] === 'deleted') text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800/50 bg-rose-50 dark:bg-rose-900/10
+                                                                            @else text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-900/10 @endif">{{ $log['event'] }}</span>
 
                                         <em
-                                            class="not-italic font-semibold text-slate-800 dark:text-slate-200">{{ $log['subject'] }}</em>
+                                            class="not-italic font-semibold text-slate-700 dark:text-slate-300">{{ $log['subject'] }}</em>
 
                                         @if($log['description'])
-                                            <span class="text-slate-500 dark:text-slate-400 font-medium"> &mdash;
+                                            <span
+                                                class="text-slate-500 dark:text-slate-400 font-medium text-[0.8rem] block sm:inline mt-0.5 sm:mt-0">
+                                                &mdash;
                                                 {{ Str::limit($log['description'], 80) }}</span>
                                         @endif
                                     </div>
                                     <div
-                                        class="mt-1 flex items-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+                                        class="mt-1 flex items-center text-xs font-medium text-slate-500 dark:text-slate-400">
                                         <i class="fas fa-clock mr-1.5 opacity-70" aria-hidden="true"></i>
                                         {{ $log['time'] }}
                                     </div>
@@ -312,50 +315,47 @@
                         @endforelse
                     </div>
                 </div>
-            </div> {{-- /LEFT COLUMN --}}
+            </x-ts-card>
 
-            {{-- ── RIGHT COLUMN: SIDEBAR & ACTIONS ── --}}
-            <div class="xl:col-span-4 space-y-6 lg:space-y-8">
+        </div> {{-- /xl:col-span-8 left column --}}
+
+        {{-- ── RIGHT COLUMN: SIDEBAR & ACTIONS ── --}}
+        <div class="xl:col-span-4 space-y-6 lg:space-y-8">
 
                 {{-- QUICK UPLOAD ACTION WIDGET --}}
-                <div class="bg-indigo-600 dark:bg-indigo-500 rounded-2xl p-6 lg:p-8 text-white shadow-lg shadow-indigo-500/20 relative overflow-hidden group cursor-pointer hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all duration-300"
+                <div class="group relative flex flex-col items-center justify-center p-6 lg:p-8 text-center bg-slate-50 dark:bg-slate-800/40 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-400 dark:hover:border-indigo-600 transition-all duration-300"
                     onclick="if(typeof uploadFiles === 'function') uploadFiles();" role="button" tabindex="0">
                     <div
-                        class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                        class="flex items-center justify-center w-14 h-14 mb-4 rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 group-hover:scale-110 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 text-slate-400 transition-all duration-300">
+                        <i class="fas fa-cloud-upload-alt text-2xl"></i>
                     </div>
-                    <div
-                        class="absolute -right-8 -top-8 w-32 h-32 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500">
-                    </div>
-                    <div class="relative z-10 flex flex-col items-center justify-center text-center">
-                        <div
-                            class="bg-white/10 p-4 rounded-xl mb-4 ring-1 ring-white/20 group-hover:scale-110 group-hover:bg-white/20 transition-all duration-300">
-                            <i class="fas fa-cloud-upload-alt text-3xl"></i>
-                        </div>
-                        <h3 class="text-xl font-extrabold tracking-tight">Quick Upload</h3>
-                        <p class="text-indigo-100 text-sm mt-1.5 font-medium">Drag & drop or tap to select</p>
-                    </div>
+                    <h3
+                        class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
+                        Quick Upload</h3>
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1 max-w-[200px]">Drag & drop
+                        files here, or click to browse.</p>
                 </div>
 
                 {{-- DOCUMENTS BY EXTENSION --}}
-                <div
-                    class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col">
-                    <div
-                        class="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-700/50">
-                        <div>
-                            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Documents by File Type
-                            </h3>
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Distribution across
-                                extensions</p>
+                <x-ts-card class="border-slate-200 dark:border-slate-700 shadow-sm">
+                    <x-slot:header>
+                        <div class="flex items-center justify-between w-full">
+                            <div>
+                                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Documents by File
+                                    Type</h3>
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Distribution
+                                    across extensions</p>
+                            </div>
+                            <button wire:click="refresh"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-700/50 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                title="Refresh statistics" aria-label="Refresh statistics">
+                                <i class="fas fa-sync-alt text-xs"
+                                    wire:loading.class="animate-spin text-indigo-600 dark:text-indigo-400"
+                                    wire:target="refresh"></i>
+                            </button>
                         </div>
-                        <button wire:click="refresh"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-700/50 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            title="Refresh statistics" aria-label="Refresh statistics">
-                            <i class="fas fa-sync-alt text-xs"
-                                wire:loading.class="animate-spin text-indigo-600 dark:text-indigo-400"
-                                wire:target="refresh"></i>
-                        </button>
-                    </div>
-                    <div class="p-6 flex-1 flex items-center justify-center min-h-[250px]" wire:key="ext-chart-wrap"
+                    </x-slot:header>
+                    <div class="flex-1 flex items-center justify-center min-h-[250px]" wire:key="ext-chart-wrap"
                         wire:ignore.self>
                         @if(count($docsByExt['data'] ?? []) > 0)
                             <div class="relative w-full h-full max-w-[280px] mx-auto aspect-square">
@@ -373,14 +373,15 @@
                             </div>
                         @endif
                     </div>
-                </div>
+                </x-ts-card>
 
                 {{-- INJECTED EXTERNAL SLOTS (From home.blade.php) --}}
                 {{ $sidebar_modules ?? '' }}
                 {{ $sidebar_hints ?? '' }}
 
-            </div> {{-- /RIGHT COLUMN --}}
-        </div> {{-- /EDMS DASHBOARD GRID --}}
+        </div> {{-- /xl:col-span-4 right column --}}
+
+    </div> {{-- /EDMS DASHBOARD GRID xl:grid-cols-12 --}}
 
 
         @script

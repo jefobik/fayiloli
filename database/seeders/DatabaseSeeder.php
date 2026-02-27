@@ -60,7 +60,7 @@ class DatabaseSeeder extends Seeder
                 'user_name' => 'superadmin',
                 'phone' => '08000000001',
                 'email_verified_at' => now(),
-                'password' => bcrypt('passw0rd!'),
+                'password' => 'passw0rd!',
                 'is_super_admin' => true,
                 'is_admin' => true,
                 'is_active' => true,
