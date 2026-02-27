@@ -84,18 +84,30 @@
         {{-- Tenant Switcher --}}
         @php
             $currentTenant = tenancy()->initialized ? tenancy()->tenant : null;
-            $portalUrl = rtrim(config('app.url'), '/') . '/portal';
+            $portalUrl     = rtrim(config('app.url'), '/') . '/portal';
+
+            // Type → [gradient-from, gradient-to] for workspace chips
+            $wsTypeColors = [
+                'government'  => ['#dc2626', '#b91c1c'],
+                'secretariat' => ['#4f46e5', '#4338ca'],
+                'agency'      => ['#0284c7', '#0369a1'],
+                'department'  => ['#16a34a', '#15803d'],
+                'unit'        => ['#d97706', '#b45309'],
+            ];
 
             $availableTenants = collect();
             $user = auth()->user();
             if ($currentTenant && $user && $user->isAdminOrAbove()) {
                 try {
-                    // Query central database for other active workspaces to power the switcher
+                    // Query central database (Tenant model uses central_connection) for
+                    // other active workspaces — powers the header workspace switcher.
                     $availableTenants = \App\Models\Tenant::with('domains')
                         ->where('status', \App\Enums\TenantStatus::ACTIVE)
                         ->where('id', '!=', $currentTenant->id)
+                        ->orderBy('organization_name')
                         ->get();
                 } catch (\Exception $e) {
+                    // Silently degrade — switcher hidden when central DB unreachable.
                 }
             }
         @endphp
@@ -171,26 +183,43 @@
                     <div class="max-h-64 overflow-y-auto">
                         @foreach($availableTenants as $t)
                             @php
-                                $centralUrl = rtrim(config('app.url'), '/');
-                                // SSO Impersonation route relies on central domain: /{tenant}/impersonate
-                                $switchUrl = $centralUrl . '/' . $t->id . '/impersonate';
-                                $initials = strtoupper(substr($t->organization_name, 0, 2));
+                                // First-letter initials from first two words of org name
+                                $wsWords    = array_values(array_filter(explode(' ', $t->organization_name)));
+                                $wsInitials = strtoupper(
+                                    substr($wsWords[0] ?? '', 0, 1) . substr($wsWords[1] ?? '', 0, 1)
+                                );
+                                $wsColors   = $wsTypeColors[$t->tenant_type?->value ?? ''] ?? ['#7c3aed', '#6d28d9'];
+                                // Cross-workspace SSO route lives on the CURRENT tenant domain —
+                                // WorkspaceSwitchController handles the central DB impersonation token.
+                                $switchUrl  = route('switch.workspace', $t->id);
                             @endphp
                             <a href="{{ $switchUrl }}"
                                 class="group flex flex-row items-center gap-3 px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b border-slate-50 dark:border-slate-800/30 transition-colors no-underline last:border-0"
-                                role="menuitem">
-                                <div
-                                    class="flex items-center justify-center w-7 h-7 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[0.6rem] font-bold text-slate-600 dark:text-slate-300 group-hover:border-indigo-200 group-hover:bg-indigo-50 group-hover:text-indigo-600 dark:group-hover:bg-indigo-900/30 dark:group-hover:text-indigo-400 dark:group-hover:border-indigo-800 transition-all shrink-0">
-                                    {{ $initials }}
+                                role="menuitem"
+                                aria-label="Switch to {{ $t->organization_name }}">
+                                {{-- Coloured avatar matching org type --}}
+                                <div class="flex items-center justify-center w-7 h-7 rounded shrink-0
+                                            text-white text-[0.6rem] font-extrabold shadow-sm
+                                            transition-transform group-hover:scale-105"
+                                     style="background: linear-gradient(135deg, {{ $wsColors[0] }}, {{ $wsColors[1] }});"
+                                     aria-hidden="true">
+                                    {{ $wsInitials }}
                                 </div>
                                 <div class="flex flex-col items-start justify-center overflow-hidden w-full">
-                                    <div
-                                        class="text-[0.8rem] font-semibold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate w-full leading-tight">
-                                        {{ $t->organization_name }}</div>
-                                    <div
-                                        class="text-xs font-medium text-slate-500 dark:text-slate-400 truncate w-full mt-0.5 leading-tight">
-                                        {{ $t->domains->first()?->domain ?? 'No domain' }}</div>
+                                    <div class="text-[0.8rem] font-semibold text-slate-700 dark:text-slate-200
+                                                group-hover:text-indigo-600 dark:group-hover:text-indigo-400
+                                                transition-colors truncate w-full leading-tight">
+                                        {{ $t->organization_name }}
+                                    </div>
+                                    <div class="text-xs font-medium text-slate-500 dark:text-slate-400
+                                                truncate w-full mt-0.5 leading-tight">
+                                        {{ $t->domains->first()?->domain ?? 'No domain' }}
+                                    </div>
                                 </div>
+                                {{-- Arrow hint on hover --}}
+                                <i class="fas fa-arrow-right text-[0.6rem] text-slate-300 dark:text-slate-600
+                                          group-hover:text-indigo-400 transition-colors shrink-0"
+                                   aria-hidden="true"></i>
                             </a>
                         @endforeach
                     </div>

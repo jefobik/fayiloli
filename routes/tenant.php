@@ -11,6 +11,7 @@ use App\Http\Controllers\FileRequestController;
 use App\Http\Controllers\ShareDocumentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\RoleController;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 /*
@@ -55,13 +56,25 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
     // global middleware.
 
     // ─── Single Sign-On / Impersonation ────────────────────────────────────
+    // Consumes a single-use ImpersonationToken issued by TenantImpersonationController
+    // (central admin → tenant) or WorkspaceSwitchController (tenant admin → tenant).
     Route::get('/impersonate/{token}', function ($token) {
         return \Stancl\Tenancy\Features\UserImpersonation::makeResponse($token);
     })->name('impersonate');
 
+    // ─── Cross-workspace SSO switch ────────────────────────────────────────
+    // Tenant admins can switch to another active workspace where they have a
+    // matching account (same email).  Issues an impersonation token via the
+    // central DB (using tenancy()->central()) and redirects to the target domain.
+    Route::get('/switch-workspace/{tenantId}', \App\Http\Controllers\WorkspaceSwitchController::class)
+        ->middleware('auth')
+        ->name('switch.workspace');
+
     // ─── User Management (tenant-admin only) ──────────────────────────────
     Route::middleware(['auth', 'tenant.module:users'])->group(function () {
         Route::resource('users', UserManagementController::class);
+        // Roles & Permissions management — gated further by RolePolicy ('manage roles' permission)
+        Route::resource('roles', RoleController::class)->except(['restore']);
     });
 
     // ─── EDMS Application ──────────────────────────────────────────────────

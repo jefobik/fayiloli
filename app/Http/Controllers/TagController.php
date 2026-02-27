@@ -18,6 +18,8 @@ class TagController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Tag::class);
+
         $tags    = Tag::orderBy('name')->paginate(25);
         $folders = Folder::with(['categories.tags', 'subfolders'])->get();
 
@@ -29,7 +31,7 @@ class TagController extends Controller
      */
     public function create()
     {
-        //
+        $this->authorize('create', Tag::class);
     }
 
     /**
@@ -37,6 +39,7 @@ class TagController extends Controller
      */
     public function store(StoreTagRequest $request)
     {
+        $this->authorize('create', Tag::class);
 
         if (!empty($request->parent_id)) {
             $folder = Folder::firstOrCreate(['name' => $request->folder_name, 'parent_id' => $request->parent_id]);
@@ -45,7 +48,6 @@ class TagController extends Controller
         }
 
         $category = Category::create(['name' => $request->category_name]);
-
 
         $folder->categories()->attach($category);
 
@@ -69,7 +71,7 @@ class TagController extends Controller
      */
     public function show(Tag $tag)
     {
-        //
+        $this->authorize('view', $tag);
     }
 
     /**
@@ -77,7 +79,7 @@ class TagController extends Controller
      */
     public function edit(Tag $tag)
     {
-        //
+        $this->authorize('update', $tag);
     }
 
     /**
@@ -85,7 +87,7 @@ class TagController extends Controller
      */
     public function update(UpdateTagRequest $request, Tag $tag)
     {
-        //
+        $this->authorize('update', $tag);
     }
 
     /**
@@ -93,12 +95,18 @@ class TagController extends Controller
      */
     public function destroy(Tag $tag)
     {
-        //
+        $this->authorize('delete', $tag);
+
+        $tag->delete();
+
+        return response()->json(['message' => 'Tag deleted successfully']);
     }
 
     // Controller logic for searching tags
     public function searchTags(Request $request)
     {
+        $this->authorize('viewAny', Tag::class);
+
         $query = $request->input('query');
         $tags = Tag::where('name', 'like', "%$query%")->get();
         return response()->json(['tags' => $tags]);
@@ -107,9 +115,9 @@ class TagController extends Controller
     // Controller logic for adding tags
     public function addTag(Request $request)
     {
+        $this->authorize('create', Tag::class);
+
         $tagId = $request->input('tag_id');
-        // Logic to add the tag to the database
-        // You may also perform validation and other checks here
         return response()->json(['message' => 'Tag added successfully']);
     }
 }

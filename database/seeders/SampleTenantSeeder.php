@@ -76,7 +76,7 @@ class SampleTenantSeeder extends Seeder
             ],
             [
                 'organization_name' => 'Procurement Department of FCTA',
-                'short_name' => 'procurement',
+                'short_name' => 'fctproc',
                 'admin_email' => 'admin@fctproc.fcta.gov.local',
                 'tenant_type' => TenantType::SECRETARIAT,
             ],

@@ -58,8 +58,10 @@
             color: #1e293b;
             min-height: 100%;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
             font-size: 0.9375rem;
-            line-height: 1.6;
+            line-height: 1.625;
+            letter-spacing: -0.01em;
         }
 
         /* ── Navbar ─────────────────────────────────────────────────────── */
@@ -331,7 +333,7 @@
             border-color: #334155 !important;
         }
         html.dark .text-slate-900 {
-            color: #f1f5f9 !important;
+            color: #cbd5e1 !important;
         }
         html.dark .text-slate-800 {
             color: #e2e8f0 !important;

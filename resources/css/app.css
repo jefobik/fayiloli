@@ -50,7 +50,8 @@
     outline: 2px solid var(--color-primary-600, #7c3aed);
     outline-offset: 2px;
     border-radius: 4px;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-600, #7c3aed) 15%, transparent);
+    box-shadow: 0 0 0 4px
+        color-mix(in srgb, var(--color-primary-600, #7c3aed) 15%, transparent);
 }
 
 /* ─── TOUCH TARGETS (WCAG 2.5.5 — 44×44 px minimum) ─ */
@@ -123,13 +124,15 @@ body {
     color: #1e293b;
     height: 100%;
     -webkit-font-smoothing: antialiased;
-    font-size: 1rem;
-    line-height: 1.65;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 0.9375rem;
+    line-height: 1.625;
+    letter-spacing: -0.01em;
 }
 
 body.dark-mode {
     background-color: #0f172a !important;
-    color: #e2e8f0 !important;
+    color: #cbd5e1 !important;
 }
 
 /* ─── SCROLLBAR ──────────────────────────────────── */
@@ -635,7 +638,6 @@ textarea:focus {
     cursor: grabbing;
 }
 
-
 /* ─── DASHBOARD STATS COMPONENT ─────────────────── */
 /* Extracted from Livewire component to avoid Blade @-rule parsing issues */
 
@@ -831,7 +833,7 @@ body.dark-mode .ds-empty-activity {
     align-items: center;
     font-size: 0.75rem;
     font-weight: 600;
-    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
     color: #64748b;
     background: #f1f5f9;
     border: 1px solid #e2e8f0;

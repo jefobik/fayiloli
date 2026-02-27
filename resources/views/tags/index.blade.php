@@ -21,11 +21,13 @@
                        :class="density === 'relaxed' ? 'fa-compress-arrows-alt' : 'fa-expand-arrows-alt'"
                        aria-hidden="true"></i>
                 </button>
+                @can('create tags')
                 <button type="button" class="btn btn-success btn-sm"
                         onclick="openAddTagModal()"
                         aria-label="Create new tag">
                     <i class="fas fa-plus me-1" aria-hidden="true"></i> New Tag
                 </button>
+                @endcan
             </div>
         </div>
 
@@ -135,6 +137,7 @@
                                              role="group" aria-label="Actions for tag {{ $tag->name }}">
 
                                             {{-- Edit --}}
+                                            @can('edit tags')
                                             <button type="button"
                                                     class="btn btn-outline-primary"
                                                     :class="density === 'compact' ? 'btn-sm py-0' : 'btn-sm'"
@@ -149,8 +152,10 @@
                                                 <i class="fas fa-pen" aria-hidden="true"
                                                    :class="density === 'compact' ? 'small' : ''"></i>
                                             </button>
+                                            @endcan
 
                                             {{-- Delete --}}
+                                            @can('delete tags')
                                             <button type="button"
                                                     class="btn btn-outline-danger"
                                                     :class="density === 'compact' ? 'btn-sm py-0' : 'btn-sm'"
@@ -161,6 +166,7 @@
                                                 <i class="fas fa-trash-alt" aria-hidden="true"
                                                    :class="density === 'compact' ? 'small' : ''"></i>
                                             </button>
+                                            @endcan
                                         </div>
                                     </td>
 

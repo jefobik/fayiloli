@@ -20,6 +20,8 @@ class FolderController extends Controller
 
     public function index()
     {
+        $this->authorize('viewAny', Folder::class);
+
         $folders = Folder::with('categories', 'subfolders')->whereNull('parent_id')->get();
 
         return view('folders.create', compact('folders'));
@@ -27,6 +29,8 @@ class FolderController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Folder::class);
+
         $folders = Folder::with('categories', 'subfolders')->whereNull('parent_id')->get();
 
         return view('folders.create', compact('folders'));
@@ -35,6 +39,8 @@ class FolderController extends Controller
 
     public function store(StoreFolderRequest $request)
     {
+        $this->authorize('create', Folder::class);
+
         $folders = $this->folderService->setStoreFolder($request);
 
         return response()->json(['html' => $folders]);
@@ -44,6 +50,8 @@ class FolderController extends Controller
 
     public function updateFolderPositions(Request $request)
     {
+        $this->authorize('update', Folder::class);
+
         $this->folderService->setUpdateFolderPositions($request);
 
         return response()->json(['message' => 'Positions updated successfully for parent rows']);
@@ -52,6 +60,8 @@ class FolderController extends Controller
 
     public function updateFolderChildPositions(Request $request)
     {
+        $this->authorize('update', Folder::class);
+
         $this->folderService->setUpdateFolderChildPositions($request);
 
         return response()->json(['message' => 'Positions updated successfully for child rows']);
@@ -61,14 +71,14 @@ class FolderController extends Controller
 
     public function fetchDetails(Request $request)
     {
+        $this->authorize('viewAny', Folder::class);
+
         $request->validate([
             'folder_ids' => 'required|array'
         ]);
 
-        // Fetch folder details based on the received IDs
         $folders = Folder::with('documents')->whereIn('id', $request->folder_ids)->get();
 
-        // Return folder details to frontend
         return response()->json(['folders' => $folders]);
     }
 
@@ -76,6 +86,8 @@ class FolderController extends Controller
 
     public function downloadZip(Request $request)
     {
+        $this->authorize('download', Folder::class);
+
         $request->validate([
             'folders' => 'required|array',
         ]);
@@ -91,9 +103,10 @@ class FolderController extends Controller
     }
 
 
-    function deleteSelecetdFolder(Request $request)
+    public function deleteSelecetdFolder(Request $request)
     {
-        // Retrieve folder instance
+        $this->authorize('delete', Folder::class);
+
         $folders = Folder::whereIn('id', $request->folder_ids ?? [])->get();
 
         foreach ($folders as $key => $folder) {
@@ -104,7 +117,7 @@ class FolderController extends Controller
     }
 
 
-    function getParentFolders()
+    public function getParentFolders()
     {
         $folders = Folder::with(['categories'])->whereNull('parent_id')->get();
         return view('folders.table', compact('folders'))->render();

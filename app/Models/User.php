@@ -119,6 +119,18 @@ class User extends Authenticatable
             ->useLogName('user');
     }
 
+    // ── Relationships ─────────────────────────────────────────────────────────
+
+    public function supervisor(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'supervisor_id');
+    }
+
+    public function supervisees(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(User::class, 'supervisor_id');
+    }
+
     // ── Computed attributes ───────────────────────────────────────────────────
 
     public function getAvatarInitialsAttribute(): string

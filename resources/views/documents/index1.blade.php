@@ -313,7 +313,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-    <script src="{{ global_asset('custom-js/documents1.js') }}"></script>
+    {{-- documents1.js removed: file does not exist — loading a missing .js causes Uncaught SyntaxError: Unexpected token '<' --}}
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>

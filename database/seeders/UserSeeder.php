@@ -53,22 +53,33 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         foreach (self::USERS as $data) {
-            User::updateOrCreate(
+            $user = User::updateOrCreate(
                 ['user_name' => $data['user_name']],
                 [
-                    'name' => $data['name'],
-                    'user_name' => $data['user_name'],
-                    'email' => "{$data['user_name']}@fcta.gov.local",
-                    'phone' => $data['phone'],
+                    'name'              => $data['name'],
+                    'user_name'         => $data['user_name'],
+                    'email'             => "{$data['user_name']}@fcta.gov.local",
+                    'phone'             => $data['phone'],
                     'email_verified_at' => now(),
                     'phone_verified_at' => now(),
-                    'password' => $data['password'],
-                    'is_active' => true,
-                    'is_admin' => $data['is_admin'],
+                    'password'          => $data['password'],
+                    'is_active'         => true,
+                    'is_admin'          => $data['is_admin'],
                 ]
             );
+
+            // Explicitly assign Spatie role — RolesPermissionsSeeder runs before
+            // UserSeeder and its user-iteration loop finds no users yet, so we
+            // must assign roles here.  Roles are guaranteed to exist at this point.
+            if ($data['is_admin']) {
+                if (!$user->hasRole('admin')) {
+                    $user->assignRole('admin');
+                }
+            } elseif ($user->roles->isEmpty()) {
+                $user->assignRole('user');
+            }
         }
 
-        $this->command?->line('  ' . count(self::USERS) . ' tenant users seeded.');
+        $this->command?->line('  ' . count(self::USERS) . ' tenant fixture users seeded with Spatie roles.');
     }
 }

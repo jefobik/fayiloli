@@ -22,7 +22,7 @@ function shareDocument() {
         $('#sharedTokenId').val(token);
         $('#sharedSlugId').val('document');
         $('#selectedDocumentFileText').html('Shared Document');
-        $('#selectedDocumentFile').html('<i class="fa fa-file"></i> <strong"> ' + selectedName + '</strong>')
+        $('#selectedDocumentFile').html('<i class="fa fa-file"></i> <strong> ' + selectedName + '</strong>')
     } else {
         // Handle case when neither folder nor document is selected
         console.error();

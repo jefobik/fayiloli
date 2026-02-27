@@ -519,15 +519,15 @@ function extractYouTubeVideoId(url) {
 
 
 // Tabs Script Section
-const tabButtons = document.querySelectorAll('.tab-btn')
-
-tabButtons.forEach((tab) => {
-    tab.addEventListener('click', () => tabClicked(tab))
-})
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.tab-btn').forEach((tab) => {
+        tab.addEventListener('click', () => tabClicked(tab));
+    });
+});
 
 function tabClicked(tab) {
 
-    tabButtons.forEach(tab => {
+    document.querySelectorAll('.tab-btn').forEach(tab => {
         tab.classList.remove('active')
     })
     tab.classList.add('active')
@@ -578,6 +578,8 @@ async function searchUsers(usernames) {
 
 function renderUserDropdown(users) {
     // Render the dropdown with user suggestions
+    const userDropdown = document.querySelector('.userDropdown');
+    if (!userDropdown) return;
     userDropdown.innerHTML = '';
     users.forEach(user => {
         const option = document.createElement('div');
@@ -595,7 +597,8 @@ function appendUsername(username, email) {
     // Append selected username to the textarea
     selectedUsers.push(username);
 
-    // Append selected username to the textarea
+    const messageInput = document.querySelector('.messageInput');
+    if (!messageInput) return;
     const currentText = messageInput.value;
     const newText = currentText.replace(/@\w+/g, `@${username} `);
     messageInput.value = newText;
@@ -605,20 +608,21 @@ function appendUsername(username, email) {
 
 
 function hideUserDropdown() {
-    userDropdown.style.display = 'none';
+    const userDropdown = document.querySelector('.userDropdown');
+    if (userDropdown) userDropdown.style.display = 'none';
 }
 
-const getMessages = document.querySelectorAll('.message');
+// Loop through each message element and highlight @mentions
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.message').forEach(message => {
+        // Get the text content of the message
+        const content = message.textContent;
 
-// Loop through each message element
-getMessages.forEach(message => {
-    // Get the text content of the message
-    const content = message.textContent;
+        // Use regular expression to find all words that start with "@"
+        const regex = /@\w+/g;
+        const coloredContent = content.replace(regex, '<strong class="highlight">$&</strong>');
 
-    // Use regular expression to find all words that start with "@"
-    const regex = /@\w+/g;
-    const coloredContent = content.replace(regex, '<strong class="highlight">$&</strong>');
-
-    // Set the modified content back to the message element
-    message.innerHTML = coloredContent;
+        // Set the modified content back to the message element
+        message.innerHTML = coloredContent;
+    });
 });

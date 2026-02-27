@@ -22,7 +22,12 @@ class UserPolicy
 
     public function create(User $user)
     {
-        return $user->hasPermissionTo('create users');
+        return $user->hasPermissionTo('invite users');
+    }
+
+    public function restore(User $user, User $model)
+    {
+        return $user->hasPermissionTo('edit users');
     }
 
     public function update(User $user, User $model)

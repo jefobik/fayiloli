@@ -7,7 +7,10 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use App\Jobs\Tenancy\CreateTenantDatabase;
+use App\Jobs\Tenancy\SeedTenantDatabase;
 use Stancl\JobPipeline\JobPipeline;
+use Stancl\Tenancy\DatabaseConfig;
 use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
@@ -28,12 +31,20 @@ class TenancyServiceProvider extends ServiceProvider
             Events\CreatingTenant::class => [],
             Events\TenantCreated::class => [
                 JobPipeline::make([
-                    Jobs\CreateDatabase::class,
-                    Jobs\MigrateDatabase::class,
-                    Jobs\SeedDatabase::class,
+                    // Idempotent: skips CREATE DATABASE if the physical DB already
+                    // exists (e.g. re-seeding after migrate:fresh, or accidental
+                    // double-provision attempt).  Records whether the DB was fresh
+                    // so SeedTenantDatabase can decide whether to seed.
+                    CreateTenantDatabase::class,
 
-                    // Your own jobs to prepare the tenant.
-                    // Provision API keys, create S3 buckets, anything you want!
+                    // Always runs — Laravel's migration tracker skips already-applied
+                    // migrations, so this is safe on both new and pre-existing DBs.
+                    Jobs\MigrateDatabase::class,
+
+                    // Conditional: seeds only when CreateTenantDatabase created the
+                    // DB fresh.  Skips silently for pre-existing databases to avoid
+                    // overwriting existing users, roles, and EDMS data.
+                    SeedTenantDatabase::class,
 
                 ])->send(function (Events\TenantCreated $event) {
                     return $event->tenant;
@@ -105,6 +116,31 @@ class TenancyServiceProvider extends ServiceProvider
         $this->bootEvents();
         $this->mapRoutes();
         $this->configureTenancyMiddleware();
+
+        // ── Deterministic tenant database naming ──────────────────────────────
+        // By default stancl derives the DB name from the tenant UUID
+        // (e.g. "tenant8f3a1b2c-…").  This couples the physical database to a
+        // UUID that changes every time a tenant record is recreated (e.g. after
+        // migrate:fresh --seed), orphaning the old DB and losing its data.
+        //
+        // We override the generator to use short_name instead.  short_name is:
+        //   • unique (enforced by DB constraint + StoreTenantRequest validation)
+        //   • immutable in practice (changing it via UpdateTenantRequest does not
+        //     affect the already-stored tenancy_db_name value in the JSONB column
+        //     because makeCredentials() is only called once — during CreateDatabase)
+        //
+        // Result: tenant "ohm" always maps to database "tenant_ohm" regardless of
+        // UUID.  If the tenant record is wiped and re-created with the same
+        // short_name, CreateTenantDatabase detects the pre-existing DB and skips
+        // both CREATE DATABASE and seeding.
+        //
+        // NOTE: existing tenants already have their db_name stored in the JSONB
+        // data column from their initial provision; DatabaseConfig::getName() reads
+        // that stored value first (before calling this generator), so they are
+        // entirely unaffected by this change.
+        DatabaseConfig::generateDatabaseNamesUsing(
+            static fn ($tenant) => 'tenant_' . ($tenant->short_name ?? $tenant->getTenantKey())
+        );
 
         // Map tenant database columns to standard Laravel configs when tenancy is initialised.
         \Stancl\Tenancy\Features\TenantConfig::$storageToConfigMap = [

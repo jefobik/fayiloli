@@ -56,18 +56,6 @@ class RolesPermissionsSeeder extends Seeder
             'view notifications',
             'dismiss notifications',
 
-            // Tenant users
-            'view users',
-            'invite users',
-            'edit users',
-            'delete users',
-
-            // Tenant admin
-            'view users',
-            'invite users',
-            'edit users',
-            'delete users',
-
             // HRM
             'view employees',
             'print employees',
@@ -82,13 +70,15 @@ class RolesPermissionsSeeder extends Seeder
             'manage settings',
         ];
 
+        $permissions = array_values(array_unique($permissions));
+
         foreach ($permissions as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']);
         }
 
         // ── Roles ──────────────────────────────────────────────────────────
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->syncPermissions($permissions); // all permissions
+        $admin->syncPermissions($permissions); // all permissions (deduplicated)
 
         $manager = Role::firstOrCreate(['name' => 'manager', 'guard_name' => 'web']);
         $manager->syncPermissions([
@@ -142,18 +132,22 @@ class RolesPermissionsSeeder extends Seeder
         // ── Assign Spatie roles to all seeded tenant users ─────────────────
         // is_super_admin / is_admin are central-DB flags; inside the tenant DB
         // we use Spatie roles to express workspace-level capabilities.
-        // Mapping: central is_admin=true  → tenant 'admin' role
-        //          all other active users → tenant 'user' role
+        // Mapping: central is_admin=true  → always 'admin' Spatie role (force-sync)
+        //          all other users        → 'user' role if they have no role yet
         // The superadmin central user is mirrored in tenant DB as is_admin=true,
         // so they also receive the tenant 'admin' Spatie role for workspace ops.
         User::where('is_admin', true)->each(function (User $u) use ($admin): void {
+            // Force-sync so that is_admin=true always reflects the admin Spatie role.
+            // Existing non-admin roles (manager, viewer) are preserved alongside admin.
             if (!$u->hasRole('admin')) {
                 $u->assignRole($admin);
             }
         });
 
         User::where('is_admin', false)->each(function (User $u) use ($user): void {
-            if (!$u->hasAnyRole(['admin', 'manager', 'viewer'])) {
+            // Only assign 'user' role if the user has no Spatie role at all.
+            // Preserves manager/viewer roles assigned by tenant admins.
+            if ($u->roles->isEmpty()) {
                 $u->assignRole($user);
             }
         });

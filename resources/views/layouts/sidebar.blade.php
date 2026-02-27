@@ -6,11 +6,12 @@
     $canDocs  = $tenant?->hasModule(TenantModule::DOCUMENTS) && $authUser?->can('view documents');
     $canTags  = $tenant?->hasModule(TenantModule::TAGS) && $authUser?->can('view tags');
     $canUsers = $tenant?->hasModule(TenantModule::USERS) && $authUser?->can('view users');
+    $canRoles = $tenant?->hasModule(TenantModule::USERS) && $authUser?->can('manage roles');
     $canProj  = $tenant?->hasModule(TenantModule::PROJECTS);
     $canConts = $tenant?->hasModule(TenantModule::HRM);
     $canStats = $tenant?->hasModule(TenantModule::STATS);
 
-    $showModSection = $canUsers || $canProj || $canConts || $canStats;
+    $showModSection = $canUsers || $canRoles || $canProj || $canConts || $canStats;
 @endphp
 
 {{-- ── Sidebar Logo ─────────────────────────────────────────────────── --}}
@@ -108,7 +109,7 @@
     @if ($showModSection)
         <div x-show="!sidebarCollapsed" x-cloak
              class="text-xs font-bold leading-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest px-2 mt-6 mb-2"
-             role="heading" aria-level="2">Modules</div>
+             role="heading" aria-level="2">Administration</div>
         <div x-show="sidebarCollapsed" x-cloak class="mt-4 border-t border-slate-200 dark:border-slate-800 mb-2"></div>
 
         @if ($canUsers)
@@ -124,6 +125,22 @@
                           {{ Route::is('users.*') ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400' }}"
                    aria-hidden="true"></i>
                 <span x-show="!sidebarCollapsed" x-cloak class="nav-text">Users</span>
+            </a>
+        @endif
+
+        @if ($canRoles)
+            <a href="{{ route('roles.index') }}" wire:navigate
+                title="Roles &amp; Permissions"
+                class="group flex items-center gap-x-3 rounded-md py-2 text-sm font-semibold mb-1 transition-all duration-200 overflow-hidden
+                       {{ Route::is('roles.*')
+                          ? 'border-l-[3px] border-indigo-500 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 pl-2.25'
+                          : 'border-l-[3px] border-transparent text-slate-700 hover:text-indigo-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-indigo-400 dark:hover:bg-slate-700/60 pl-2.25' }}"
+                :class="sidebarCollapsed ? 'justify-center px-2' : ''"
+                {{ Route::is('roles.*') ? 'aria-current=page' : '' }}>
+                <i class="fas fa-shield-halved shrink-0 w-5 text-center text-base
+                          {{ Route::is('roles.*') ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400' }}"
+                   aria-hidden="true"></i>
+                <span x-show="!sidebarCollapsed" x-cloak class="nav-text">Roles &amp; Permissions</span>
             </a>
         @endif
 
@@ -144,16 +161,16 @@
         @endif
 
         @if ($canConts)
-            <a href="{{ route('contacts.index') }}" wire:navigate
+            <a href="{{ route('hrm.index') }}" wire:navigate
                 title="Human Resources"
                 class="group flex items-center gap-x-3 rounded-md py-2 text-sm font-semibold mb-1 transition-all duration-200 overflow-hidden
-                       {{ Route::is('contacts.*')
+                       {{ Route::is('hrm.*')
                           ? 'border-l-[3px] border-indigo-500 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 pl-2.25'
                           : 'border-l-[3px] border-transparent text-slate-700 hover:text-indigo-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-indigo-400 dark:hover:bg-slate-700/60 pl-2.25' }}"
                 :class="sidebarCollapsed ? 'justify-center px-2' : ''"
-                {{ Route::is('contacts.*') ? 'aria-current=page' : '' }}>
+                {{ Route::is('hrm.*') ? 'aria-current=page' : '' }}>
                 <i class="fas fa-address-book shrink-0 w-5 text-center text-base
-                          {{ Route::is('contacts.*') ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400' }}"
+                          {{ Route::is('hrm.*') ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400' }}"
                    aria-hidden="true"></i>
                 <span x-show="!sidebarCollapsed" x-cloak class="nav-text">Human Resources</span>
             </a>

@@ -23,6 +23,8 @@ class DocumentController extends Controller
 
     public function index()
     {
+        $this->authorize('viewAny', Document::class);
+
         $documents = Document::with('tags')
             ->latest()->get();
 
@@ -36,21 +38,19 @@ class DocumentController extends Controller
 
     public function updateDocumentOrder(Request $request)
     {
-        try {
+        $this->authorize('update', Document::class);
 
-            // Begin transaction
+        try {
             DB::beginTransaction();
 
             $folderId = $request->folder_id;
 
             $this->documentService->setUpdateDocumentOrder($folderId, $request->document_ids);
 
-            // Commit transaction
             DB::commit();
 
             return response()->json(['url' => route('getFiles', $folderId)], 200);
         } catch (\Throwable $th) {
-            // Rollback transaction on failure
             DB::rollback();
             return response()->json(['error' => $th->getMessage()]);
         }
@@ -59,15 +59,14 @@ class DocumentController extends Controller
 
     public function getFiles($folder)
     {
+        $this->authorize('viewAny', Document::class);
+
         $tags = request()->tags ?? [];
 
         $documents = $this->documentService->getFolderFiles($folder,  $tags)['documents'];
         $folderInfo =  $this->documentService->getFolderFiles($folder,  $tags)['folderInfo'];
         $folderData =  $this->documentService->getFolderFiles($folder,  $tags)['folderData'];
 
-        // dd($folderInfo);
-
-        
         $view = view('documents.contents', ['documents' => $documents])->render();
         $folderInfo = view('folders.info', ['folderInfo' => $folderInfo])->render();
         $folders = view('layouts.sidebar', ['folders' => $folderData])->render();
@@ -81,8 +80,10 @@ class DocumentController extends Controller
     }
 
 
-    function filterDocumentByTag(Request $request)
+    public function filterDocumentByTag(Request $request)
     {
+        $this->authorize('viewAny', Document::class);
+
         $documents = $this->documentService->setFilterDocumentByTag($request->folder,  $request->tags ?? []);
 
         $view = view('documents.contents', ['documents' => $documents])->render();
@@ -96,12 +97,9 @@ class DocumentController extends Controller
         $documentId = $request->input('document_id');
         $visibility = $request->input('visibility');
 
-        // Update the visibility of the document
-        $document = Document::find($documentId);
+        $document = Document::findOrFail($documentId);
 
-        if (!$document) {
-            return response()->json(['message' => 'Document not found'], 404);
-        }
+        $this->authorize('updateVisibility', $document);
 
         $document->update(['visibility' => $visibility === 'private' ? 'public' : 'private']);
 
@@ -115,6 +113,8 @@ class DocumentController extends Controller
 
     public function sendDocumentEmail(Request $request)
     {
+        $this->authorize('create', Document::class);
+
         $notifications = $this->documentService->setSendDocumentEmail($request);
 
         $view = view('documents.comments', compact('notifications'))->render();
@@ -125,6 +125,8 @@ class DocumentController extends Controller
 
     public function getDocumentComments(Request $request)
     {
+        $this->authorize('viewAny', Document::class);
+
         $notifications = $this->documentService->getDocumentNotifications($request->document_id);
 
         $view = view('documents.comments', compact('notifications'))->render();
@@ -136,14 +138,18 @@ class DocumentController extends Controller
 
     public function uploadDocumentFiles(StoreDocumentRequest $request)
     {
+        $this->authorize('create', Document::class);
+
         $folderId = $this->documentService->setUploadDocumentFiles($request);
 
         return response()->json(['message' => 'Files uploaded successfully', 'url' => route('getFiles', $folderId)], 200);
     }
 
 
-    function changeFile(Request $request)
+    public function changeFile(Request $request)
     {
+        $this->authorize('create', Document::class);
+
         $folderId = $this->documentService->setChangeFile($request);
 
         return response()->json(['message' => 'Document updated successfully', 'url' => route('getFiles', $folderId)], 200);

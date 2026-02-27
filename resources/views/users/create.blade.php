@@ -99,7 +99,8 @@
 
         <hr class="my-4">
 
-        {{-- ── Roles & Permissions ──────────────────────────────────────────── --}}
+        {{-- ── Roles & Permissions — role managers only ─────────────────────── --}}
+        @can('manage roles')
         <h6 class="fw-semibold text-muted text-uppercase mb-3" style="font-size:0.72rem;letter-spacing:0.06em">
             Roles &amp; Permissions
         </h6>
@@ -131,6 +132,7 @@
         </div>
 
         <hr class="my-4">
+        @endcan
 
         {{-- ── Account Flags ────────────────────────────────────────────────── --}}
         <h6 class="fw-semibold text-muted text-uppercase mb-3" style="font-size:0.72rem;letter-spacing:0.06em">
@@ -146,6 +148,7 @@
                 </div>
                 <div class="form-text">Allow login</div>
             </div>
+            @can('manage roles')
             <div class="col-sm-6 col-lg-3">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch"
@@ -155,6 +158,7 @@
                 </div>
                 <div class="form-text">Full admin access</div>
             </div>
+            @endcan
             <div class="col-sm-6 col-lg-3">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch"

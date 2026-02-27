@@ -1,11 +1,16 @@
 
-document.getElementById('directoryInput').addEventListener('change', function (event) {
-    const directory = event.target.files[0];
-    const directoryPath = directory.webkitRelativePath; // Get the path of any file in the directory
-    const directoryName = directoryPath.split('/')[0]; // Extract the directory name from the path
+document.addEventListener('DOMContentLoaded', function () {
+    const directoryInput = document.getElementById('directoryInput');
+    if (directoryInput) {
+        directoryInput.addEventListener('change', function (event) {
+            const directory = event.target.files[0];
+            const directoryPath = directory.webkitRelativePath; // Get the path of any file in the directory
+            const directoryName = directoryPath.split('/')[0]; // Extract the directory name from the path
 
-    $('#folderNameInput').val(directoryName);
-    console.log('Selected directory name:', directoryName);
+            $('#folderNameInput').val(directoryName);
+            console.log('Selected directory name:', directoryName);
+        });
+    }
 });
 
 

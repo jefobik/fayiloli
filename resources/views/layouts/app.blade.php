@@ -100,7 +100,7 @@
         </head>
 
     <body
-        class="h-full bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased text-[0.95rem] md:text-base leading-relaxed"
+        class="h-full bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-300 font-sans antialiased text-[0.9375rem] leading-[1.625] tracking-[-0.01em]"
         style="transition: background-color 0.2s ease, color 0.15s ease; @auth overflow:hidden; @endauth">
 
         @auth
@@ -157,18 +157,18 @@
                 </div>
 
                 {{-- ── Desktop Sidebar ─────────────────────────────────────────── --}}
-                <aside class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300 ease-in-out"
-                       :class="sidebarCollapsed ? 'lg:w-18' : 'lg:w-72'"
-                       id="renderSidebarHtmlId">
+                <aside
+                    class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300 ease-in-out"
+                    :class="sidebarCollapsed ? 'lg:w-18' : 'lg:w-72'" id="renderSidebarHtmlId">
                     <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-slate-800 pb-4 border-r border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-300"
-                         :class="sidebarCollapsed ? 'px-2' : 'px-6'">
+                        :class="sidebarCollapsed ? 'px-2' : 'px-6'">
                         @include('layouts.sidebar')
                     </div>
                 </aside>
 
                 {{-- ── Main Area ────────────────────────────────────────────────── --}}
                 <div class="flex flex-1 flex-col h-full w-full transition-all duration-300 ease-in-out"
-                     :class="sidebarCollapsed ? 'lg:pl-18' : 'lg:pl-72'">
+                    :class="sidebarCollapsed ? 'lg:pl-18' : 'lg:pl-72'">
 
                     {{-- ── Header ─────────────────────────────────────────────── --}}
                     @if (!isset($shareDocument))
@@ -365,11 +365,11 @@
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         if (typeof edmsToast !== 'function') return;
-                                                                    @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
+                                                                            @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
                         @if(session('error'))   edmsToast(@json(session('error')), 'error'); @endif
                         @if(session('warning')) edmsToast(@json(session('warning')), 'warning'); @endif
                         @if(session('info'))    edmsToast(@json(session('info')), 'info'); @endif
-                                                                });
+                                                                        });
                 </script>
             @endif
         @endauth

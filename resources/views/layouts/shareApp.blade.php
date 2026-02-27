@@ -16,6 +16,20 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/trix/1.1.1/trix.css">
 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 0.9375rem;
+            line-height: 1.625;
+            color: #1e293b;
+            background: #f8fafc;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.01em;
+        }
+    </style>
+
 </head>
 
 <body>
@@ -106,12 +120,12 @@
             headers: {
                 'X-CSRF-TOKEN': csrfToken // Pass the CSRF token in the headers
             },
-            success: function  (response) {
+            success: function (response) {
                 // Handle success response
                 console.log('Email sent successfully!');
                 $('#renderDocumentCommentHtml').html(response.html)
             },
-            error: functio n (xhr, status, error) {
+            error: functio n(xhr, status, error) {
                 // Handle error response
                 console.error('Error sending email:', error);
             }
@@ -124,14 +138,14 @@
         fileInput.type = 'file';
         fileInput.multiple = true; // Allow multiple files to be selected
         fileInput.style.display = 'none';
-        fileInput.addEventListener('change', functi on () {
+        fileInput.addEventListener('change', functi on() {
             const files = fileInput.files;
-            if (files.length > 0) {
-                uploadToServer(files, 'files');
-            }
-        });
-        document.body.appendChild(fileInput);
-        fileInput.click();
+            if(files.length > 0) {
+            uploadToServer(files, 'files');
+        }
+    });
+    document.body.appendChild(fileInput);
+    fileInput.click();
     }
 
     function uploadFolder() {
@@ -141,16 +155,16 @@
         fileInput.multiple = true; // Allow multiple files to be selected
         fileInput.webkitdirectory = true; // Allow selection of directories
         fileInput.style.display = 'none';
-        fileInput.addEventListener('change', funct ion () {
+        fileInput.addEventListener('change', funct ion() {
             const files = fileInput.files;
-            if (files.length > 0) {
-                // You can now handle the selected files or folders here
-                // For example, you can upload them to the server
-                uploadToServer(files, 'folder');
-            }
-        });
-        document.body.appendChild(fileInput);
-        fileInput.click();
+            if(files.length > 0) {
+            // You can now handle the selected files or folders here
+            // For example, you can upload them to the server
+            uploadToServer(files, 'folder');
+        }
+    });
+    document.body.appendChild(fileInput);
+    fileInput.click();
     }
 
     function uploadToServer(files, type) {
@@ -178,10 +192,10 @@
             data: formData, // Pass the FormData object containing files, token, folder_id, and document_id
             processData: false,
             contentType: false,
-            success: func tion (response) {
+            success: func tion(response) {
                 fetchFiles(response.url, 'folder');
             },
-            error: fun ction (xhr, status, error) {
+            error: fun ction(xhr, status, error) {
                 console.error('Error uploading files:', error);
             }
         });
