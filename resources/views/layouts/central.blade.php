@@ -59,9 +59,8 @@
             min-height: 100%;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            font-size: 0.9375rem;
-            line-height: 1.625;
-            letter-spacing: -0.01em;
+            font-size: 1rem;
+            line-height: 1.75;
         }
 
         /* ── Navbar ─────────────────────────────────────────────────────── */

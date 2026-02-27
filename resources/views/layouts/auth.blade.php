@@ -51,7 +51,7 @@
 </head>
 
 <body
-    class="min-h-screen bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200 font-sans antialiased text-[0.9375rem] leading-[1.625] tracking-[-0.01em] transition-colors duration-200 ease-in-out"
+    class="min-h-screen bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200 font-sans antialiased text-base leading-7 transition-colors duration-200 ease-in-out"
     onload="if(window.__authDarkMode) document.body.classList.add('dark-mode')">
 
     {{-- ── Session Flash Toasts (Alpine-based, no Bootstrap dependency) ────── --}}

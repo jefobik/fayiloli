@@ -100,7 +100,7 @@
         </head>
 
     <body
-        class="min-h-screen bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200 font-sans antialiased text-[0.9375rem] leading-[1.625] tracking-[-0.01em] transition-colors duration-200 ease-in-out @auth overflow-hidden @endauth">
+        class="min-h-screen bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200 font-sans antialiased text-base leading-7 transition-colors duration-200 ease-in-out @auth overflow-hidden @endauth">
 
         @auth
             {{-- ── Loading Overlay ─────────────────────────── --}}
@@ -364,11 +364,11 @@
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         if (typeof edmsToast !== 'function') return;
-                                                                                                    @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
+                                                                                                            @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
                         @if(session('error'))   edmsToast(@json(session('error')), 'error'); @endif
                         @if(session('warning')) edmsToast(@json(session('warning')), 'warning'); @endif
                         @if(session('info'))    edmsToast(@json(session('info')), 'info'); @endif
-                                                                                                });
+                                                                                                        });
                 </script>
             @endif
         @endauth

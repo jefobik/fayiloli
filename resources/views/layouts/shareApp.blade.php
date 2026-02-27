@@ -20,13 +20,12 @@
     <style>
         body {
             font-family: 'Inter', system-ui, sans-serif;
-            font-size: 0.9375rem;
-            line-height: 1.625;
+            font-size: 1rem;
+            line-height: 1.75;
             color: #1e293b;
             background: #f1f5f9;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            letter-spacing: -0.01em;
         }
     </style>
 
