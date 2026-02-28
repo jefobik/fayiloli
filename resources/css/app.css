@@ -19,11 +19,27 @@
     --color-primary-900: #4c1d95;
     --color-primary-950: #2e1065;
 
-    --color-sidebar-bg: #1e293b;
-    --color-sidebar-hover: #334155;
-    --color-sidebar-active: #6d28d9;
-    --color-sidebar-text: #f1f5f9;
-    --color-sidebar-muted: #94a3b8;
+    /* Semantic Enterprise Surface Colors (Google Drive / M3 / SharePoint inspired) */
+    --color-surface-muted: #f8fafd;
+    --color-surface: #ffffff;
+    --color-surface-hover: #f0f4f9;
+
+    --color-text-main: #1f2937; /* slate-800 equivalent */
+    --color-text-muted: #4b5563; /* slate-600 */
+    --color-text-ghost: #9ca3af; /* slate-400 */
+
+    --color-border-subtle: #e5e7eb;
+
+    /* Semantic Dark Mode Surfaces */
+    --color-surface-muted-dark: #030712;
+    --color-surface-dark: #111827;
+    --color-surface-hover-dark: #1f2937;
+
+    --color-text-main-dark: #f9fafb;
+    --color-text-muted-dark: #9ca3af;
+    --color-text-ghost-dark: #6b7280;
+
+    --color-border-subtle-dark: #374151;
 }
 
 /* ─── GLOBAL ─────────────────────────────────────── */
@@ -120,16 +136,16 @@ html {
 
 body {
     font-family: var(--font-sans);
-    background-color: #f1f5f9;
-    color: #1e293b;
+    background-color: var(--color-surface-muted, #f8fafd);
+    color: var(--color-text-main, #1f2937);
     height: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 body.dark-mode {
-    background-color: #020617 !important;
-    color: #e2e8f0 !important;
+    background-color: var(--color-surface-muted-dark, #030712) !important;
+    color: var(--color-text-main-dark, #f9fafb) !important;
 }
 
 /* ─── SCROLLBAR ──────────────────────────────────── */

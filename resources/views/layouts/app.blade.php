@@ -78,25 +78,23 @@
             {{-- ── Tenant Custom Branding Injection ── --}}
             @php
                 $currentTenant = tenancy()->initialized ? tenancy()->tenant : null;
-                $primaryColor = $currentTenant->settings['brand_color'] ?? null;
+                $primaryColor = $currentTenant?->settings['brand_color'] ?? '#4f46e5';
+                $primaryHover = $currentTenant?->settings['brand_hover'] ?? '#4338ca';
             @endphp
-            @if($primaryColor)
-                <style>
-                    :root {
-                        /* Applying customized tenant branding overriding default Violet */
-                        --color-primary-500:
-                            {{ $primaryColor }}
-                        ;
-                        --color-primary-600:
-                            {{ $primaryColor }}
-                        ;
-                        /* Dynamic focus rings reflecting brand color */
-                        --tw-ring-color:
-                            {{ $primaryColor }}
-                        ;
-                    }
-                </style>
-            @endif
+            <style>
+                :root {
+                    /* Applying customized tenant branding overriding default Violet */
+                    --color-primary:
+                        {{ $primaryColor }}
+                    ;
+                    --color-primary-hover:
+                        {{ $primaryHover }}
+                    ;
+                    --tw-ring-color:
+                        {{ $primaryColor }}
+                    ;
+                }
+            </style>
         </head>
 
     <body
@@ -116,9 +114,37 @@
             <x-ts-dialog />
 
             {{-- ── App Shell (Alpine & Tailwind) ──────────────────────────────── --}}
-            <div x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true' }"
-                @keydown.window.escape="sidebarOpen = false"
-                class="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden">
+            <div x-data="{
+                            sidebarOpen: false,
+                            sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+                            dragging: false,
+                            handleDrop(e) {
+                                 this.dragging = false;
+                                 if(e.dataTransfer.files.length > 0 && typeof window.uploadFilesWithData === 'function') {
+                                      window.uploadFilesWithData(e.dataTransfer.files);
+                                 }
+                            }
+                        }" @keydown.window.escape="sidebarOpen = false" @dragover.window.prevent="dragging = true"
+                @dragleave.window.prevent="if($event.clientX === 0 && $event.clientY === 0) dragging = false"
+                @drop.window.prevent="handleDrop($event)"
+                class="flex h-screen bg-[var(--color-surface-muted)] dark:bg-[var(--color-surface-muted-dark)] overflow-hidden relative">
+
+                {{-- ── Global Drag & Drop Overlay ────────────────────────────────── --}}
+                @can('create documents')
+                    <div x-show="dragging" x-cloak x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute inset-0 z-[100] m-4 lg:m-8 rounded-2xl border-4 border-dashed border-[var(--color-primary)] bg-[var(--color-primary)]/10 dark:bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center pointer-events-none">
+                        <div class="bg-white dark:bg-slate-800 p-8 rounded-full shadow-2xl mb-6">
+                            <i class="fas fa-cloud-upload-alt text-6xl text-[var(--color-primary)]"></i>
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-[var(--color-primary)] dark:text-white tracking-tight">Drop
+                            files to upload</h2>
+                        <p class="text-slate-600 dark:text-slate-300 font-medium mt-2">Documents will be instantly securely
+                            ingested into this Workspace.</p>
+                    </div>
+                @endcan
 
                 {{-- ── Mobile Sidebar Backdrop ─────────────────────────────────── --}}
                 <div x-show="sidebarOpen" class="relative z-50 lg:hidden"
@@ -148,7 +174,7 @@
 
                             {{-- Mobile Sidebar Content --}}
                             <div
-                                class="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-slate-800 px-6 pb-4 border-r border-slate-200 dark:border-slate-700 shadow-xl">
+                                class="flex grow flex-col gap-y-5 overflow-y-auto bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-6 pb-4 border-r border-[var(--color-border-subtle)] dark:border-[var(--color-border-subtle-dark)] shadow-xl">
                                 @include('layouts.sidebar')
                             </div>
                         </div>
@@ -157,9 +183,9 @@
 
                 {{-- ── Desktop Sidebar ─────────────────────────────────────────── --}}
                 <aside
-                    class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300 ease-in-out"
-                    :class="sidebarCollapsed ? 'lg:w-18' : 'lg:w-72'" id="renderSidebarHtmlId">
-                    <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-slate-800 pb-4 border-r border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-300"
+                    class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col border-r border-[var(--color-border-subtle)] dark:border-[var(--color-border-subtle-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] transition-all duration-300 ease-in-out"
+                    :class="sidebarCollapsed ? 'lg:w-18' : 'lg:w-64'" id="renderSidebarHtmlId">
+                    <div class="flex grow flex-col gap-y-5 overflow-y-auto pb-4 transition-all duration-300"
                         :class="sidebarCollapsed ? 'px-2' : 'px-6'">
                         @include('layouts.sidebar')
                     </div>
@@ -167,16 +193,17 @@
 
                 {{-- ── Main Area ────────────────────────────────────────────────── --}}
                 <div class="flex flex-1 flex-col h-full w-full transition-all duration-300 ease-in-out"
-                    :class="sidebarCollapsed ? 'lg:pl-18' : 'lg:pl-72'">
+                    :class="sidebarCollapsed ? 'lg:pl-18' : 'lg:pl-64'">
 
                     {{-- ── Header ─────────────────────────────────────────────── --}}
                     @if (!isset($shareDocument))
                         @include('layouts.header')
                     @endif
 
-                    <main class="flex-1 overflow-x-hidden overflow-y-auto w-full page-content focus:outline-none"
-                        style="{{ Route::is('documents.index') ? 'display:none' : 'display:block' }}">
-                        <div class="w-full mx-auto p-4 sm:p-6 lg:p-8">
+                    <main
+                        class="flex-1 overflow-x-hidden w-full page-content focus:outline-none flex flex-col min-h-0 {{ Route::is('documents.index') ? 'overflow-y-hidden' : 'overflow-y-auto' }}">
+                        <div
+                            class="w-full h-full flex flex-col flex-1 {{ Route::is('documents.index') ? '' : 'mx-auto p-4 sm:p-6 lg:p-8' }}">
                             @if (!isset($shareDocument) && !Route::is('home') && !Route::is('documents.index'))
                                 @include('layouts.navbar-search')
                             @endif
@@ -364,11 +391,11 @@
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         if (typeof edmsToast !== 'function') return;
-                                                                                                            @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
+                                                                                                                                    @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
                         @if(session('error'))   edmsToast(@json(session('error')), 'error'); @endif
                         @if(session('warning')) edmsToast(@json(session('warning')), 'warning'); @endif
                         @if(session('info'))    edmsToast(@json(session('info')), 'info'); @endif
-                                                                                                        });
+                                                                                                                                });
                 </script>
             @endif
         @endauth

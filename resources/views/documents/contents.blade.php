@@ -43,8 +43,8 @@
             $isPublic = $document->visibility === 'public';
         @endphp
 
-        <div class="doc-card documentContentClass group relative bg-white dark:bg-slate-800
-                    rounded-xl border border-slate-200 dark:border-slate-700
+        <div class="doc-card documentContentClass group relative bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)]
+                    rounded-xl border border-[var(--color-border-subtle)] dark:border-[var(--color-border-subtle-dark)]
                     hover:border-indigo-300 dark:hover:border-indigo-700
                     hover:shadow-md dark:hover:shadow-slate-900/30
                     transition-all duration-200 cursor-pointer overflow-hidden
@@ -56,8 +56,8 @@
             {{-- Thumbnail / preview area ──────────────────────────────── --}}
             <div class="{{ $isImg ? 'img-container-file' : 'img-container' }}
                         relative flex items-center justify-center
-                        bg-slate-50 dark:bg-slate-900/50
-                        border-b border-slate-100 dark:border-slate-700/50
+                        bg-[var(--color-surface-muted)] dark:bg-[var(--color-surface-muted-dark)]
+                        border-b border-[var(--color-border-subtle)] dark:border-[var(--color-border-subtle-dark)]
                         overflow-hidden cursor-zoom-in aspect-video"
                  onclick="previewCourseFile('{{ $ext }}', '{{ asset($document->file_path) }}')"
                  data-previewFile="{{ $document->getFileIcon() }}"
@@ -120,7 +120,7 @@
                  data-file_type="{{ $ext }}">
 
                 {{-- Filename --}}
-                <h4 class="card-title text-[0.8rem] font-bold text-slate-900 dark:text-white
+                <h4 class="card-title text-[0.8rem] font-bold text-[var(--color-text-main)] dark:text-[var(--color-text-main-dark)]
                            truncate leading-snug mb-1"
                     title="{{ $document->name }}">
                     {{ $document->name }}
@@ -140,7 +140,7 @@
                 @endif
 
                 {{-- Date --}}
-                <div class="date flex items-center gap-1 text-[0.68rem] font-medium text-slate-400 dark:text-slate-500 mt-auto">
+                <div class="date flex items-center gap-1 text-[0.68rem] font-medium text-[var(--color-text-muted)] dark:text-[var(--color-text-muted-dark)] mt-auto">
                     <i class="far fa-clock text-[0.6rem]" aria-hidden="true"></i>
                     <span>{{ $document->created_at?->format('d M Y') }}</span>
                     <div class="emojis ml-auto">
@@ -151,8 +151,8 @@
 
             {{-- Hover action bar ──────────────────────────────────────── --}}
             <div class="absolute bottom-0 left-0 right-0 flex items-center justify-end gap-0.5 px-2 py-1.5
-                        bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm
-                        border-t border-slate-100 dark:border-slate-700
+                        bg-[var(--color-surface)]/95 dark:bg-[var(--color-surface-dark)]/95 backdrop-blur-sm
+                        border-t border-[var(--color-border-subtle)] dark:border-[var(--color-border-subtle-dark)]
                         opacity-0 group-hover:opacity-100 transition-opacity duration-150
                         pointer-events-none group-hover:pointer-events-auto"
                  role="group" aria-label="Actions for {{ $document->name }}">
@@ -194,15 +194,15 @@
     @if ($documents->isNotEmpty())
         <table class="w-full text-sm border-collapse">
             <thead>
-                <tr class="sticky top-0 z-10 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                    <th scope="col" class="py-2.5 pl-4 pr-2 text-left text-[0.7rem] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-8">
+                <tr class="sticky top-0 z-10 bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] border-b border-[var(--color-border-subtle)] dark:border-[var(--color-border-subtle-dark)]">
+                    <th scope="col" class="py-2.5 pl-4 pr-2 text-left text-[0.7rem] font-bold text-[var(--color-text-muted)] dark:text-[var(--color-text-muted-dark)] uppercase tracking-wider w-8">
                         <span class="sr-only">Select</span>
                     </th>
-                    <th scope="col" class="py-2.5 px-3 text-left text-[0.7rem] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
-                    <th scope="col" class="py-2.5 px-3 text-left text-[0.7rem] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden md:table-cell">Tags</th>
-                    <th scope="col" class="py-2.5 px-3 text-left text-[0.7rem] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell w-20">Access</th>
-                    <th scope="col" class="py-2.5 px-3 text-left text-[0.7rem] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell w-28">Date</th>
-                    <th scope="col" class="py-2.5 pl-2 pr-4 text-right text-[0.7rem] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-20">Actions</th>
+                    <th scope="col" class="py-2.5 px-3 text-left text-[0.7rem] font-bold text-[var(--color-text-muted)] dark:text-[var(--color-text-muted-dark)] uppercase tracking-wider">Name</th>
+                    <th scope="col" class="py-2.5 px-3 text-left text-[0.7rem] font-bold text-[var(--color-text-muted)] dark:text-[var(--color-text-muted-dark)] uppercase tracking-wider hidden md:table-cell">Tags</th>
+                    <th scope="col" class="py-2.5 px-3 text-left text-[0.7rem] font-bold text-[var(--color-text-muted)] dark:text-[var(--color-text-muted-dark)] uppercase tracking-wider hidden sm:table-cell w-20">Access</th>
+                    <th scope="col" class="py-2.5 px-3 text-left text-[0.7rem] font-bold text-[var(--color-text-muted)] dark:text-[var(--color-text-muted-dark)] uppercase tracking-wider hidden lg:table-cell w-28">Date</th>
+                    <th scope="col" class="py-2.5 pl-2 pr-4 text-right text-[0.7rem] font-bold text-[var(--color-text-muted)] dark:text-[var(--color-text-muted-dark)] uppercase tracking-wider w-20">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -227,8 +227,8 @@
                         ];
                         [$listIcon, $listColor] = $iconMap2[strtolower($ext)] ?? ($isImg ? ['fa-file-image','text-pink-500'] : ['fa-file','text-indigo-400']);
                     @endphp
-                    <tr class="group card-content documentContentClass border-b border-slate-100 dark:border-slate-800/70
-                               hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors
+                    <tr class="group card-content documentContentClass border-b border-[var(--color-border-subtle)] dark:border-[var(--color-border-subtle-dark)]
+                               hover:bg-[var(--color-surface-hover)] dark:hover:bg-[var(--color-surface-hover-dark)] transition-colors
                                cursor-pointer last:border-0"
                         onclick="selectCard(this)"
                         data-id="{{ $document->id }}"
@@ -249,7 +249,7 @@
 
                         {{-- Name --}}
                         <td class="py-2 px-3">
-                            <div class="font-semibold text-slate-900 dark:text-white text-sm truncate max-w-[200px] sm:max-w-xs"
+                            <div class="font-semibold text-[var(--color-text-main)] dark:text-[var(--color-text-main-dark)] text-sm truncate max-w-[200px] sm:max-w-xs"
                                  title="{{ $document->name }}">
                                 {{ $document->name }}
                             </div>
@@ -295,7 +295,7 @@
 
                         {{-- Date --}}
                         <td class="py-2 px-3 hidden lg:table-cell">
-                            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                            <span class="text-xs font-medium text-[var(--color-text-muted)] dark:text-[var(--color-text-muted-dark)] whitespace-nowrap">
                                 {{ $document->created_at?->format('d M Y') }}
                             </span>
                         </td>
