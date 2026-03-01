@@ -29,6 +29,11 @@ class AppServiceProvider extends ServiceProvider
         // Ensure Vite assets bypass the tenant asset() helper interception
         // so they are always served from the central public/build directory.
         Vite::createAssetPathsUsing(fn(string $path) => global_asset($path));
+
+        // Use the published /livewire symlink for assets to bypass Nginx 404s
+        // on virtual hashed routes. Relative path allows updates to stay on the
+        // current domain while scripts are served as physical files.
+        config(['livewire.asset_url' => '/livewire-50c35725']);
     }
 
     /**

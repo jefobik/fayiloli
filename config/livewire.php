@@ -119,6 +119,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Livewire Asset & Update Paths
+    |--------------------------------------------------------------------------
+    | We explicitly define these paths to avoid the default hashed routes
+    | which can cause 404s in multi-tenant Nginx environments.
+    */
+    'script_path' => 'livewire/livewire.js',
+    'update_path' => 'livewire/update',
+
+    /*
+    |--------------------------------------------------------------------------
     | Navigate (SPA mode)
     |--------------------------------------------------------------------------
     | Add `wire:navigate` to <a> links to fetch pages via AJAX like a SPA.

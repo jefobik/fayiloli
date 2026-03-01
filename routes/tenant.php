@@ -47,9 +47,8 @@ egistration in
 Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(function () {
 
     // ─── Home ──────────────────────────────────────────────────────────────
-    Route::get('/', function () {
-        return redirect('/home');
-    });
+    // The root route '/' is now handled by a unified route in web.php
+    // that detects tenancy()->initialized.
 
     // ─── Authentication ────────────────────────────────────────────────────
     // Handled centrally by routes/web.php using InitializeTenancyByDomain

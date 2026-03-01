@@ -21,12 +21,24 @@ use Illuminate\Support\Facades\Route;
 // ─── Central root redirect ────────────────────────────────────────────────
 //  Authenticated admins/super-admins   → tenant management portal
 //  Everyone else (guests + non-admins) → organisation discovery portal
+// ─── Unified Root Route (Central + Tenant) ────────────────────────────────
+//  This route handles the entry point for both central and tenant contexts.
+//  InitializeTenancyByDomain (global middleware) has already run, so we
+//  can use tenancy()->initialized to determine the context.
 Route::get('/', function () {
+    // 1. Tenant context: Redirect to the document index / home
+    if (tenancy()->initialized) {
+        return redirect('/home');
+    }
+
+    // 2. Central context (Authenticated): Redirect to management portal
     if (auth()->check() && auth()->user()->isAdminOrAbove()) {
         return redirect('/admin/tenants');
     }
+
+    // 3. Central context (Guest): Redirect to discovery portal
     return redirect('/portal');
-});
+})->name('unified.root');
 
 // ─── Organisation Discovery Portal (public) ──────────────────────────────
 //  Renders the "Find Your Organisation" page.  No auth required.

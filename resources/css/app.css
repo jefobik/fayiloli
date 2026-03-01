@@ -1,5 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 @import "tailwindcss";
+@import "./theme.css";
+
+@source "../views/**/*.blade.php";
 @plugin "@tailwindcss/forms";
 
 @theme {
@@ -7,39 +10,65 @@
         "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
 
-    --color-primary-50: #f5f3ff;
-    --color-primary-100: #ede9fe;
-    --color-primary-200: #ddd6fe;
-    --color-primary-300: #c4b5fd;
-    --color-primary-400: #a78bfa;
-    --color-primary-500: #8b5cf6;
-    --color-primary-600: #7c3aed;
-    --color-primary-700: #6d28d9;
-    --color-primary-800: #5b21b6;
-    --color-primary-900: #4c1d95;
-    --color-primary-950: #2e1065;
+    /* --- PRIMITIVE COLORS --- */
+    --color-slate-50: var(--slate-50);
+    --color-slate-100: var(--slate-100);
+    --color-slate-200: var(--slate-200);
+    --color-slate-300: var(--slate-300);
+    --color-slate-400: var(--slate-400);
+    --color-slate-500: var(--slate-500);
+    --color-slate-600: var(--slate-600);
+    --color-slate-700: var(--slate-700);
+    --color-slate-800: var(--slate-800);
+    --color-slate-900: var(--slate-900);
+    --color-slate-950: var(--slate-950);
 
-    /* Semantic Enterprise Surface Colors (Google Drive / M3 / SharePoint inspired) */
-    --color-surface-muted: #f8fafd;
-    --color-surface: #ffffff;
-    --color-surface-hover: #f0f4f9;
+    /* --- BRAND COLORS --- */
+    --color-primary-50: var(--primary-50);
+    --color-primary-100: var(--primary-100);
+    --color-primary-200: var(--primary-200);
+    --color-primary-300: var(--primary-300);
+    --color-primary-400: var(--primary-400);
+    --color-primary-500: var(--primary-500);
+    --color-primary-600: var(--primary-600);
+    --color-primary-700: var(--primary-700);
+    --color-primary-800: var(--primary-800);
+    --color-primary-900: var(--primary-900);
+    --color-primary-950: var(--primary-950);
 
-    --color-text-main: #1f2937; /* slate-800 equivalent */
-    --color-text-muted: #4b5563; /* slate-600 */
-    --color-text-ghost: #9ca3af; /* slate-400 */
+    /* --- TENANT MAPPING --- */
+    --color-tenant: var(--tenant-primary);
+    --color-tenant-hover: var(--tenant-primary-hover);
 
-    --color-border-subtle: #e5e7eb;
+    /* --- SEMANTIC SURFACES --- */
+    --color-surface-muted: var(--app-bg);
+    --color-surface: var(--panel-bg);
+    --color-surface-hover: var(--slate-100);
 
-    /* Semantic Dark Mode Surfaces */
-    --color-surface-muted-dark: #030712;
-    --color-surface-dark: #111827;
-    --color-surface-hover-dark: #1f2937;
+    --color-text-main: var(--text-main);
+    --color-text-muted: var(--text-muted);
+    --color-text-ghost: var(--text-ghost);
 
-    --color-text-main-dark: #f9fafb;
-    --color-text-muted-dark: #9ca3af;
-    --color-text-ghost-dark: #6b7280;
+    --color-border-subtle: var(--panel-border);
+    --color-border-extra-subtle: var(--panel-border-subtle);
 
-    --color-border-subtle-dark: #374151;
+    /* --- SHADOWS --- */
+    --shadow-sm: var(--shadow-sm);
+    --shadow-md: var(--shadow-md);
+    --shadow-lg: var(--shadow-lg);
+    --shadow-glass: var(--shadow-glass);
+
+    /* --- Z-INDEX --- */
+    --z-dropdown: var(--z-dropdown);
+    --z-sticky: var(--z-sticky);
+    --z-fixed: var(--z-fixed);
+    --z-modal: var(--z-modal);
+    --z-popover: var(--z-popover);
+    --z-tooltip: var(--z-tooltip);
+
+    /* --- SPACING SCALE (Semantic) --- */
+    --spacing-panel: 1.5rem;
+    --spacing-gutter: 2rem;
 }
 
 /* ─── GLOBAL ─────────────────────────────────────── */
