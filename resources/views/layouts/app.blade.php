@@ -22,15 +22,13 @@
     {{-- Tailwind v4 + Alpine.js + Chart.js (via Vite) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    {{-- Livewire styles --}}
-    @livewireStyles
+    {{-- Livewire styles (Auto-injected in v3+) --}}
 
     {{-- TallStackUI styles & scripts --}}
     @tallStackUiStyle
     @tallStackUiScript
 
-    {{-- Livewire scripts (forced in head for SPA) --}}
-    @livewireScripts
+    {{-- Livewire scripts (Auto-injected in v3+) --}}
 
     {{-- Global Scripts (Moved to head to prevent wire:navigate double-execution) --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -115,16 +113,16 @@
 
             {{-- ── App Shell (Alpine & Tailwind) ──────────────────────────────── --}}
             <div x-data="{
-                            sidebarOpen: false,
-                            sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
-                            dragging: false,
-                            handleDrop(e) {
-                                 this.dragging = false;
-                                 if(e.dataTransfer.files.length > 0 && typeof window.uploadFilesWithData === 'function') {
-                                      window.uploadFilesWithData(e.dataTransfer.files);
-                                 }
-                            }
-                        }" @keydown.window.escape="sidebarOpen = false" @dragover.window.prevent="dragging = true"
+                                sidebarOpen: false,
+                                sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+                                dragging: false,
+                                handleDrop(e) {
+                                     this.dragging = false;
+                                     if(e.dataTransfer.files.length > 0 && typeof window.uploadFilesWithData === 'function') {
+                                          window.uploadFilesWithData(e.dataTransfer.files);
+                                     }
+                                }
+                            }" @keydown.window.escape="sidebarOpen = false" @dragover.window.prevent="dragging = true"
                 @dragleave.window.prevent="if($event.clientX === 0 && $event.clientY === 0) dragging = false"
                 @drop.window.prevent="handleDrop($event)"
                 class="flex h-screen bg-[var(--color-surface-muted)] dark:bg-[var(--color-surface-muted-dark)] overflow-hidden relative">
@@ -391,11 +389,11 @@
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         if (typeof edmsToast !== 'function') return;
-                                                                                                                                    @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
+                                                                                                                                            @if(session('success')) edmsToast(@json(session('success')), 'success'); @endif
                         @if(session('error'))   edmsToast(@json(session('error')), 'error'); @endif
                         @if(session('warning')) edmsToast(@json(session('warning')), 'warning'); @endif
                         @if(session('info'))    edmsToast(@json(session('info')), 'info'); @endif
-                                                                                                                                });
+                                                                                                                                        });
                 </script>
             @endif
         @endauth

@@ -7,11 +7,11 @@
     $canTags = $tenant?->hasModule(TenantModule::TAGS) && $authUser?->can('view tags');
     $canUsers = $tenant?->hasModule(TenantModule::USERS) && $authUser?->can('view users');
     $canRoles = $tenant?->hasModule(TenantModule::USERS) && $authUser?->can('manage roles');
-    $canProj = $tenant?->hasModule(TenantModule::PROJECTS);
-    $canConts = $tenant?->hasModule(TenantModule::HRM);
-    $canStats = $tenant?->hasModule(TenantModule::STATS);
+    $canProj = $tenant?->hasModule(TenantModule::PROJECTS) && $authUser?->can('view projects');
+    $canHrm = $tenant?->hasModule(TenantModule::HRM) && $authUser?->can('view employees');
+    $canStats = $tenant?->hasModule(TenantModule::STATS) && $authUser?->can('view stats');
 
-    $showModSection = $canUsers || $canRoles || $canProj || $canConts || $canStats;
+    $showModSection = $canUsers || $canRoles || $canProj || $canHrm || $canStats;
 @endphp
 
 {{-- ── Sidebar Logo ─────────────────────────────────────────────────── --}}
@@ -108,6 +108,20 @@
             role="heading" aria-level="2">Administration</div>
         <div x-show="sidebarCollapsed" x-cloak class="mt-4 border-t border-slate-200 dark:border-slate-800 mb-2"></div>
 
+        @if(!isset($tenant) && $authUser->isAdminOrAbove())
+            <a href="{{ route('admin.users.index') }}" wire:navigate title="Central Users"
+                class="group flex items-center min-h-[44px] gap-x-3 rounded-md py-2 text-sm font-semibold mb-1 transition-all duration-200 overflow-hidden
+                                       {{ Route::is('admin.users.*')
+                    ? 'border-l-[3px] border-[var(--color-primary)] bg-[var(--color-primary)]/10 text-[var(--color-primary)] dark:bg-[var(--color-primary)]/20 dark:text-[var(--color-primary)] pl-2.25'
+                    : 'border-l-[3px] border-transparent text-[var(--color-text-main)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-hover)] dark:text-[var(--color-text-main-dark)] dark:hover:text-[var(--color-primary)] dark:hover:bg-[var(--color-surface-hover-dark)] pl-2.25' }}"
+                :class="sidebarCollapsed ? 'justify-center px-2' : ''" {{ Route::is('admin.users.*') ? 'aria-current=page' : '' }}>
+                <i class="fas fa-users-cog shrink-0 w-5 text-center text-base
+                                          {{ Route::is('admin.users.*') ? 'text-[var(--color-primary)] dark:text-[var(--color-primary)]' : 'text-slate-400 group-hover:text-[var(--color-primary)] dark:group-hover:text-[var(--color-primary)]' }}"
+                    aria-hidden="true"></i>
+                <span x-show="!sidebarCollapsed" x-cloak class="nav-text">Central Users</span>
+            </a>
+        @endif
+
         @if ($canUsers)
             <a href="{{ route('users.index') }}" wire:navigate title="Users"
                 class="group flex items-center min-h-[44px] gap-x-3 rounded-md py-2 text-sm font-semibold mb-1 transition-all duration-200 overflow-hidden
@@ -150,7 +164,7 @@
             </a>
         @endif
 
-        @if ($canConts)
+        @if ($canHrm)
             <a href="{{ route('hrm.index') }}" wire:navigate title="Human Resources"
                 class="group flex items-center min-h-[44px] gap-x-3 rounded-md py-2 text-sm font-semibold mb-1 transition-all duration-200 overflow-hidden
                                        {{ Route::is('hrm.*')

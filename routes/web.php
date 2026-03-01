@@ -87,3 +87,11 @@ Route::middleware(['auth', 'central-admin'])
         //  TransitionTenantStatusRequest before the controller executes.
         Route::patch('/{tenant}/status', [TenantController::class, 'transitionStatus'])->name('transition_status');
     });
+
+// ─── Central Admin User Management ────────────────────────────────────────
+Route::middleware(['auth', 'central-admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('users', \App\Http\Controllers\CentralUserController::class);
+    });

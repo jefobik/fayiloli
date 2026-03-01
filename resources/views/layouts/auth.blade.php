@@ -46,8 +46,7 @@
     {{-- Vite: Tailwind + app CSS + JS (includes auth CSS classes from app.css lines 340+) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    {{-- Livewire styles (required for Alpine.js bundled with Livewire v4) --}}
-    @livewireStyles
+    {{-- Livewire styles (Auto-injected in v4) --}}
 </head>
 
 <body
@@ -87,8 +86,7 @@
         @yield('content')
     </main>
 
-    {{-- Livewire scripts (bundles Alpine.js — required) --}}
-    @livewireScripts
+    {{-- Livewire scripts and Alpine.js are auto-injected in v4 --}}
 
     @stack('scripts')
 </body>

@@ -35,6 +35,7 @@ class RolesPermissionsSeeder extends Seeder
             'edit folders',
             'delete folders',
 
+
             // Tags
             'view tags',
             'create tags',
@@ -58,6 +59,8 @@ class RolesPermissionsSeeder extends Seeder
 
             // HRM
             'view employees',
+            'edit employees',
+            'delete employees',
             'print employees',
 
             // Stats
@@ -80,6 +83,7 @@ class RolesPermissionsSeeder extends Seeder
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $admin->syncPermissions($permissions); // all permissions (deduplicated)
 
+        // Manager role
         $manager = Role::firstOrCreate(['name' => 'manager', 'guard_name' => 'web']);
         $manager->syncPermissions([
             'view documents',
@@ -105,6 +109,7 @@ class RolesPermissionsSeeder extends Seeder
             'view audit log',
         ]);
 
+        // User role
         $user = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
         $user->syncPermissions([
             'view documents',
@@ -118,8 +123,14 @@ class RolesPermissionsSeeder extends Seeder
             'view tags',
             'view notifications',
             'dismiss notifications',
+            'view employees',
+            'edit employees',
+            'delete employees',
+            'print employees',
+            'view stats',
         ]);
 
+        // Viewer role
         $viewer = Role::firstOrCreate(['name' => 'viewer', 'guard_name' => 'web']);
         $viewer->syncPermissions([
             'view documents',

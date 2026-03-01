@@ -42,7 +42,7 @@ class TenantDevDataSeeder extends Seeder
             CategorySeeder::class,
             FolderSeeder::class,
             TagSeeder::class,
-            DocumentSeeder::class,
+            TenantPublicDocumentSeeder::class,
         ]);
     }
 }

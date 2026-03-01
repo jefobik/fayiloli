@@ -1,17 +1,17 @@
 @extends('layouts.app')
 @section('content')
     <div class="container py-4" x-data="{
-                 density: localStorage.getItem('tableDensity') || 'relaxed',
+                 density: localStorage.getItem('centralTableDensity') || 'relaxed',
                  search: '{{ request('search', '') }}'
-             }" x-init="$watch('density', val => localStorage.setItem('tableDensity', val))">
+             }" x-init="$watch('density', val => localStorage.setItem('centralTableDensity', val))">
 
         {{-- ── Page Header ──────────────────────────────────────────────────────── --}}
         <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
             <div>
-                <h1 class="h4 fw-bold mb-0" style="color:#1e293b">
-                    <i class="fas fa-users me-2 text-indigo-600" aria-hidden="true"></i>User Management
+                <h1 class="h4 fw-bold mb-0" style="color:var(--color-text-main)">
+                    <i class="fas fa-users-cog me-2 text-indigo-600" aria-hidden="true"></i>Central Users
                 </h1>
-                <p class="text-muted small mb-0 mt-1">Manage workspace users, roles and account status</p>
+                <p class="text-muted small mb-0 mt-1">Manage global system administrators and portal access</p>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <button type="button" @click="density = density === 'relaxed' ? 'compact' : 'relaxed'"
@@ -19,20 +19,18 @@
                     <i class="fas" :class="density === 'relaxed' ? 'fa-compress-arrows-alt' : 'fa-expand-arrows-alt'"
                         aria-hidden="true"></i>
                 </button>
-                @can('create', App\Models\User::class)
-                    <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm shadow-sm">
-                        <i class="fas fa-user-plus me-1" aria-hidden="true"></i>Add User
-                    </a>
-                @endcan
+                <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm shadow-sm">
+                    <i class="fas fa-user-plus me-1" aria-hidden="true"></i>Add Central User
+                </a>
             </div>
         </div>
 
         {{-- ── Stats Row ────────────────────────────────────────────────────────── --}}
         <div class="row g-3 mb-4">
             <div class="col-6 col-md-3">
-                <a href="{{ route('users.index') }}"
+                <a href="{{ route('admin.users.index') }}"
                     class="card border-0 shadow-sm text-decoration-none d-block h-100 transition-all dark:bg-slate-800"
-                    style="border-radius:10px;{{ !request()->hasAny(['status', 'role', 'search']) ? 'border-left:4px solid #4f46e5 !important' : '' }}">
+                    style="border-radius:10px;{{ !request()->hasAny(['status', 'search']) ? 'border-left:4px solid #4f46e5 !important' : '' }}">
                     <div class="card-body py-3 px-3">
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <span class="text-muted fw-semibold text-uppercase"
@@ -44,12 +42,12 @@
                         </div>
                         <div class="fw-bold text-slate-900 dark:text-white" style="font-size:1.5rem;line-height:1">
                             {{ $stats['total'] }}</div>
-                        <div class="text-muted mt-1" style="font-size:0.72rem">All workspace users</div>
+                        <div class="text-muted mt-1" style="font-size:0.72rem">All central users</div>
                     </div>
                 </a>
             </div>
             <div class="col-6 col-md-3">
-                <a href="{{ route('users.index', ['status' => 'active']) }}"
+                <a href="{{ route('admin.users.index', ['status' => 'active']) }}"
                     class="card border-0 shadow-sm text-decoration-none d-block h-100 dark:bg-slate-800"
                     style="border-radius:10px;{{ request('status') === 'active' ? 'border-left:4px solid #16a34a !important' : '' }}">
                     <div class="card-body py-3 px-3">
@@ -69,7 +67,7 @@
                 </a>
             </div>
             <div class="col-6 col-md-3">
-                <a href="{{ route('users.index', ['status' => 'inactive']) }}"
+                <a href="{{ route('admin.users.index', ['status' => 'inactive']) }}"
                     class="card border-0 shadow-sm text-decoration-none d-block h-100 dark:bg-slate-800"
                     style="border-radius:10px;{{ request('status') === 'inactive' ? 'border-left:4px solid #dc2626 !important' : '' }}">
                     <div class="card-body py-3 px-3">
@@ -89,7 +87,7 @@
                 </a>
             </div>
             <div class="col-6 col-md-3">
-                <a href="{{ route('users.index', ['status' => 'locked']) }}"
+                <a href="{{ route('admin.users.index', ['status' => 'locked']) }}"
                     class="card border-0 shadow-sm text-decoration-none d-block h-100 dark:bg-slate-800"
                     style="border-radius:10px;{{ request('status') === 'locked' ? 'border-left:4px solid #d97706 !important' : '' }}">
                     <div class="card-body py-3 px-3">
@@ -112,7 +110,7 @@
         {{-- ── Search / Filter Bar ──────────────────────────────────────────────── --}}
         <div class="card border-0 shadow-sm mb-3 dark:bg-slate-800 dark:border-slate-700" style="border-radius:10px">
             <div class="card-body py-2 px-3">
-                <form method="GET" action="{{ route('users.index') }}" role="search"
+                <form method="GET" action="{{ route('admin.users.index') }}" role="search"
                     class="d-flex align-items-center gap-2 flex-wrap">
                     <div class="position-relative flex-grow-1" style="max-width:340px">
                         <span class="position-absolute top-50 start-0 translate-middle-y ps-3 text-muted"
@@ -129,16 +127,6 @@
                             <i class="fas fa-times-circle" style="font-size:0.8rem"></i>
                         </button>
                     </div>
-                    <select name="role"
-                        class="form-select form-select-sm border-0 bg-slate-50 dark:bg-slate-900 dark:text-white"
-                        style="max-width:155px" aria-label="Filter by role" onchange="this.form.submit()">
-                        <option value="">All Roles</option>
-                        @foreach ($roles as $role)
-                            <option value="{{ $role->name }}" {{ request('role') === $role->name ? 'selected' : '' }}>
-                                {{ ucfirst($role->name) }}
-                            </option>
-                        @endforeach
-                    </select>
                     <select name="status"
                         class="form-select form-select-sm border-0 bg-slate-50 dark:bg-slate-900 dark:text-white"
                         style="max-width:135px" aria-label="Filter by status" onchange="this.form.submit()">
@@ -152,8 +140,8 @@
                         <i class="fas fa-filter me-1" aria-hidden="true"></i>
                         <span class="d-none d-sm-inline">Filter</span>
                     </button>
-                    @if (request()->hasAny(['search', 'role', 'status']))
-                        <a href="{{ route('users.index') }}" class="btn btn-link btn-sm text-muted text-decoration-none"
+                    @if (request()->hasAny(['search', 'status']))
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-link btn-sm text-muted text-decoration-none"
                             aria-label="Reset all filters">
                             <i class="fas fa-rotate-left me-1" aria-hidden="true"></i>Reset
                         </a>
@@ -162,7 +150,7 @@
             </div>
         </div>
 
-        @if (request()->hasAny(['search', 'role', 'status']))
+        @if (request()->hasAny(['search', 'status']))
             <p class="text-muted small mb-2" aria-live="polite">
                 Showing <strong>{{ $users->total() }}</strong> result{{ $users->total() !== 1 ? 's' : '' }}
                 @if (request('search')) for <em>"{{ request('search') }}"</em> @endif
@@ -182,10 +170,10 @@
                                     User</th>
                                 <th scope="col" class="fw-semibold text-muted text-uppercase d-none d-md-table-cell"
                                     style="font-size:0.68rem;letter-spacing:.07em">Username</th>
-                                <th scope="col" class="fw-semibold text-muted text-uppercase d-none d-lg-table-cell"
-                                    style="font-size:0.68rem;letter-spacing:.07em">Phone</th>
                                 <th scope="col" class="fw-semibold text-muted text-uppercase"
-                                    style="font-size:0.68rem;letter-spacing:.07em">Roles</th>
+                                    style="font-size:0.68rem;letter-spacing:.07em">Role</th>
+                                <th scope="col" class="fw-semibold text-muted text-uppercase"
+                                    style="font-size:0.68rem;letter-spacing:.07em">Access</th>
                                 <th scope="col" class="fw-semibold text-muted text-uppercase"
                                     style="font-size:0.68rem;letter-spacing:.07em">Status</th>
                                 <th scope="col" class="text-end pe-4 fw-semibold text-muted text-uppercase"
@@ -205,10 +193,10 @@
                                                              ? 'width:28px;height:28px;font-size:0.62rem'
                                                              : 'width:36px;height:36px;font-size:0.72rem'"
                                                 style="background:linear-gradient(135deg,#4f46e5,#7c3aed)" aria-hidden="true">
-                                                {{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}{{ strtoupper(substr(explode(' ', $user->name ?? 'U ')[1] ?? '', 0, 1)) }}
+                                                {{ $user->avatar_initials }}
                                             </div>
                                             <div>
-                                                <a href="{{ route('users.show', $user) }}"
+                                                <a href="{{ route('admin.users.show', $user) }}"
                                                     class="fw-semibold text-decoration-none d-block {{ Auth::id() === $user->id ? 'text-indigo-600' : 'text-slate-800 dark:text-slate-100' }}"
                                                     style="font-size:0.875rem;">
                                                     {{ $user->name }}
@@ -216,10 +204,6 @@
                                                         <span
                                                             class="badge bg-indigo-100 text-indigo-800 ms-1 px-1 py-0 border border-indigo-200"
                                                             style="font-size:0.6rem">YOU</span>
-                                                    @endif
-                                                    @if($user->is_admin)
-                                                        <i class="fas fa-shield-halved ms-1 text-indigo-500"
-                                                            style="font-size:0.62rem" title="Admin" aria-hidden="true"></i>
                                                     @endif
                                                 </a>
                                                 <div class="text-muted" style="font-size:0.75rem">{{ $user->email }}</div>
@@ -235,17 +219,25 @@
                                             <span class="text-muted small">—</span>
                                         @endif
                                     </td>
-                                    {{-- Phone --}}
-                                    <td class="d-none d-lg-table-cell" :class="density === 'compact' ? 'py-1' : 'py-2'">
-                                        <span style="font-size:0.85rem">{{ $user->phone ?? '—' }}</span>
-                                    </td>
-                                    {{-- Roles --}}
+                                    {{-- Global Role (Super Admin/Admin/User) --}}
                                     <td :class="density === 'compact' ? 'py-1' : 'py-2'">
-                                        @forelse($user->getRoleNames() as $role)
-                                            <x-ts-badge :text="ucfirst($role)" color="violet" class="me-1" />
-                                        @empty
-                                            <x-ts-badge text="No Role" color="gray" />
-                                        @endforelse
+                                        @if($user->isSuperAdmin())
+                                            <x-ts-badge text="Super Admin" color="fuchsia" />
+                                        @elseif($user->is_admin)
+                                            <x-ts-badge text="Admin" color="indigo" />
+                                        @else
+                                            <x-ts-badge text="User" color="gray" />
+                                        @endif
+                                    </td>
+                                    {{-- Access Control Labels --}}
+                                    <td :class="density === 'compact' ? 'py-1' : 'py-2'">
+                                        @if($user->isAdminOrAbove())
+                                            <div class="text-indigo-600 dark:text-indigo-400 font-medium" style="font-size:0.75rem">
+                                                <i class="fas fa-check-circle me-1"></i>Portal Access</div>
+                                        @else
+                                            <div class="text-slate-500 font-medium" style="font-size:0.75rem"><i
+                                                    class="fas fa-ban me-1"></i>No Access</div>
+                                        @endif
                                     </td>
                                     {{-- Status --}}
                                     <td :class="density === 'compact' ? 'py-1' : 'py-2'">
@@ -268,29 +260,26 @@
                                                             opacity-100 lg:opacity-0 group-hover:opacity-100 focus-within:opacity-100
                                                             transition-opacity duration-200" role="group"
                                             aria-label="Actions for {{ $user->name }}">
-                                            <a href="{{ route('users.show', $user) }}"
+                                            <a href="{{ route('admin.users.show', $user) }}"
                                                 class="btn btn-sm btn-outline-secondary dark:text-slate-300 dark:border-slate-600"
                                                 :class="density === 'compact' ? 'py-0' : ''" title="View profile"
                                                 aria-label="View {{ $user->name }}">
                                                 <i class="fas fa-eye" aria-hidden="true"></i>
                                             </a>
-                                            @can('update', $user)
-                                                <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-primary"
-                                                    :class="density === 'compact' ? 'py-0' : ''" title="Edit"
-                                                    aria-label="Edit {{ $user->name }}">
-                                                    <i class="fas fa-pen" aria-hidden="true"></i>
-                                                </a>
-                                            @endcan
+                                            <a href="{{ route('admin.users.edit', $user) }}"
+                                                class="btn btn-sm btn-outline-primary"
+                                                :class="density === 'compact' ? 'py-0' : ''" title="Edit"
+                                                aria-label="Edit {{ $user->name }}">
+                                                <i class="fas fa-pen" aria-hidden="true"></i>
+                                            </a>
                                             @if(Auth::id() !== $user->id)
-                                                @can('delete', $user)
-                                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                                        :class="density === 'compact' ? 'py-0' : ''" title="Delete"
-                                                        aria-label="Delete {{ $user->name }}" data-user-name="{{ $user->name }}"
-                                                        data-delete-url="{{ route('users.destroy', $user) }}"
-                                                        onclick="confirmDeleteUser(this)">
-                                                        <i class="fas fa-trash-alt" aria-hidden="true"></i>
-                                                    </button>
-                                                @endcan
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    :class="density === 'compact' ? 'py-0' : ''" title="Delete"
+                                                    aria-label="Delete {{ $user->name }}" data-user-name="{{ $user->name }}"
+                                                    data-delete-url="{{ route('admin.users.destroy', $user) }}"
+                                                    onclick="confirmDeleteUser(this)">
+                                                    <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                                                </button>
                                             @endif
                                         </div>
                                     </td>
@@ -303,18 +292,15 @@
                                                 aria-hidden="true"></i>
                                             <p class="fw-semibold text-muted mb-1">No users match your filters</p>
                                             <p class="text-muted small mb-3">Try adjusting the search or filter criteria.</p>
-                                            <a href="{{ route('users.index') }}" class="btn btn-sm btn-outline-secondary">
+                                            <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-secondary">
                                                 <i class="fas fa-rotate-left me-1" aria-hidden="true"></i>Clear filters
                                             </a>
                                         @else
                                             <i class="fas fa-users-slash fa-2x mb-3 d-block opacity-25" aria-hidden="true"></i>
-                                            <p class="fw-semibold text-muted mb-1">No users yet</p>
-                                            <p class="text-muted small mb-3">Add the first user to this workspace.</p>
-                                            @can('create', App\Models\User::class)
-                                                <a href="{{ route('users.create') }}" class="btn btn-sm btn-primary">
-                                                    <i class="fas fa-user-plus me-1" aria-hidden="true"></i>Add User
-                                                </a>
-                                            @endcan
+                                            <p class="fw-semibold text-muted mb-1">No users found</p>
+                                            <a href="{{ route('admin.users.create') }}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-user-plus me-1" aria-hidden="true"></i>Add Central User
+                                            </a>
                                         @endif
                                     </td>
                                 </tr>
@@ -326,7 +312,7 @@
 
             @if(isset($users) && method_exists($users, 'hasPages') && $users->hasPages())
                 <div class="card-footer bg-transparent border-top px-4 py-3 d-flex flex-wrap align-items-center justify-content-between gap-2"
-                    style="border-color:#f1f5f9 !important; @apply dark:border-slate-700">
+                    style="border-color:#f1f5f9 !important">
                     <p class="text-muted small mb-0">
                         Showing {{ $users->firstItem() }}–{{ $users->lastItem() }} of {{ $users->total() }} users
                     </p>
@@ -336,7 +322,6 @@
         </div>
 
     </div>{{-- /container --}}
-
 
     {{-- ── Delete Confirmation Modal ─────────────────────────────────────────── --}}
     <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-modal="true"
@@ -351,7 +336,8 @@
                                 aria-hidden="true"></i>
                         </div>
                         <div>
-                            <h5 class="modal-title fw-bold mb-0 text-danger" id="deleteUserModalLabel">Delete User</h5>
+                            <h5 class="modal-title fw-bold mb-0 text-danger" id="deleteUserModalLabel">Delete Central User
+                            </h5>
                             <p class="text-muted small mb-0">This action cannot be undone.</p>
                         </div>
                     </div>
@@ -361,7 +347,7 @@
                 <div class="modal-body px-4 pt-3 pb-2">
                     <p class="mb-0 small">
                         Delete <strong id="deleteUserName"></strong>?
-                        Their account will be deactivated and removed from all roles.
+                        Their account will be permanently deactivated.
                     </p>
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4 pt-2 gap-2">

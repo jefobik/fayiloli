@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\Tag;
@@ -8,63 +10,63 @@ use App\Models\Document;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents; // Kept for potential future use
+use RuntimeException;
 
-class DocumentSeeder extends Seeder
+/**
+ * Seeds all documents from public/documents into the tenant database,
+ * making them publicly visible. For local development only.
+ */
+class TenantPublicDocumentSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        // Get folders and tags
+        if (app()->isProduction()) {
+            throw new RuntimeException(
+                'TenantPublicDocumentSeeder must not run in production. '
+                . 'Tenant workspaces are populated by users through the EDMS UI.'
+            );
+        }
+
         $folders = Folder::all();
         $tags = Tag::all();
 
-        // Path to the directory containing document files
         $directory = public_path('documents');
 
-        // Ensure directory exists
         if (!File::exists($directory)) {
-            File::makeDirectory($directory, 0755, true);
+            $this->command?->info("Directory {$directory} does not exist. Skipping public document seeding.");
+            return;
         }
 
-        // Get all files from the directory
         $files = File::allFiles($directory);
 
-        // Shuffle the file array
-        shuffle($files);
-
-        // Limit to 30 files
-        $files = array_slice($files, 0, 30);
-
         if ($folders->isEmpty()) {
-            $this->command->info('No folders found. Skipping document seeding.');
+            $this->command?->info('No folders found. Skipping public document seeding.');
             return;
         }
 
         if ($tags->isEmpty()) {
-            $this->command->info('No tags found. Skipping document seeding.');
+            $this->command?->info('No tags found. Skipping public document seeding.');
             return;
         }
 
-        // Iterate through each file and create a corresponding record in the database
+        $this->command?->info("Seeding " . count($files) . " public documents...");
+
         foreach ($files as $file) {
-            // Get file information
             $name = pathinfo($file->getFilename(), PATHINFO_FILENAME);
             $extension = $file->getExtension();
             $relativePath = 'documents/' . $file->getRelativePathname();
             $size = $file->getSize();
 
-            // Assign random folder and tags
             $folder = $folders->random();
-            // Attach 1 to 3 random tags from the production-ready set
             $tagsToAttach = $tags->random(min(rand(1, 3), $tags->count()));
 
-            $visibility = rand(0, 1) ? 'public' : 'private';
+            $visibility = 'public';
             $share = rand(0, 1);
             $download = rand(0, 1);
             // Use actual tenant details
             $tenant = tenant();
-            $email = $tenant?->admin_email ?? 'admin@nectarmetrics.com.ng';
-            $url = $tenant ? 'https://' . $tenant->domains()->first()?->domain : 'https://nectarmetrics.com.ng';
+            $email = $tenant?->admin_email ?? 'admin@fcta.gov.local';
+            $url = $tenant ? 'https://' . $tenant->domains()->first()?->domain : 'https://fcta.gov.local';
             $contact = '+2348034567890';
             $owner = 'admin';
 
@@ -79,7 +81,6 @@ class DocumentSeeder extends Seeder
                 $i++;
             }
 
-            // Create document record in the database
             $document = Document::create([
                 'name' => $name,
                 'file_path' => $relativePath,
@@ -97,8 +98,9 @@ class DocumentSeeder extends Seeder
                 'emojies' => $emojies,
             ]);
 
-            // Attach tags using the relationship
             $document->tags()->sync($tagsToAttach->pluck('id'));
         }
+
+        $this->command?->info("Finished seeding public documents.");
     }
 }
