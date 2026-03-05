@@ -8,12 +8,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Traits\ProtectsUuidRouteBindings;
 
 class Category extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, ProtectsUuidRouteBindings;
 
-    protected $fillable = ['name', 'slug'];
+    protected $table = 'categories';
+
+    protected $keyType = 'string';
+
 
     protected static function boot()
     {
@@ -29,5 +33,18 @@ class Category extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    /**
+     * Surgically prevent Postgres 22P02 "invalid input syntax for type uuid"
+     * when a non-UUID string is passed in a route parameter.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === null && !\Illuminate\Support\Str::isUuid($value)) {
+            return null;
+        }
+
+        return parent::resolveRouteBinding($value, $field);
     }
 }

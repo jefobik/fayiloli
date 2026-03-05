@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\ProtectsUuidRouteBindings;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Spatie\Activitylog\LogOptions;
 
 class Tag extends Model
 {
-    use HasFactory, HasUuids, Searchable, LogsActivity;
+    use HasFactory, HasUuids, Searchable, LogsActivity, ProtectsUuidRouteBindings;
 
     protected $fillable = ['name', 'slug', 'code', 'background_color', 'foreground_color'];
 
@@ -53,5 +54,18 @@ class Tag extends Model
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('tag');
+    }
+
+    /**
+     * Surgically prevent Postgres 22P02 "invalid input syntax for type uuid"
+     * when a non-UUID string is passed in a route parameter.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === null && !\Illuminate\Support\Str::isUuid($value)) {
+            return null;
+        }
+
+        return parent::resolveRouteBinding($value, $field);
     }
 }

@@ -1,12 +1,13 @@
 /**
- * ENTERPRISE DESIGN TOKENS v2.0
+ * ENTERPRISE DESIGN TOKENS v3.0 — Google Workspace Edition
  * Optimized for Laravel 12 + Livewire v4 + TALLStackUI
- * Aesthetic: Clean, Low-Contrast, Enterprise (Google Drive / SharePoint inspired)
+ * Aesthetic: Google Workspace — clean white canvas, crisp elevation,
+ *             tenant-brandable primary, GW neutral blue accent.
  */
 
 :root {
-    /* --- PRIMITIVE PALETTE (Neutral/Slate) --- */
-    --slate-50: #f8fafc;
+    /* ── PRIMITIVE PALETTE (Neutral/Slate) ──────────────────────────── */
+    --slate-50:  #f8fafc;
     --slate-100: #f1f5f9;
     --slate-200: #e2e8f0;
     --slate-300: #cbd5e1;
@@ -18,18 +19,47 @@
     --slate-900: #0f172a;
     --slate-950: #020617;
 
-    /* --- FEEDBACK PRIMITIVES --- */
-    --success-500: #10b981;
-    --success-600: #059669;
-    --warning-500: #f59e0b;
-    --warning-600: #d97706;
-    --danger-500: #ef4444;
-    --danger-600: #dc2626;
-    --info-500: #3b82f6;
-    --info-600: #2563eb;
+    /* ── GW NEUTRAL CANVAS PRIMITIVES ─────────────────────────────── */
+    /* Matches Google Workspace's actual surface values */
+    --gw-canvas:        #f9fbfd;   /* Page background — slightly cooler than white */
+    --gw-surface:       #ffffff;   /* Card / panel surface */
+    --gw-surface-2:     #f8f9fa;   /* Secondary surface (rail, list hover bg) */
+    --gw-surface-hover: rgba(0, 0, 0, 0.04); /* Hover overlay on white surfaces */
+    --gw-surface-active:#e8f0fe;   /* Active / selected chip bg (GW blue tint) */
+    --gw-border:        #e0e0e0;   /* Dividers, card borders — GW uses this exact value */
+    --gw-border-subtle: #f1f3f4;   /* Very subtle separator */
 
-    /* --- BRAND PRIMARIES (Tenant default: Indigo/Violet) --- */
-    --primary-50: #f5f3ff;
+    /* ── GW BLUE ACCENT (secondary action colour) ────────────────── */
+    --gw-blue-50:  #e8f0fe;
+    --gw-blue-100: #d2e3fc;
+    --gw-blue-200: #aecbfa;
+    --gw-blue-400: #669df6;
+    --gw-blue-500: #4285f4;   /* Google primary blue */
+    --gw-blue-600: #1a73e8;   /* GW action blue — links, chips */
+    --gw-blue-700: #1557b0;
+
+    /* ── FEEDBACK PRIMITIVES ─────────────────────────────────────── */
+    --success-50:  #e6f4ea;
+    --success-500: #34a853;   /* Google green */
+    --success-600: #1e8e3e;
+    --warning-50:  #fef7e0;
+    --warning-500: #fbbc04;   /* Google yellow */
+    --warning-600: #f29900;
+    --danger-50:   #fce8e6;
+    --danger-500:  #ea4335;   /* Google red */
+    --danger-600:  #c5221f;
+    --info-50:     #e8f0fe;   /* GW blue tint — info surfaces */
+    --info-500:    #4285f4;
+    --info-600:    #1a73e8;
+
+    /* ── SEMANTIC DIVIDERS ──────────────────── */
+    /* Use --divider for list separators within white surfaces (not card borders) */
+    --divider: var(--gw-border-subtle, #f1f3f4);
+    /* Use --divider-strong for headers inside cards */
+    --divider-strong: var(--gw-border, #e0e0e0);
+
+    /* ── BRAND PRIMARIES (Tenant default: Indigo/Violet) ─────────── */
+    --primary-50:  #f5f3ff;
     --primary-100: #ede9fe;
     --primary-200: #ddd6fe;
     --primary-300: #c4b5fd;
@@ -41,77 +71,307 @@
     --primary-900: #4c1d95;
     --primary-950: #2e1065;
 
-    /* --- SEMANTIC TOKENS: SURFACE & BACKGROUND --- */
-    --app-bg: var(--slate-50);
-    --panel-bg: #ffffff;
-    --panel-border: var(--slate-200);
-    --panel-border-subtle: var(--slate-100);
-    
-    /* --- SEMANTIC TOKENS: TEXT --- */
-    --text-main: var(--slate-800);
-    --text-muted: var(--slate-500);
-    --text-ghost: var(--slate-400);
+    /* ── SEMANTIC TOKENS: SURFACE & BACKGROUND ───────────────────── */
+    --app-bg:              var(--gw-canvas);
+    --panel-bg:            var(--gw-surface);
+    --panel-border:        var(--gw-border);
+    --panel-border-subtle: var(--gw-border-subtle);
+
+    /* ── SEMANTIC TOKENS: TEXT ───────────────────────────────────── */
+    --text-main:    #202124;   /* GW body text */
+    --text-muted:   #5f6368;   /* GW secondary text */
+    --text-ghost:   #9aa0a6;   /* GW placeholder text */
     --text-inverse: #ffffff;
 
-    /* --- TYPOGRAPHY SYSTEM --- */
-    --font-size-xs: 0.75rem;     /* 12px */
-    --font-size-sm: 0.875rem;    /* 14px */
-    --font-size-base: 1rem;      /* 16px */
-    --font-size-lg: 1.125rem;    /* 18px */
-    --font-size-xl: 1.25rem;     /* 20px */
-    
-    --font-weight-normal: 400;
-    --font-weight-medium: 500;
-    --font-weight-semibold: 600;
-    --font-weight-bold: 700;
+    /* ── ELEVATION SYSTEM (Material Design inspired, GW values) ──── */
+    --elevation-0: none;
+    --elevation-1: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+    --elevation-2: 0 1px 2px 0 rgba(60,64,67,.3), 0 2px 6px 2px rgba(60,64,67,.15);
+    --elevation-3: 0 4px 8px 3px rgba(60,64,67,.15), 0 1px 3px 0 rgba(60,64,67,.30);
+    --elevation-4: 0 6px 10px 4px rgba(60,64,67,.15), 0 2px 3px 0 rgba(60,64,67,.30);
 
-    /* --- SHADOW SYSTEM --- */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    /* Keep old names as aliases for compat */
+    --shadow-sm:    var(--elevation-1);
+    --shadow-md:    var(--elevation-2);
+    --shadow-lg:    var(--elevation-3);
     --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 
-    /* --- ANIMATION & TRANSITION --- */
-    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-    
-    /* --- Z-INDEX SCALE --- */
-    --z-dropdown: 1000;
-    --z-sticky: 1020;
-    --z-fixed: 1030;
+    /* ── BORDER RADIUS SCALE ─────────────────────────────────────── */
+    --radius-xs:   4px;
+    --radius-sm:   8px;
+    --radius-md:   12px;
+    --radius-lg:   16px;
+    --radius-xl:   24px;
+    --radius-pill: 9999px;
+
+    /* ── LAYOUT / SHELL DIMENSIONS ───────────────────────────────── */
+    --gw-header-height:      64px;
+    --gw-rail-width-compact: 72px;    /* Icon-only rail — matches GW left nav collapsed */
+    --gw-rail-width-full:    240px;   /* Expanded rail — Google Drive uses 240px exactly */
+    --gw-rail-item-h:        36px;    /* Nav item height — GW uses 36px (not 40px) */
+    --gw-rail-radius:        var(--radius-sm); /* GW uses rounded-md items, not full pill */
+
+    /* ── CONTENT AREA ────────────────────────────────────────────── */
+    --gw-content-max-width:  1440px;  /* Hard cap on sprawl for 4K screens */
+    --gw-content-inset:      clamp(1rem, 4vw, 3rem); /* Fluid horizontal padding */
+
+    /* ── TOPBAR ──────────────────────────────────────────────────── */
+    --gw-topbar-shadow:      0 1px 0 0 var(--gw-border);  /* Single line, not drop shadow */
+    --gw-topbar-bg:          var(--gw-surface);            /* Same as panel-bg */
+
+    /* ── SIDEBAR / RAIL ──────────────────────────────────────────── */
+    --gw-rail-bg:            var(--gw-surface);
+    --gw-rail-border:        var(--gw-border);
+    --gw-rail-section-gap:   1.5rem;
+    --gw-rail-section-label-size: 0.625rem; /* 10px — GW section headers */
+
+    /* ── SURFACE LAYERS (for card-over-canvas stacking) ──────────── */
+    /* light: canvas #f9fbfd → panel #fff → raised #fff (shadow diff) */
+    /* dark:  canvas #131314 → panel #202124 → raised #2b2b2e        */
+    --gw-surface-raised:     #ffffff;
+
+    /* ── SKELETON / LOADING ──────────────────────────────────────── */
+    --gw-skeleton-bg:        var(--slate-100);
+    --gw-skeleton-shimmer:   linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255,255,255,0.6) 50%,
+        transparent 100%
+    );
+
+    /* ── TYPOGRAPHY SYSTEM ───────────────────────────────────────── */
+    --font-size-xs:   0.6875rem;  /* 11px — GW micro labels */
+    --font-size-sm:   0.75rem;    /* 12px — GW secondary text */
+    --font-size-base: 0.875rem;   /* 14px — GW body (matches Google's 14px default) */
+    --font-size-md:   1rem;       /* 16px */
+    --font-size-lg:   1.125rem;   /* 18px */
+    --font-size-xl:   1.25rem;    /* 20px — section headings */
+    --font-size-2xl:  1.5rem;     /* 24px — page headings */
+
+    --font-weight-normal:   400;
+    --font-weight-medium:   500;
+    --font-weight-semibold: 600;
+    --font-weight-bold:     700;
+
+    /* ── ANIMATION & TRANSITION ──────────────────────────────────── */
+    --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base:   250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* ── Z-INDEX SCALE ───────────────────────────────────────────── */
+    --z-dropdown:       1000;
+    --z-sticky:         1020;
+    --z-fixed:          1030;
     --z-modal-backdrop: 1040;
-    --z-modal: 1050;
-    --z-popover: 1060;
-    --z-tooltip: 1070;
+    --z-modal:          1050;
+    --z-popover:        1060;
+    --z-tooltip:        1070;
+    --z-header:         1080;  /* Topbar always on top of rail */
 
-    /* --- TENANT OVERRIDE SYSTEM --- */
-    --tenant-primary: var(--primary-600);
+    /* ── TENANT OVERRIDE SYSTEM ─────────────────────────────────── */
+    --tenant-primary:       var(--primary-600);
     --tenant-primary-hover: var(--primary-700);
-    --tenant-accent: var(--primary-500);
-    --tenant-logo-height: 32px;
+    --tenant-primary-muted: color-mix(in srgb, var(--tenant-primary) 12%, transparent);
+    --tenant-accent:        var(--primary-500);
+    --tenant-logo-height:   32px;
 }
 
-/* --- DARK MODE OVERRIDES --- */
+/* ── DARK MODE OVERRIDES ────────────────────────────────────────── */
 .dark, [data-theme="dark"] {
-    --app-bg: var(--slate-950);
-    --panel-bg: var(--slate-900);
-    --panel-border: var(--slate-800);
-    --panel-border-subtle: var(--slate-900);
+    /* GW dark canvas: #202124 is Google's actual dark surface */
+    --gw-canvas:        #131314;
+    --gw-surface:       #202124;
+    --gw-surface-2:     #2b2b2e;
+    --gw-surface-hover: rgba(255,255,255,0.06);
+    --gw-surface-active:#1e3a5f;
+    --gw-border:        #3c4043;
+    --gw-border-subtle: #2b2b2e;
 
-    --text-main: var(--slate-200);
-    --text-muted: var(--slate-400);
-    --text-ghost: var(--slate-500);
-    --text-inverse: var(--slate-950);
+    --app-bg:              var(--gw-canvas);
+    --panel-bg:            var(--gw-surface);
+    --panel-border:        var(--gw-border);
+    --panel-border-subtle: var(--gw-border-subtle);
 
-    --tenant-primary: var(--primary-400);
-    --tenant-primary-hover: var(--primary-500);
+    --text-main:    #e8eaed;   /* GW dark body */
+    --text-muted:   #9aa0a6;   /* GW dark secondary */
+    --text-ghost:   #5f6368;   /* GW dark placeholder */
+    --text-inverse: #202124;
 
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+    --tenant-primary:       var(--primary-400);
+    --tenant-primary-hover: var(--primary-300);
+    --tenant-primary-muted: color-mix(in srgb, var(--tenant-primary) 16%, transparent);
+
+    --elevation-0: none;
+    --elevation-1: 0 1px 2px 0 rgba(0,0,0,.6), 0 1px 3px 1px rgba(0,0,0,.4);
+    --elevation-2: 0 1px 2px 0 rgba(0,0,0,.6), 0 2px 6px 2px rgba(0,0,0,.4);
+    --elevation-3: 0 4px 8px 3px rgba(0,0,0,.4), 0 1px 3px 0 rgba(0,0,0,.6);
+
+    --shadow-sm: var(--elevation-1);
+    --shadow-md: var(--elevation-2);
+    --shadow-lg: var(--elevation-3);
+
+    /* New tokens — dark overrides */
+    --gw-surface-raised:   #2b2b2e;
+    --gw-topbar-shadow:    0 1px 0 0 var(--gw-border);
+    --gw-rail-bg:          var(--gw-surface);
+    --gw-rail-border:      var(--gw-border);
+    --gw-skeleton-bg:      var(--gw-surface-2);
+    --gw-skeleton-shimmer: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255,255,255,0.06) 50%,
+        transparent 100%
+    );
 }
 
-/* --- TALLSTACK UI MAPPINGS --- */
+/* ── TALLSTACK UI TOKEN BRIDGE ───────────────────────────────────────
+   Maps all TALLStackUI CSS custom properties to this design system's
+   tokens so TALLStackUI components (buttons, modals, toasts, selects,
+   badges) inherit the correct tenant brand colour, feedback colours,
+   and border-radius without any per-component overrides.
+   ─────────────────────────────────────────────────────────────────── */
 :root {
-    --ts-primary: var(--tenant-primary);
+    /* ── Brand / interactive ──────────────────────────────────── */
+    --ts-primary:       var(--tenant-primary);
+    --ts-primary-focus: var(--tenant-primary-hover);
+
+    /* ── Feedback states ──────────────────────────────────────── */
+    --ts-error:   var(--danger-500);
+    --ts-warning: var(--warning-500);
+    --ts-success: var(--success-500);
+    --ts-info:    var(--info-500);
+
+    /* ── Surfaces & borders ───────────────────────────────────── */
+    --ts-border:     var(--panel-border);
+    --ts-bg:         var(--panel-bg);
+    --ts-bg-hover:   var(--gw-surface-hover);
+    --ts-text:       var(--text-main);
+    --ts-text-muted: var(--text-muted);
+
+    /* ── Shape ────────────────────────────────────────────────── */
+    --ts-radius: var(--radius-sm);
+
+    /* ── Focus ring ───────────────────────────────────────────── */
+    --ts-ring-color: var(--tenant-primary);
 }
+
+/* ── GOOGLE WORKSPACE VIEW DENSITY SYSTEM ────────────────────────────
+   Density controls padding/height/spacing across list rows, table
+   cells, and card grids. Toggling data-density on <html> (or any
+   ancestor) cascades the correct tokens to every component.
+
+   Three levels match Google Workspace's own density vocabulary:
+     comfortable (default) — matches Drive / Gmail default view
+     compact               — tighter spacing, more items visible
+     cozy                  — between comfortable and compact
+
+   Usage in Blade / Alpine:
+     document.documentElement.dataset.density = 'compact';
+   Persisted via UserPreference key 'view_density'.
+   ─────────────────────────────────────────────────────────────────── */
+:root,
+[data-density="comfortable"] {
+    --density-row-h:         40px;   /* Table / list row height */
+    --density-list-item-h:   var(--gw-rail-item-h); /* Nav rail item */
+    --density-cell-px:       1rem;   /* Table cell horizontal padding */
+    --density-cell-py:       0.625rem; /* Table cell vertical padding */
+    --density-card-px:       1.5rem; /* Card horizontal padding */
+    --density-card-py:       1.25rem; /* Card vertical padding */
+    --density-gap:           1rem;   /* Grid / flex gap between items */
+    --density-avatar-size:   2rem;   /* Avatar/chip size */
+    --density-font-size:     var(--font-size-base); /* 14px */
+    --density-label-size:    var(--font-size-sm);   /* 12px */
+}
+
+[data-density="cozy"] {
+    --density-row-h:         36px;
+    --density-list-item-h:   32px;
+    --density-cell-px:       0.875rem;
+    --density-cell-py:       0.5rem;
+    --density-card-px:       1.25rem;
+    --density-card-py:       1rem;
+    --density-gap:           0.75rem;
+    --density-avatar-size:   1.75rem;
+    --density-font-size:     var(--font-size-base);
+    --density-label-size:    var(--font-size-sm);
+}
+
+[data-density="compact"] {
+    --density-row-h:         28px;
+    --density-list-item-h:   28px;
+    --density-cell-px:       0.625rem;
+    --density-cell-py:       0.25rem;
+    --density-card-px:       1rem;
+    --density-card-py:       0.75rem;
+    --density-gap:           0.5rem;
+    --density-avatar-size:   1.5rem;
+    --density-font-size:     var(--font-size-sm);   /* 12px compact */
+    --density-label-size:    var(--font-size-xs);   /* 11px compact */
+}
+
+/* ── GW UTILITY CLASSES (density-aware) ─────────────────────────────
+   Opt-in classes using the density tokens above. Use these on table
+   rows, card bodies, and list containers instead of hard-coded padding.
+   ─────────────────────────────────────────────────────────────────── */
+.gw-row {
+    height: var(--density-row-h);
+    padding-left:  var(--density-cell-px);
+    padding-right: var(--density-cell-px);
+}
+
+.gw-cell {
+    padding: var(--density-cell-py) var(--density-cell-px);
+    font-size: var(--density-font-size);
+}
+
+.gw-card-body {
+    padding: var(--density-card-py) var(--density-card-px);
+}
+
+/* ── SKIP NAVIGATION LINK (WCAG 2.4.1) ──────────────────────────────
+   Offscreen until focused, then slides in above all content.
+   ─────────────────────────────────────────────────────────────────── */
+.gw-skip-link {
+    position: fixed;
+    top: -100%;
+    left: 1rem;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    background: var(--tenant-primary);
+    color: #ffffff;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+    transition: top 200ms ease;
+}
+.gw-skip-link:focus {
+    top: 1rem;
+}
+
+/* ── TOPBAR BUTTON UTILITY (reused in header.blade.php) ──────────────
+   40px × 40px circular icon buttons used across the top app bar.
+   ─────────────────────────────────────────────────────────────────── */
+.gw-topbar-btn {
+    display:         inline-flex;
+    align-items:     center;
+    justify-content: center;
+    width:           40px;
+    height:          40px;
+    border-radius:   50%;
+    border:          none;
+    background:      transparent;
+    color:           var(--text-muted);
+    cursor:          pointer;
+    transition:      background-color 150ms ease, color 150ms ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.gw-topbar-btn:hover {
+    background-color: var(--gw-surface-hover);
+    color:            var(--text-main);
+}
+.gw-topbar-btn:focus-visible {
+    outline:        2px solid var(--tenant-primary);
+    outline-offset: 2px;
+}
+

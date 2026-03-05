@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\ProtectsUuidRouteBindings;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +17,7 @@ use Laravel\Scout\Searchable;
 
 class Document extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes, LogsActivity, Searchable;
+    use HasFactory, HasUuids, SoftDeletes, LogsActivity, Searchable, ProtectsUuidRouteBindings;
 
     protected static function boot()
     {
@@ -39,8 +40,23 @@ class Document extends Model
     }
 
     protected $fillable = [
-        'name', 'slug', 'original_name', 'file_path', 'size', 'extension', 'folder_id', 'visibility', 'share', 'download', 'email',
-        'url', 'contact', 'owner', 'date', 'emojies', 'position'
+        'name',
+        'slug',
+        'original_name',
+        'file_path',
+        'size',
+        'extension',
+        'folder_id',
+        'visibility',
+        'share',
+        'download',
+        'email',
+        'url',
+        'contact',
+        'owner',
+        'date',
+        'emojies',
+        'position'
     ];
 
     public function getFileIcon()
@@ -84,12 +100,12 @@ class Document extends Model
     public function toSearchableArray(): array
     {
         return [
-            'id'            => $this->id,
-            'name'          => $this->name,
+            'id' => $this->id,
+            'name' => $this->name,
             'original_name' => $this->original_name,
-            'extension'     => $this->extension,
-            'folder_name'   => $this->folder?->name,
-            'tags'          => $this->tags->pluck('name')->implode(' '),
+            'extension' => $this->extension,
+            'folder_name' => $this->folder?->name,
+            'tags' => $this->tags->pluck('name')->implode(' '),
         ];
     }
 
@@ -100,5 +116,34 @@ class Document extends Model
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('document');
+    }
+
+    /**
+     * Coerce the owner FK to null when it isn't a valid UUID.
+     * Eloquent's eager-loader calls $document->owner to collect FK values;
+     * returning null here prevents Postgres from receiving 'admin' (or any
+     * other legacy string) in a `WHERE users.id IN (...)` query.
+     */
+    public function getOwnerAttribute(mixed $value): ?string
+    {
+        return ($value && \Illuminate\Support\Str::isUuid($value)) ? $value : null;
+    }
+
+    public function ownerUser()
+    {
+        return $this->belongsTo(User::class, 'owner');
+    }
+
+    /**
+     * Surgically prevent Postgres 22P02 "invalid input syntax for type uuid"
+     * when a non-UUID string is passed in a route parameter.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === null && !\Illuminate\Support\Str::isUuid($value)) {
+            return null;
+        }
+
+        return parent::resolveRouteBinding($value, $field);
     }
 }

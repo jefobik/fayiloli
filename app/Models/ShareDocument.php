@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\ProtectsUuidRouteBindings;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -11,12 +12,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ShareDocument extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, ProtectsUuidRouteBindings;
 
     protected $fillable = [
-        'shared_id', 'name', 'token',
-        'url', 'slug', 'valid_until', 'visibility',
-        'share_id', 'share_type', 'user_type', 'user_id'
+        'shared_id',
+        'name',
+        'token',
+        'url',
+        'slug',
+        'valid_until',
+        'visibility',
+        'share_id',
+        'share_type',
+        'user_type',
+        'user_id'
     ];
 
 
@@ -50,5 +59,18 @@ class ShareDocument extends Model
     public function scopeHasExpired($query)
     {
         return $query->whereNotNull('valid_until')->where('valid_until', '<', now());
+    }
+
+    /**
+     * Surgically prevent Postgres 22P02 "invalid input syntax for type uuid"
+     * when a non-UUID string is passed in a route parameter.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === null && !\Illuminate\Support\Str::isUuid($value)) {
+            return null;
+        }
+
+        return parent::resolveRouteBinding($value, $field);
     }
 }

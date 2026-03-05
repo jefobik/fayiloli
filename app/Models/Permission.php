@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Spatie\Permission\Models\Permission as SpatiePermission;
+use App\Traits\ProtectsUuidRouteBindings;
 
 /**
  * Custom Permission model with UUID primary key.
@@ -18,5 +19,5 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
  */
 class Permission extends SpatiePermission
 {
-    use HasUuids;
+    use HasUuids, ProtectsUuidRouteBindings;
 }

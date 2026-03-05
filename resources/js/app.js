@@ -1,5 +1,13 @@
 import './bootstrap';
+import './theme-manager';
 import { Chart, registerables } from 'chart.js';
+import $ from 'jquery';
+
+// ─── JQUERY ────────────────────────────────────────────────────────────────
+// Bundled via Vite — removes the synchronous CDN <script> that was blocking
+// first paint and carried no SRI hash. legacy-edms-helpers.js accesses it via
+// window.$ / window.jQuery exactly as before.
+window.$ = window.jQuery = $;
 
 // ─── CHART.JS ──────────────────────────────────────────────────────────────
 // Registered globally so @script blocks in Livewire views can access `Chart`

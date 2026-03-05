@@ -50,6 +50,13 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
     // The root route '/' is now handled by a unified route in web.php
     // that detects tenancy()->initialized.
 
+    // ─── Livewire ──────────────────────────────────────────────────────────
+    // In multi-tenant setups, Livewire component updates must run through the
+    // tenant middleware stack so the correct database connection is active.
+    \Livewire\Livewire::setUpdateRoute(function ($handle) {
+        return Route::post('/livewire/update', $handle);
+    });
+
     // ─── Authentication ────────────────────────────────────────────────────
     // Handled centrally by routes/web.php using InitializeTenancyByDomain
     // global middleware.
@@ -85,14 +92,8 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
         // ── Documents ──────────────────────────────────────────────────────
         Route::middleware('tenant.module:documents')->group(function () {
             Route::get('/', [DocumentController::class, 'index'])->name('documents.index');
-            Route::post('/update-visibility', [DocumentController::class, 'updateVisibility'])->name('update.visibility');
-            Route::get('/getFiles/{folder}', [DocumentController::class, 'getFiles'])->name('getFiles');
             Route::post('/send-email-document', [DocumentController::class, 'sendDocumentEmail'])->name('send.email');
             Route::get('/getDocumentComments', [DocumentController::class, 'getDocumentComments'])->name('getDocumentComments');
-            Route::post('/upload', [DocumentController::class, 'uploadDocumentFiles'])->name('upload');
-            Route::post('/change-document', [DocumentController::class, 'changeFile'])->name('changeFile');
-            Route::get('/filter-documents-by-tags', [DocumentController::class, 'filterDocumentByTag'])->name('filterDocumentByTag');
-            Route::post('/update-document-order', [DocumentController::class, 'updateDocumentOrder'])->name('update.document.order');
         });
 
         // ── Users API (used by document/share pickers — gated with documents) ──

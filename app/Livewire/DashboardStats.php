@@ -13,6 +13,7 @@ use App\Models\ShareDocument;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\Models\MongoActivity;
 
 /**
@@ -119,21 +120,40 @@ class DashboardStats extends Component
         // (common in freshly-provisioned tenants) the component degrades
         // gracefully to an empty list rather than crashing the dashboard.
         try {
-            $this->recentActivity = MongoActivity::with('causer')
-                ->latest()
-                ->limit(10)
-                ->get()
-                ->map(fn($a) => [
+            $activities = MongoActivity::latest()->limit(10)->get();
+
+            // Guard: legacy MongoDB records may carry causer_id = 'admin' (a
+            // string username from before UUID migration). MongoActivity::with('causer')
+            // builds WHERE users.id IN ('admin', ...) → SQLSTATE[22P02].
+            // Pre-resolve causers via a single UUID-validated batch query instead.
+            $validIds = $activities
+                ->pluck('causer_id')
+                ->filter(fn($id) => $id && Str::isUuid((string) $id))
+                ->unique()
+                ->values();
+
+            $users = $validIds->isNotEmpty()
+                ? User::whereIn('id', $validIds)->get()->keyBy('id')
+                : collect();
+
+            $this->recentActivity = $activities->map(function ($a) use ($users) {
+                $id = $a->causer_id ?? null;
+                $causerName = ($id && Str::isUuid((string) $id))
+                    ? ($users->get($id)?->name ?? 'System')
+                    : 'System';
+
+                return [
                     // Cast to string + fallback ensures wire:key is never null,
                     // which would cause Livewire's DOM morpher to crash with
                     // "Attempt to read property childNodes on null".
-                    'id' => (string) ($a->_id ?? $a->id ?? uniqid('act_', true)),
+                    'id'          => (string) ($a->_id ?? $a->id ?? uniqid('act_', true)),
                     'description' => $a->description ?? '',
-                    'event' => $a->event ?? 'updated',
-                    'subject' => $a->subject_type ? class_basename($a->subject_type) : 'System',
-                    'causer' => $a->causer?->name ?? 'System',
-                    'time' => $a->created_at?->diffForHumans() ?? 'Unknown',
-                ])->toArray();
+                    'event'       => $a->event ?? 'updated',
+                    'subject'     => $a->subject_type ? class_basename($a->subject_type) : 'System',
+                    'causer'      => $causerName,
+                    'time'        => $a->created_at?->diffForHumans() ?? 'Unknown',
+                ];
+            })->toArray();
         } catch (\Throwable $e) {
             // Log silently and fall back to empty — dashboard still loads.
             logger()->warning('[DashboardStats] MongoDB activity fetch failed: ' . $e->getMessage());

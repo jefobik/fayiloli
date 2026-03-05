@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use ZipArchive;
 use App\Models\Folder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Http\Requests\StoreFolderRequest;
 use App\Services\FolderService;
 
@@ -77,7 +78,9 @@ class FolderController extends Controller
             'folder_ids' => 'required|array'
         ]);
 
-        $folders = Folder::with('documents')->whereIn('id', $request->folder_ids)->get();
+        $folderIds = array_filter($request->folder_ids, fn($id) => Str::isUuid($id));
+
+        $folders = Folder::with('documents')->whereIn('id', $folderIds)->get();
 
         return response()->json(['folders' => $folders]);
     }
@@ -107,7 +110,9 @@ class FolderController extends Controller
     {
         $this->authorize('delete', Folder::class);
 
-        $folders = Folder::whereIn('id', $request->folder_ids ?? [])->get();
+        $folderIds = array_filter($request->folder_ids ?? [], fn($id) => Str::isUuid($id));
+
+        $folders = Folder::whereIn('id', $folderIds)->get();
 
         foreach ($folders as $key => $folder) {
             $folder->deleteFolder();

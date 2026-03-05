@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Spatie\Permission\Models\Role as SpatieRole;
+use App\Traits\ProtectsUuidRouteBindings;
 
 /**
  * Custom Role model with UUID primary key.
@@ -18,5 +19,5 @@ use Spatie\Permission\Models\Role as SpatieRole;
  */
 class Role extends SpatieRole
 {
-    use HasUuids;
+    use HasUuids, ProtectsUuidRouteBindings;
 }

@@ -46,6 +46,27 @@ Route::get('/', function () {
 //  tenancy on that subdomain and authenticates against the tenant DB.
 Route::get('/portal', PortalController::class)->name('portal.discover');
 
+// ─── Livewire Update Compatibility Shim ──────────────────────────────────
+//  Some browser clients cache the old un-hashed `/livewire/update` endpoint.
+//  This route accepts those stale POST requests and internally forwards them
+//  to the real hashed endpoint so existing sessions don't break with a 404.
+Route::post('/livewire/update', function (\Illuminate\Http\Request $request) {
+    $updateUri = app('livewire')->getUpdateUri();
+    // Internally re-dispatch the request to the correct hashed route
+    $subRequest = \Illuminate\Http\Request::create(
+        $updateUri,
+        'POST',
+        $request->all(),
+        $request->cookies->all(),
+        $request->files->all(),
+        $request->server->all(),
+        $request->getContent()
+    );
+    $subRequest->headers->replace($request->headers->all());
+
+    return app()->handle($subRequest);
+})->middleware('web')->name('livewire.update.compat');
+
 // ─── Authentication (shared — central admin + tenant users) ──────────────
 //  A SINGLE set of auth routes serves both the super-admin portal and every
 //  tenant domain.  InitializeTenancyByDomain (prepended to the web group in

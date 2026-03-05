@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use ZipArchive;
 
 
@@ -28,7 +29,7 @@ class FolderService
         }
 
         // Reload the folders after creating the new one
-        return  $this->getParentFolders();
+        return $this->getParentFolders();
     }
 
     function getParentFolders()
@@ -43,7 +44,7 @@ class FolderService
         $positions = $request->positions;
 
         foreach ($positions as $folderId => $position) {
-            $folder = Folder::find($folderId);
+            $folder = Str::isUuid($folderId) ? Folder::find($folderId) : null;
             if ($folder) {
                 $folder->update(['position' => $position]);
             }
@@ -58,13 +59,13 @@ class FolderService
         $parentId = $request->parent_id;
         $positions = $request->positions;
 
-        $parentFolder = Folder::find($parentId);
+        $parentFolder = Str::isUuid($parentId) ? Folder::find($parentId) : null;
         if (!$parentFolder) {
             return response()->json(['error' => 'Parent folder not found'], 404);
         }
 
         foreach ($positions as $folderId => $position) {
-            $childFolder = $parentFolder->subfolders()->find($folderId);
+            $childFolder = Str::isUuid($folderId) ? $parentFolder->subfolders()->find($folderId) : null;
             if ($childFolder) {
                 $childFolder->update(['position' => $position]);
             }
@@ -123,13 +124,15 @@ class FolderService
 
     function deleteSelecetdFolder($request)
     {
+        $folderIds = array_filter($request->folder_ids ?? [], fn($id) => Str::isUuid($id));
+
         // Retrieve folder instance
-        $folders = Folder::findOrFail($request->folder_ids);
+        $folders = Folder::findMany($folderIds);
 
         foreach ($folders as $key => $folder) {
             $folder->deleteFolder();
         }
 
-        return response()->json(['html' =>  $this->getParentFolders(), 'message' => 'Folder and its related records deleted successfully'], 200);
+        return response()->json(['html' => $this->getParentFolders(), 'message' => 'Folder and its related records deleted successfully'], 200);
     }
 }

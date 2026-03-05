@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DocumentService
 {
@@ -20,7 +21,9 @@ class DocumentService
     public function setUpdateDocumentOrder($folderId, $documentIds)
     {
         foreach ($documentIds as $position => $documentId) {
-            Document::whereFolderId($folderId)->whereId($documentId)->update(['position' => $position]);
+            if (Str::isUuid($folderId) && Str::isUuid($documentId)) {
+                Document::whereFolderId($folderId)->whereId($documentId)->update(['position' => $position]);
+            }
         }
 
         return $folderId;
@@ -33,6 +36,13 @@ class DocumentService
             ->pluck('document_id')
             ->values()
             ->toArray() ?? [];
+
+        if (!Str::isUuid($folderId)) {
+            $folderInfo = null;
+            $folderData = generateSidebarMenu();
+            $documents = collect();
+            return compact('documents', 'folderInfo', 'folderData');
+        }
 
         $documents = Document::whereFolderId($folderId)
             ->when(count($documentTags) > 0, function ($query) use ($documentTags) {
@@ -56,6 +66,10 @@ class DocumentService
             ->values()
             ->toArray() ?? [];
 
+        if (!Str::isUuid($folderId)) {
+            return collect();
+        }
+
         $documents = Document::whereFolderId($folderId)
             ->when(count($documentTags) > 0, function ($query) use ($documentTags) {
                 $query->whereIn('id', $documentTags);
@@ -64,7 +78,7 @@ class DocumentService
             ->latest()
             ->get();
 
-        return $documents->isEmpty() ? [] : $documents;
+        return $documents->isEmpty() ? collect() : $documents;
     }
 
 
@@ -84,7 +98,7 @@ class DocumentService
             'user_type' => $tagUser ? User::class : Null,
             'activity_type' => $request->type,
             'model_type' => Document::class,
-            'model_id' => $request->document_id,
+            'model_id' => Str::isUuid($request->document_id) ? $request->document_id : null,
             'message' => $request->content,
             'created_by_type' => User::class ?? Null,
             'created_by_id' => $auth->id ?? Null,
@@ -100,6 +114,10 @@ class DocumentService
 
     public function getDocumentNotifications($documentId)
     {
+        if (!Str::isUuid($documentId)) {
+            return collect();
+        }
+
         return Notification::with('user')
             ->select('id', 'user_id', 'user_type', 'activity_type', 'model_type', 'model_id', 'message', 'status', 'dismiss_status', 'created_by_type', 'created_by_id', 'created_at')
             ->selectRaw("DATE_FORMAT(created_at, '%M %e %Y') as date, COUNT(*) as count")
@@ -131,10 +149,13 @@ class DocumentService
         $documentId = $request->input('document_id');
         $type = $request->input('type');
         $requestData = $request->input('data');
-        $document = Document::find($documentId);
+
+        $document = Str::isUuid($documentId) ? Document::find($documentId) : null;
+
         $documentName = $request->input('name');
         $folderId = $request->input('folder_id');
-        $folder = Folder::find($folderId);
+
+        $folder = Str::isUuid($folderId) ? Folder::find($folderId) : null;
 
         if (!$document) {
             return response()->json(['message' => 'Document not found'], 404);
@@ -206,7 +227,7 @@ class DocumentService
     {
         // dd($request);
         $folderId = $request->input('folder_id') === 'null' ? null : $request->input('folder_id');
-        $parentFolderObj = $folderId ? Folder::find($folderId) : null;
+        $parentFolderObj = ($folderId && Str::isUuid($folderId)) ? Folder::find($folderId) : null;
         $parentFolderName = $parentFolderObj ? $parentFolderObj->name : '';
         $createdChildFolder = null;
         $childFolderName = $request->input('folder_name') ?? uniqid();
@@ -284,7 +305,7 @@ class DocumentService
     {
         // Get the folder ID from the request
         $folderId = $request->input('folder_id') === 'null' ? null : $request->input('folder_id');
-        $folderObj = $folderId ? Folder::find($folderId) : null;
+        $folderObj = ($folderId && Str::isUuid($folderId)) ? Folder::find($folderId) : null;
         $folderName = $folderObj ? $folderObj->name : '';
         $createdChildFolder = null;
         $childFolderName = uniqid();
@@ -409,7 +430,7 @@ class DocumentService
     protected function getFolderInfo($folderId)
     {
         // Get the folder
-        $folder = Folder::find($folderId);
+        $folder = Str::isUuid($folderId) ? Folder::find($folderId) : null;
 
         if (!$folder) {
             return null; // Folder not found

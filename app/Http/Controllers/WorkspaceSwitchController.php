@@ -8,6 +8,7 @@ use App\Enums\TenantStatus;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * Cross-workspace SSO switch for tenant admin users.
@@ -42,13 +43,18 @@ class WorkspaceSwitchController extends Controller
 
         abort_unless($currentUser->isAdminOrAbove(), 403, 'Workspace switching requires admin access.');
 
+        // Ensure $tenantId is a valid UUID to prevent Postgres syntax errors (e.g. if 'admin' is passed)
+        if (!Str::isUuid($tenantId)) {
+            return back()->with('error', 'Invalid workspace identifier.');
+        }
+
         // Tenant model uses the central_connection — safe to query from tenant context.
         $target = Tenant::with('domains')
             ->where('id', $tenantId)
             ->where('status', TenantStatus::ACTIVE)
             ->first();
 
-        if (! $target) {
+        if (!$target) {
             return back()->with('error', 'The requested workspace is unavailable or inactive.');
         }
 
@@ -60,12 +66,12 @@ class WorkspaceSwitchController extends Controller
         // Look up the user's account in the TARGET tenant's isolated database.
         // $target->run() temporarily switches the default DB connection to the
         // target tenant's database, executes the callback, then switches back.
-        $email        = $currentUser->email;
+        $email = $currentUser->email;
         $targetUserId = $target->run(function () use ($email): ?string {
             return \App\Models\User::where('email', $email)->value('id');
         });
 
-        if (! $targetUserId) {
+        if (!$targetUserId) {
             return back()->with(
                 'error',
                 "You don't have an account in \"{$target->organization_name}\". "
@@ -81,10 +87,10 @@ class WorkspaceSwitchController extends Controller
             return tenancy()->impersonate($target, $targetUserId, '/home', 'web');
         });
 
-        $domain     = $target->domains->first()?->domain;
-        $scheme     = $request->getScheme();
-        $port       = (int) $request->getPort();
-        $portSuffix = ! in_array($port, [80, 443], strict: true) ? ":{$port}" : '';
+        $domain = $target->domains->first()?->domain;
+        $scheme = $request->getScheme();
+        $port = (int) $request->getPort();
+        $portSuffix = !in_array($port, [80, 443], strict: true) ? ":{$port}" : '';
 
         return redirect("{$scheme}://{$domain}{$portSuffix}/impersonate/{$token->token}");
     }

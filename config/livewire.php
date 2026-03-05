@@ -111,11 +111,11 @@ return [
     | Auto-inject Frontend Assets
     |--------------------------------------------------------------------------
     | When true, Livewire auto-inserts its JS (which includes Alpine v3) into
-    | the <head> and before </body>. Keep true; we still include
-    | @livewireStyles and @livewireScripts explicitly in `layouts/app.blade.php`
-    | so asset ordering is predictable in relation to Bootstrap and Chart.js.
+    | the <head> and before </body>. Set to FALSE for stancl/tenancy compat
+    | because auto-injected hashed routes (like /livewire-50c...) get 404s in
+    | tenant domain routing. We explicitly use @livewireScripts in app.blade.php.
     */
-    'inject_assets' => true,
+    'inject_assets' => false,
 
     /*
     |--------------------------------------------------------------------------

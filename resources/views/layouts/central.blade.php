@@ -1,8 +1,7 @@
 @php
-    $theme = 'system';
-    if (auth()->check()) {
-        $theme = auth()->user()->theme ?? 'system';
-    }
+    // ── Use ThemeService for centralized theme management ──────────────────────
+    $themeService = app(\App\Services\ThemeService::class);
+    $theme = $themeService->getThemePreference();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -27,7 +26,23 @@
                     document.body.classList.add('dark-mode');
                 });
             }
+            // Store for JavaScript access
+            window.__themePreference = theme;
+            window.__isDarkMode = isDark;
         })();
+    </script>
+
+    {{-- Expose theme config to JavaScript --}}
+    <script>
+        window.__themeConfig = @json(config('theme.features'));
+
+        {{-- ── Expose tenant context for tenant-aware theme management ─────────── --}}
+        window.__tenantContext = {
+            isTenantContext: {{ json_encode($themeService->isTenantContext()) }},
+            tenantId: {{ json_encode($themeService->getCurrentTenant()?->id) }},
+            tenantSlug: {{ json_encode($themeService->getCurrentTenant()?->data['slug'] ?? null) }},
+            contextType: {{ json_encode($themeService->isTenantContext() ? 'tenant' : 'central') }}
+        };
     </script>
 
     {{-- Favicon --}}
@@ -44,7 +59,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     {{-- Font Awesome 6 --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
+
     {{-- Livewire Styles (Auto-injected in v3+) --}}
 
     <style>
@@ -375,6 +390,60 @@
         /* Breadcrumb in dark */
         html.dark .breadcrumb-item.active { color: #94a3b8; }
 
+        /* ── Theme Switcher Tailwind Shims for Central ──────────────────── */
+        .t-switcher-container p { margin-bottom: 0.5rem; }
+        .t-switcher-container .flex { display: flex; }
+        .t-switcher-container .flex-col { flex-direction: column; }
+        .t-switcher-container .items-center { align-items: center; }
+        .t-switcher-container .justify-center { justify-content: center; }
+        .t-switcher-container .w-full { width: 100%; }
+        .t-switcher-container .grid { display: grid; }
+        .t-switcher-container .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .t-switcher-container .gap-1 { gap: 0.25rem; }
+        .t-switcher-container .gap-1\.5 { gap: 0.375rem; }
+        .t-switcher-container .p-1 { padding: 0.25rem; }
+        .t-switcher-container .p-2 { padding: 0.5rem; }
+        .t-switcher-container .px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
+        .t-switcher-container .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+        .t-switcher-container .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+        .t-switcher-container .rounded-lg { border-radius: 0.5rem; }
+        .t-switcher-container .rounded-md { border-radius: 0.375rem; }
+        .t-switcher-container .text-\[0\.62rem\] { font-size: 0.62rem; }
+        .t-switcher-container .text-\[0\.7rem\] { font-size: 0.7rem; }
+        .t-switcher-container .text-base { font-size: 1rem; }
+        .t-switcher-container .font-bold { font-weight: 700; }
+        .t-switcher-container .font-semibold { font-weight: 600; }
+        .t-switcher-container .uppercase { text-transform: uppercase; }
+        .t-switcher-container .tracking-widest { letter-spacing: 0.1em; }
+        .t-switcher-container .transition-all { transition-property: all; transition-duration: 150ms; }
+        .t-switcher-container .transition-transform { transition-property: transform; transition-duration: 150ms; }
+        .t-switcher-container .scale-110 { transform: scale(1.1); }
+        .t-switcher-container .-rotate-12 { transform: rotate(-12deg); }
+        .t-switcher-container .bg-slate-100 { background-color: #f1f5f9; }
+        .t-switcher-container .text-slate-400 { color: #94a3b8; }
+        .t-switcher-container .text-slate-500 { color: #64748b; }
+        .t-switcher-container button {
+            border: 1px solid transparent;
+            background: transparent;
+            cursor: pointer;
+        }
+        .t-switcher-container button:hover { background-color: rgba(0,0,0,0.03); color: #334155; }
+        .t-switcher-container button.bg-white {
+            background-color: #fff !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            color: #4f46e5 !important;
+        }
+        .t-switcher-container button.pointer-events-none { pointer-events: none; }
+
+        html.dark .t-switcher-container .bg-slate-800 { background-color: #1e293b; }
+        html.dark .t-switcher-container .bg-slate-100 { background-color: #1e293b; }
+        html.dark .t-switcher-container .text-slate-500 { color: #64748b; }
+        html.dark .t-switcher-container button:hover { background-color: rgba(255,255,255,0.05); color: #e2e8f0; }
+        html.dark .t-switcher-container button.bg-white {
+            background-color: #334155 !important;
+            color: #818cf8 !important;
+        }
+
         /* ── Footer ─────────────────────────────────────────────────────── */
         .central-footer {
             text-align: center;
@@ -455,70 +524,65 @@
 
     <div class="central-nav-spacer"></div>
 
-    {{-- User menu --}}
+    {{-- User Menu & Actions (Permanent Desktop) --}}
     @auth
-    <div class="position-relative" x-data="{ open: false }" @click.outside="open = false">
-        <button type="button"
-                class="central-nav-user"
-                @click="open = !open"
-                :aria-expanded="open.toString()"
-                aria-haspopup="true"
-                aria-label="User menu for {{ Auth::user()?->name }}">
-            <div class="text-end d-none d-sm-block" aria-hidden="true">
-                <div class="u-name">{{ Auth::user()?->name }}</div>
-                <div class="u-role">{{ Auth::user()?->roleLabel() ?? 'Admin' }}</div>
+    <div class="d-none d-md-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 pe-3 me-1" style="border-right: 1px solid rgba(255,255,255,0.1);">
+            <div class="text-end" aria-hidden="true">
+                <div class="u-name" style="font-size: 0.875rem; font-weight: 600; color: #f1f5f9; line-height: 1.2;">
+                    {{ Auth::user()?->name }}
+                    @if(Auth::user()?->isSuperAdmin())
+                        <span style="font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(220,38,38,.18);color:#fca5a5;padding:.15rem .3rem;border-radius:3px;border:1px solid rgba(220,38,38,.3);vertical-align:middle;margin-left:.25rem">SUPER</span>
+                    @endif
+                </div>
+                <div class="u-role" style="font-size: 0.72rem; color: #94a3b8;">{{ Auth::user()?->email }}</div>
             </div>
             <div class="central-nav-avatar" aria-hidden="true"
                  @if(Auth::user()?->isSuperAdmin()) style="background:linear-gradient(135deg,#dc2626,#7c3aed)" @endif>
                 {{ Auth::user()?->avatar_initials ?? 'SA' }}
             </div>
-            <i class="fas fa-chevron-down" aria-hidden="true" style="font-size:0.65rem;color:#64748b"></i>
+        </div>
+
+        <a href="{{ route('tenants.index') }}" class="central-nav-link" aria-label="Tenant Management">
+            <i class="fas fa-building-user" aria-hidden="true"></i> Tenant Management
+        </a>
+
+        {{-- Appearance Dropdown --}}
+        <div class="position-relative" x-data="{ openTheme: false }" @click.outside="openTheme = false" @close-theme-dropdown.window="openTheme = false">
+            <button type="button" class="central-nav-link" @click="openTheme = !openTheme" aria-label="Appearance options">
+                <i class="fas fa-circle-half-stroke" aria-hidden="true"></i> Appearance
+            </button>
+            <div class="central-dropdown"
+                 x-show="openTheme" x-cloak
+                 style="top: calc(100% + 12px); right: 0; min-width: 260px; z-index: 200;"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95">
+                <div class="t-switcher-container p-1">
+                    <livewire:global-theme-switcher />
+                </div>
+            </div>
+        </div>
+
+        <button type="button"
+                onclick="document.getElementById('central-logout').submit()"
+                class="central-nav-link"
+                style="color: #fca5a5; background: none; border: none; cursor: pointer;"
+                aria-label="Sign out of {{ Auth::user()?->name ?? 'your account' }}">
+            <i class="fas fa-arrow-right-from-bracket" aria-hidden="true" style="color: #fca5a5;"></i> Sign out
         </button>
 
-        <div class="central-dropdown"
-             x-show="open" x-cloak
-             role="menu"
-             aria-label="User account options"
-             x-transition:enter="transition ease-out duration-150"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-100"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95">
-
-            <div class="central-dropdown-header" aria-hidden="true">
-                <div class="d-name">
-                    {{ Auth::user()?->name }}
-                    @if(Auth::user()?->isSuperAdmin())
-                        <span style="font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(220,38,38,.18);color:#fca5a5;padding:.15rem .4rem;border-radius:3px;border:1px solid rgba(220,38,38,.3);vertical-align:middle;margin-left:.35rem">SUPER</span>
-                    @endif
-                </div>
-                <div class="d-email">{{ Auth::user()?->email }}</div>
-            </div>
-
-            <a class="central-dropdown-item" role="menuitem" href="{{ route('tenants.index') }}">
-                <i class="fas fa-building-user" aria-hidden="true"></i> Tenant Management
-            </a>
-
-            <div class="central-dropdown-divider" role="separator"></div>
-
-            <div class="px-3 py-2">
-                <livewire:global-theme-switcher />
-            </div>
-
-            <div class="central-dropdown-divider" role="separator"></div>
-
-            <a class="central-dropdown-item danger" role="menuitem"
-               href="{{ route('logout') }}"
-               onclick="event.preventDefault(); document.getElementById('central-logout').submit()">
-                <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Sign out
-            </a>
-        </div>
+        <form id="central-logout"
+              action="{{ route('logout') }}"
+              method="POST"
+              class="d-none"
+              aria-hidden="true">
+            @csrf
+        </form>
     </div>
-
-    <form id="central-logout" action="{{ route('logout') }}" method="POST" class="d-none" aria-hidden="true">
-        @csrf
-    </form>
     @endauth
 
     {{-- Mobile toggle --}}
@@ -557,6 +621,42 @@
        {{ request()->routeIs('tenants.*') ? 'aria-current=page' : '' }}>
         <i class="fas fa-building-user" aria-hidden="true"></i> Tenant Management
     </a>
+
+    {{-- Divider --}}
+    <div style="height:1px;background:rgba(255,255,255,0.07);margin:.35rem 0;" aria-hidden="true"></div>
+
+    @auth
+    {{-- Mobile User Info --}}
+    <div class="central-nav-link" style="opacity: 0.8; pointer-events: none;">
+        <div class="central-nav-avatar" aria-hidden="true" style="margin-right: 8px; width: 24px; height: 24px; font-size: 0.6rem; @if(Auth::user()?->isSuperAdmin()) background:linear-gradient(135deg,#dc2626,#7c3aed); @endif">
+            {{ Auth::user()?->avatar_initials ?? 'SA' }}
+        </div>
+        <div>
+            <div style="font-size: 0.85rem; font-weight: 600; color: #f1f5f9; line-height: 1.2;">{{ Auth::user()?->name }}</div>
+            <div style="font-size: 0.7rem; color: #94a3b8;">{{ Auth::user()?->email }}</div>
+        </div>
+    </div>
+
+    {{-- Divider --}}
+    <div style="height:1px;background:rgba(255,255,255,0.07);margin:.35rem 0;" aria-hidden="true"></div>
+
+    {{-- Mobile Sign Out --}}
+    <form id="central-mobile-logout"
+          action="{{ route('logout') }}"
+          method="POST"
+          class="d-none"
+          aria-hidden="true">
+        @csrf
+    </form>
+    <button type="button"
+            class="central-nav-link w-full text-left"
+            style="color:#fca5a5;background:none;border:none;cursor:pointer;width:100%;"
+            onclick="document.getElementById('central-mobile-logout').submit()"
+            aria-label="Sign out">
+        <i class="fas fa-arrow-right-from-bracket" aria-hidden="true" style="color:#f87171;"></i>
+        Sign out
+    </button>
+    @endauth
 </nav>
 
 {{-- ── Page Content ─────────────────────────────────────────────────────── --}}
