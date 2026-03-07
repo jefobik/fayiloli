@@ -8,12 +8,18 @@ use App\Models\Folder;
 use App\Models\Document;
 use Illuminate\Http\Request;
 use App\Models\ShareDocument;
-use App\Http\Requests\StoreShareDocumentRequest;
-use App\Http\Requests\UpdateShareDocumentRequest;
 use App\Models\User;
 
 class ShareDocumentController extends Controller
 {
+
+    public function index()
+    {
+        // The shares management UI is not yet fully implemented.
+        // Redirect to documents with a graceful message to avoid a 404.
+        return redirect()->route('documents.index')
+            ->with('info', 'Shares management dashboard is coming soon.');
+    }
 
     function getSharedDocuments($slug, $sharedid, $token)
     {
@@ -39,10 +45,10 @@ class ShareDocumentController extends Controller
 
         ShareDocument::create($validated +
             [
-                'share_type' => $request->slug == 'folder' ?  Folder::class : Document::class,
+                'share_type' => $request->slug == 'folder' ? Folder::class : Document::class,
                 'share_id' => $request->shared_id,
                 'user_type' => User::class,
-                'user_id' => 1,
+                'user_id' => auth()->id(),
             ]);
 
         return response()->json(['message' => 'shared successfully'], 200);

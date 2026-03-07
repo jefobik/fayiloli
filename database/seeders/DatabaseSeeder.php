@@ -50,21 +50,32 @@ class DatabaseSeeder extends Seeder
      * is_super_admin grants an unconditional Gate::before() bypass defined in
      * AppServiceProvider.  This account exists ONLY in the central database —
      * the tenant users table has no is_super_admin column.
+     *
+     * WHY withoutEvents(): the User model uses LogsActivity which routes audit
+     * records to MongoDB (config/activitylog.php → database_connection=mongodb).
+     * If MongoDB is not yet reachable when this seeder runs (e.g. first-time
+     * migrate:fresh --seed), the MongoActivity write throws, the Eloquent
+     * observer bubbles the exception, and the superadmin record is never
+     * persisted — silently breaking every subsequent login attempt on the
+     * central domain.  withoutEvents() suppresses all model observers so the
+     * DB write succeeds regardless of MongoDB availability.
      */
     private function seedSuperAdmin(): void
     {
-        User::updateOrCreate(
-            ['email' => 'superadmin@fcta.gov.local'],
-            [
-                'name' => 'Super Administrator',
-                'user_name' => 'superadmin',
-                'phone' => '08000000001',
-                'email_verified_at' => now(),
-                'password' => 'passw0rd!',
-                'is_super_admin' => true,
-                'is_admin' => true,
-                'is_active' => true,
-            ]
-        );
+        User::withoutEvents(function () {
+            User::updateOrCreate(
+                ['email' => 'superadmin@fcta.gov.local'],
+                [
+                    'name'              => 'Super Administrator',
+                    'user_name'         => 'superadmin',
+                    'phone'             => '08000000001',
+                    'email_verified_at' => now(),
+                    'password'          => 'passw0rd!',
+                    'is_super_admin'    => true,
+                    'is_admin'          => true,
+                    'is_active'         => true,
+                ]
+            );
+        });
     }
 }

@@ -35,14 +35,24 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      *
+     * CRITICAL: Only include actual central admin domains here, NOT the base domain
+     * used for tenant subdomains. The base domain (e.g., fcta.gov.local) is used
+     * only to generate tenant FQDN patterns and should NOT be in this list.
+     *
      * CENTRAL_DOMAIN should be set in .env for staging / production so the
      * central admin panel domain (e.g. admin.fayiloli.ng) is properly
      * recognised and tenancy is NOT initialised for it.
+     *
+     * Example:
+     *   - local:      central_domains = [127.0.0.1, localhost, admin.example.local]
+     *   - production: central_domains = [127.0.0.1, localhost, admin.fayiloli.ng]
      */
     'central_domains' => array_values(array_filter([
         '127.0.0.1',
         'localhost',
-        'fcta.gov.local',
+        // NOTE: Do NOT include the base domain (fcta.gov.local) here.
+        // That is only used for tenant FQDN generation (ohm.fcta.gov.local, etc).
+        // Only include the actual central admin domain below:
         env('CENTRAL_DOMAIN'),   // e.g. admin.fayiloli.ng  (staging/prod only)
     ])),
 

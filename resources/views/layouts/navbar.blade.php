@@ -23,7 +23,7 @@
                     </button>
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                         <a class="dropdown-item" href="#">Settings</a>
-                        <a class="dropdown-item" href="{{ route('workspaces.create') }}">Workspaces</a>
+                        <a class="dropdown-item" href="{{ route('home') }}">Workspaces</a>
                         <a class="dropdown-item" href="#">Tags</a>
                     </div>
                 </div>
@@ -125,10 +125,10 @@
         $.ajax({
             url: route,
             type: 'GET',
-            success: function(response) {
+            success: function (response) {
                 $('#content').html(response);
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error(error);
             }
         });

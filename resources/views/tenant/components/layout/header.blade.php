@@ -72,13 +72,13 @@
         {{-- Tenant subscription/plan badge chip (desktop only) --}}
         @if($tn)
             <span class="hidden lg:inline-flex items-center gap-1
-                             h-5 px-2 rounded-full
-                             text-[0.6rem] font-bold tracking-[0.06em] uppercase
-                             bg-[var(--tenant-primary-muted)] text-[var(--tenant-primary)]
-                             border border-[var(--tenant-primary)]/20
-                             whitespace-nowrap select-none shrink-0"
+                                 h-5 px-2 rounded-full
+                                 text-[0.6rem] font-bold tracking-[0.06em] uppercase
+                                 bg-[var(--tenant-primary-muted)] text-[var(--tenant-primary)]
+                                 border border-[var(--tenant-primary)]/20
+                                 whitespace-nowrap select-none shrink-0"
                 aria-label="Workspace: {{ $tn?->plan ?? 'Enterprise' }}">
-                {{ $tn->plan ?? 'Enterprise' }}
+                {{ $tn->plan_label ?? 'Enterprise' }}
             </span>
         @endif
     </div>
@@ -125,12 +125,12 @@
         {{-- Upload / New action (context-sensitive: docs page + permission) --}}
         @if (Route::is('documents.index') && $authUser?->can('create documents'))
             <button type="button" onclick="uploadFiles()" class="hidden sm:inline-flex items-center gap-1.5
-                               h-8 px-3.5 rounded-[var(--radius-pill)]
-                               bg-[var(--gw-blue-50)] text-[var(--gw-blue-600)]
-                               border border-[var(--gw-blue-200)]
-                               text-[0.8125rem] font-semibold
-                               hover:bg-[var(--gw-blue-100)]
-                               transition-colors" aria-label="Upload new document">
+                                   h-8 px-3.5 rounded-[var(--radius-pill)]
+                                   bg-[var(--gw-blue-50)] text-[var(--gw-blue-600)]
+                                   border border-[var(--gw-blue-200)]
+                                   text-[0.8125rem] font-semibold
+                                   hover:bg-[var(--gw-blue-100)]
+                                   transition-colors" aria-label="Upload new document">
                 <i class="fas fa-plus text-[0.6rem]" aria-hidden="true"></i>
                 New
             </button>
@@ -141,27 +141,22 @@
         @endif
 
         {{-- ── Theme Toggle ────────────────────────────────────────────── --}}
-        {{-- Cycles themes by dispatching 'cycle-theme' window event.         --}}
-        {{-- GlobalThemeSwitcher (@cycle-theme.window) bridges it to          --}}
+        {{-- Cycles themes by dispatching 'cycle-theme' window event. --}}
+        {{-- GlobalThemeSwitcher (@cycle-theme.window) bridges it to --}}
         {{-- $wire.updateTheme() for DB persistence + full applyTheme() call. --}}
-        <button type="button"
-                class="gw-topbar-btn hidden sm:flex items-center justify-center"
-                @click="
+        <button type="button" class="gw-topbar-btn hidden sm:flex items-center justify-center" @click="
                     var themes = ['system','light','dark'];
                     var cur = window.__themePreference || 'system';
                     var next = themes[(themes.indexOf(cur) + 1) % themes.length];
                     window.__themePreference = next;
                     window.dispatchEvent(new CustomEvent('cycle-theme', { detail: { nextTheme: next } }));
-                "
-                :aria-label="'Appearance: ' + (window.__themePreference || 'system') + '. Click to cycle'"
-                x-tooltip.placement.bottom="'Appearance: ' + (window.__themePreference || 'system')">
-            <i class="fas text-base transition-all"
-               :class="{
+                " :aria-label="'Appearance: ' + (window.__themePreference || 'system') + '. Click to cycle'"
+            x-tooltip.placement.bottom="'Appearance: ' + (window.__themePreference || 'system')">
+            <i class="fas text-base transition-all" :class="{
                    'fa-sun':                window.__themePreference === 'light',
                    'fa-moon':               window.__themePreference === 'dark',
                    'fa-circle-half-stroke': !window.__themePreference || window.__themePreference === 'system'
-               }"
-               aria-hidden="true"></i>
+               }" aria-hidden="true"></i>
         </button>
 
         {{-- Soft vertical separator --}}
@@ -248,10 +243,10 @@
                 {{-- ── Tenant context ── --}}
                 @if($tn)
                     <div class="px-4 py-2.5 border-b border-[var(--divider)]
-                                    flex items-center gap-2">
+                                        flex items-center gap-2">
                         <div class="w-6 h-6 rounded-[var(--radius-xs)] shrink-0
-                                        flex items-center justify-center
-                                        text-white text-[0.625rem] font-extrabold"
+                                            flex items-center justify-center
+                                            text-white text-[0.625rem] font-extrabold"
                             style="background: linear-gradient(135deg, var(--tenant-primary), var(--tenant-primary-hover));"
                             aria-hidden="true">
                             {{ $tenantInit }}
@@ -268,11 +263,11 @@
                             @endif
                         </div>
                         <span class="inline-flex items-center
-                                         h-4 px-1.5 rounded-full
-                                         text-[0.6rem] font-bold tracking-[0.05em] uppercase
-                                         bg-[var(--tenant-primary-muted)] text-[var(--tenant-primary)]
-                                         shrink-0">
-                            {{ $tn->plan ?? 'Pro' }}
+                                             h-4 px-1.5 rounded-full
+                                             text-[0.6rem] font-bold tracking-[0.05em] uppercase
+                                             bg-[var(--tenant-primary-muted)] text-[var(--tenant-primary)]
+                                             shrink-0">
+                            {{ $tn->plan_label ?? 'Pro' }}
                         </span>
                     </div>
                 @endif
@@ -302,27 +297,32 @@
 
                 {{-- ── Sign out ── --}}
                 <div class="border-t border-[var(--divider)] py-1" role="none">
-                    <button type="button" class="group flex items-center gap-3 w-full px-4 py-2.5 text-left
+                    {{--
+                    Fix #4 — aria-label now mentions the shortcut for screen readers.
+                    aria-keyshortcuts declares it per ARIA 1.1 spec.
+                    Fix #7 — $refs.headerLogoutForm now targets the sidebar's canonical
+                    #logout-form via the x-ref alias (both are the same form because
+                    the header shares the parent Alpine scope via Livewire).
+                    The hidden <form> below has been removed — sidebar.blade.php
+                        owns the single canonical form (id="logout-form").
+                        --}}
+                        <button type="button" class="group flex items-center gap-3 w-full px-4 py-2.5 text-left
                                    text-[0.8125rem] text-[var(--danger-500)]
                                    hover:bg-[var(--danger-50)]
                                    transition-colors
                                    focus-visible:outline-none focus-visible:ring-2
                                    focus-visible:ring-inset focus-visible:ring-[var(--danger-500)]"
-                        @click="$refs.headerLogoutForm.submit()" role="menuitem" aria-label="Sign out">
-                        <i class="fas fa-arrow-right-from-bracket w-4 text-center
+                            @click="document.getElementById('logout-form')?.submit()" role="menuitem"
+                            aria-label="Sign out (keyboard shortcut: ⌘⇧Q)"
+                            aria-keyshortcuts="Meta+Shift+Q Control+Shift+Q">
+                            <i class="fas fa-arrow-right-from-bracket w-4 text-center
                                    text-[var(--danger-500)] transition-colors" aria-hidden="true"></i>
-                        <span>Sign out</span>
-                        <span class="ml-auto text-[0.65rem] text-[var(--text-ghost)]
+                            <span>Sign out</span>
+                            <span class="ml-auto text-[0.65rem] text-[var(--text-ghost)]
                                      font-mono hidden sm:block" aria-hidden="true">⌘⇧Q</span>
-                    </button>
+                        </button>
                 </div>
             </div>
         </div>
     </div>
-
-    {{-- Logout form (CSRF POST) --}}
-    <form x-ref="headerLogoutForm" id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden"
-        aria-hidden="true">
-        @csrf
-    </form>
 </header>

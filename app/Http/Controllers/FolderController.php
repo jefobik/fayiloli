@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use ZipArchive;
 use App\Models\Folder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -45,6 +44,15 @@ class FolderController extends Controller
         $folders = $this->folderService->setStoreFolder($request);
 
         return response()->json(['html' => $folders]);
+    }
+
+    public function show(Folder $folder)
+    {
+        $this->authorize('view', $folder);
+
+        return response()->json([
+            'folder' => $folder->load('documents', 'subfolders', 'categories')
+        ]);
     }
 
 
@@ -95,8 +103,9 @@ class FolderController extends Controller
             'folders' => 'required|array',
         ]);
 
-        $zipFilePath = $this->folderService->setDownloadZip($request)['zipFilePath'];
-        $zipFileName = $this->folderService->setDownloadZip($request)['zipFileName'];
+        $zip         = $this->folderService->setDownloadZip($request);
+        $zipFilePath = $zip['zipFilePath'];
+        $zipFileName = $zip['zipFileName'];
 
         if ($zipFilePath) {
             return response()->download($zipFilePath, $zipFileName)->deleteFileAfterSend(true);

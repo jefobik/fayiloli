@@ -13,37 +13,14 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin') — {{ config('app.name', 'Ostrich') }}</title>
 
-    <script>
-        (function() {
-            var theme = '{{ $theme }}';
-            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            var isDark = theme === 'dark' || (theme === 'system' && prefersDark);
-            document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
-            /* Also activate Tailwind dark: classes and app.css body.dark-mode rules */
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-                document.addEventListener('DOMContentLoaded', function () {
-                    document.body.classList.add('dark-mode');
-                });
-            }
-            // Store for JavaScript access
-            window.__themePreference = theme;
-            window.__isDarkMode = isDark;
-        })();
-    </script>
-
-    {{-- Expose theme config to JavaScript --}}
-    <script>
-        window.__themeConfig = @json(config('theme.features'));
-
-        {{-- ── Expose tenant context for tenant-aware theme management ─────────── --}}
-        window.__tenantContext = {
-            isTenantContext: {{ json_encode($themeService->isTenantContext()) }},
-            tenantId: {{ json_encode($themeService->getCurrentTenant()?->id) }},
-            tenantSlug: {{ json_encode($themeService->getCurrentTenant()?->data['slug'] ?? null) }},
-            contextType: {{ json_encode($themeService->isTenantContext() ? 'tenant' : 'central') }}
-        };
-    </script>
+    {{-- ── Anti-FOUC + all client-side globals (canonical ThemeService implementation).
+         Replaces the two hand-rolled script blocks that were:
+           • Missing window.__prefersReducedMotion (required by themeManager)
+           • Missing localStorage sync (caused stale theme on hard-reload)
+           • Missing data-theme / data-tenancy-context attributes
+         ThemeService::generateThemeBootstrapScript() sets every global the tenant
+         stack's theme-manager.js expects, making central ↔ tenant context symmetric. --}}
+    {!! $themeService->generateThemeBootstrapScript($theme) !!}
 
     {{-- Favicon --}}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -83,27 +60,24 @@
             height: 60px;
             display: flex;
             align-items: center;
-            padding: 0 1.5rem;
-            gap: 1rem;
+            padding: 0 1.25rem;
+            gap: 0.5rem;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 2px 12px rgba(0,0,0,0.35);
         }
         .central-nav-brand {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.55rem;
             text-decoration: none;
             flex-shrink: 0;
-        }
-        .central-nav-brand .brand-icon {
-            width: 32px; height: 32px;
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            padding: 0.25rem 0.4rem;
             border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.85rem; color: #fff;
+            transition: background 0.15s;
         }
+        .central-nav-brand:hover { background: rgba(255,255,255,0.06); }
         .central-nav-brand .brand-name {
             font-size: 0.95rem;
             font-weight: 700;
@@ -111,118 +85,439 @@
             white-space: nowrap;
         }
         .central-nav-brand .brand-badge {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 700;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.07em;
             text-transform: uppercase;
-            background: rgba(124,58,237,0.25);
-            color: #c4b5fd;
-            padding: 0.2rem 0.5rem;
+            background: rgba(124,58,237,0.22);
+            color: #a78bfa;
+            padding: 0.15rem 0.45rem;
             border-radius: 4px;
-            border: 1px solid rgba(124,58,237,0.35);
+            border: 1px solid rgba(124,58,237,0.3);
         }
 
         /* divider */
         .central-nav-divider {
             width: 1px;
-            height: 28px;
-            background: rgba(255,255,255,0.1);
+            height: 24px;
+            background: rgba(255,255,255,0.08);
             flex-shrink: 0;
+            margin: 0 0.25rem;
         }
 
         /* nav links */
         .central-nav-link {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.4rem 0.75rem;
+            padding: 0.4rem 0.7rem;
             border-radius: 6px;
-            font-size: 0.875rem;
+            font-size: 0.845rem;
             font-weight: 500;
-            color: #cbd5e1;
+            color: #94a3b8;
             text-decoration: none;
-            transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+            transition: background 0.15s, color 0.15s;
             white-space: nowrap;
+            line-height: 1;
         }
-        .central-nav-link:hover { background: rgba(255,255,255,0.09); color: #f1f5f9; }
-        .central-nav-link.active { background: rgba(124,58,237,0.22); color: #c4b5fd; }
-        .central-nav-link i { font-size: 0.875rem; width: 14px; text-align: center; }
+        .central-nav-link:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+        .central-nav-link.active {
+            background: rgba(124,58,237,0.18);
+            color: #c4b5fd;
+            font-weight: 600;
+        }
+        .central-nav-link i { font-size: 0.8rem; width: 13px; text-align: center; }
 
         /* spacer */
         .central-nav-spacer { flex: 1; }
 
-        /* user menu */
-        .central-nav-user {
+        /* ── Right-side icon button (notification bell, etc.) ───────────── */
+        .central-icon-btn {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.3rem 0.6rem;
-            border-radius: 8px;
-            cursor: pointer;
+            justify-content: center;
+            width: 34px; height: 34px;
             background: none;
             border: none;
-            color: #cbd5e1;
-            transition: background 0.2s ease-in-out;
+            border-radius: 8px;
+            color: #64748b;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            position: relative;
+            flex-shrink: 0;
         }
-        .central-nav-user:hover { background: rgba(255,255,255,0.07); }
-        .central-nav-user .u-name {
-            font-size: 0.875rem;
+        .central-icon-btn:hover { background: rgba(255,255,255,0.08); color: #cbd5e1; }
+        .central-icon-btn i { font-size: 0.9rem; }
+        /* notification dot */
+        .central-icon-btn .notif-dot {
+            position: absolute;
+            top: 6px; right: 6px;
+            width: 7px; height: 7px;
+            background: #7c3aed;
+            border-radius: 50%;
+            border: 1.5px solid #0f172a;
+        }
+
+        /* ── User avatar button (dropdown trigger) ──────────────────────── */
+        .central-user-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.3rem 0.5rem 0.3rem 0.35rem;
+            background: none;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            color: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .central-user-btn:hover {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .central-user-btn[aria-expanded="true"] {
+            background: rgba(124,58,237,0.12);
+            border-color: rgba(124,58,237,0.35);
+        }
+        .central-user-info { text-align: left; }
+        .central-user-name {
+            font-size: 0.845rem;
             font-weight: 600;
             color: #f1f5f9;
-            max-width: 140px;
+            line-height: 1.2;
+            white-space: nowrap;
+            max-width: 130px;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
         }
-        .central-nav-user .u-role {
-            font-size: 0.75rem;
-            color: #94a3b8;
+        .central-user-role {
+            font-size: 0.7rem;
+            color: #64748b;
+            line-height: 1;
+            margin-top: 0.1rem;
         }
+        .central-super-badge {
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            background: rgba(220,38,38,0.18);
+            color: #fca5a5;
+            padding: 0.1rem 0.28rem;
+            border-radius: 3px;
+            border: 1px solid rgba(220,38,38,0.3);
+            vertical-align: middle;
+            margin-left: 0.2rem;
+        }
+        .central-user-chevron {
+            font-size: 0.6rem;
+            color: #475569;
+            transition: transform 0.2s ease;
+            margin-left: 0.1rem;
+        }
+        .central-user-chevron.rotated { transform: rotate(180deg); }
+
+        /* ── Avatar circle ──────────────────────────────────────────────── */
         .central-nav-avatar {
             width: 30px; height: 30px;
             border-radius: 50%;
             background: linear-gradient(135deg, #7c3aed, #4f46e5);
             display: flex; align-items: center; justify-content: center;
             color: #fff;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             flex-shrink: 0;
+            letter-spacing: 0.03em;
         }
 
-        /* dropdown */
+        /* ── Dropdown panel ─────────────────────────────────────────────── */
         .central-dropdown {
             position: absolute;
-            top: calc(100% + 8px);
+            top: calc(100% + 10px);
             right: 0;
-            min-width: 220px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            min-width: 292px;
+            background: #0d1526;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            box-shadow:
+                0 0 0 1px rgba(124,58,237,0.1),
+                0 4px 8px -2px rgba(0,0,0,0.45),
+                0 24px 64px -8px rgba(0,0,0,0.72);
             z-index: 200;
             overflow: hidden;
         }
+
+        /* header */
         .central-dropdown-header {
-            padding: 0.85rem 1rem;
-            border-bottom: 1px solid #334155;
+            padding: 1rem 1rem 0.9rem;
+            background: linear-gradient(160deg, rgba(124,58,237,0.11) 0%, transparent 70%);
+            border-bottom: 1px solid rgba(255,255,255,0.055);
+            position: relative;
         }
-        .central-dropdown-header .d-name { font-size: 0.9rem; font-weight: 700; color: #f1f5f9; }
-        .central-dropdown-header .d-email { font-size: 0.8rem; color: #94a3b8; margin-top: 0.2rem; }
-        .central-dropdown-item {
+        .central-dropdown-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, #7c3aed 0%, #4f46e5 55%, transparent 100%);
+        }
+
+        /* context badge */
+        .dd-ctx-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.59rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #a78bfa;
+            background: rgba(124,58,237,0.13);
+            border: 1px solid rgba(124,58,237,0.24);
+            padding: 0.16rem 0.48rem;
+            border-radius: 20px;
+            margin-bottom: 0.72rem;
+        }
+        .dd-ctx-badge i { font-size: 0.58rem; }
+
+        /* avatar */
+        .dd-avatar {
+            width: 42px; height: 42px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 2px rgba(124,58,237,0.25), 0 3px 10px rgba(0,0,0,0.4);
+        }
+        .dd-avatar--super {
+            background: linear-gradient(135deg, #dc2626, #7c3aed);
+            box-shadow: 0 0 0 2px rgba(220,38,38,0.3), 0 3px 10px rgba(0,0,0,0.4);
+        }
+
+        /* name / email / role */
+        .dd-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #f8fafc;
+            line-height: 1.25;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 175px;
+        }
+        .dd-email {
+            font-size: 0.74rem;
+            color: #3d546e;
+            margin-top: 0.17rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 175px;
+        }
+        .dd-role-pill {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 0.38rem;
+            font-size: 0.61rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            background: rgba(124,58,237,0.17);
+            color: #a78bfa;
+            padding: 0.15rem 0.44rem;
+            border-radius: 4px;
+            border: 1px solid rgba(124,58,237,0.27);
+        }
+
+        /* last-login line */
+        .dd-last-login {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            padding: 0.65rem 1rem;
-            font-size: 0.875rem;
-            color: #e2e8f0;
-            text-decoration: none;
-            transition: background 0.2s ease-in-out;
+            gap: 0.3rem;
+            margin-top: 0.6rem;
+            padding-top: 0.55rem;
+            border-top: 1px solid rgba(255,255,255,0.045);
+            font-size: 0.67rem;
+            color: #2d4057;
         }
-        .central-dropdown-item:hover { background: #334155; color: #f8fafc; }
-        .central-dropdown-item i { width: 14px; text-align: center; color: #94a3b8; }
-        .central-dropdown-item.danger { color: #fca5a5; }
-        .central-dropdown-item.danger i { color: #f87171; }
-        .central-dropdown-divider { height: 1px; background: #334155; }
+        .dd-last-login i { font-size: 0.58rem; }
+
+        /* tenant stats row */
+        .dd-stats-row {
+            display: flex;
+            gap: 0.38rem;
+            padding: 0.6rem 0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .dd-stat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.08rem;
+            padding: 0.42rem 0.2rem;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.055);
+            text-decoration: none;
+            transition: background 0.14s, border-color 0.14s;
+        }
+        a.dd-stat:hover {
+            background: rgba(255,255,255,0.065);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .dd-stat-num {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #e2e8f0;
+            line-height: 1;
+        }
+        .dd-stat-lbl {
+            font-size: 0.58rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #334155;
+        }
+        .dd-stat--active  .dd-stat-num  { color: #86efac; }
+        .dd-stat--active  { border-color: rgba(74,222,128,0.14); }
+        .dd-stat--pending .dd-stat-num  { color: #fcd34d; }
+        .dd-stat--pending { border-color: rgba(251,191,36,0.18); }
+
+        /* sections, labels */
+        .central-dropdown-section { padding: 0.3rem 0; }
+        .central-dropdown-label {
+            font-size: 0.59rem;
+            font-weight: 700;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: #253347;
+            padding: 0.5rem 1rem 0.2rem;
+        }
+
+        /* items — flex-start so two-line items align the icon to top */
+        .central-dropdown-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.72rem;
+            padding: 0.58rem 1rem;
+            font-size: 0.845rem;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: background 0.13s;
+            cursor: pointer;
+        }
+        .central-dropdown-item:hover { background: rgba(255,255,255,0.045); }
+        .central-dropdown-item .di-icon {
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.045);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.77rem;
+            color: #475569;
+            flex-shrink: 0;
+            transition: background 0.13s, color 0.13s;
+            margin-top: 2px;
+        }
+        .central-dropdown-item:hover .di-icon { background: rgba(124,58,237,0.18); color: #c4b5fd; }
+        .di-body { min-width: 0; flex: 1; }
+        .di-title {
+            font-size: 0.845rem;
+            font-weight: 500;
+            color: #94a3b8;
+            line-height: 1.3;
+            transition: color 0.13s;
+        }
+        .di-sub {
+            font-size: 0.71rem;
+            color: #253347;
+            margin-top: 0.07rem;
+            line-height: 1.3;
+            font-weight: 400;
+            transition: color 0.13s;
+        }
+        .central-dropdown-item:hover .di-title { color: #e2e8f0; }
+        .central-dropdown-item:hover .di-sub   { color: #3d546e; }
+        .di-check {
+            flex-shrink: 0;
+            align-self: center;
+            margin-left: auto;
+            font-size: 0.6rem;
+            color: #7c3aed;
+        }
+
+        /* pending count badge */
+        .dd-pending-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 19px; height: 19px;
+            padding: 0 0.32rem;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 800;
+            margin-left: auto;
+            flex-shrink: 0;
+            align-self: center;
+            box-shadow: 0 1px 5px rgba(245,158,11,0.4);
+        }
+
+        /* danger / sign-out item */
+        .central-dropdown-item.danger .di-icon { color: #7f1d1d; }
+        .central-dropdown-item.danger .di-title { color: #f87171; }
+        .central-dropdown-item.danger .di-sub   { color: #3d1515; }
+        .central-dropdown-item.danger:hover { background: rgba(239,68,68,0.07); }
+        .central-dropdown-item.danger:hover .di-icon  { background: rgba(239,68,68,0.18); color: #fca5a5; }
+        .central-dropdown-item.danger:hover .di-title { color: #fecaca; }
+        .central-dropdown-item.danger:hover .di-sub   { color: #7f1d1d; }
+
+        .central-dropdown-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 0.12rem 0; }
+
+        /* ── Dropdown open/close animation — zero Tailwind dependency ───────── */
+        /* Alpine x-transition uses these class names instead of Tailwind utilities  */
+        /* (translate-y-1, scale-98, ease-out, duration-150 are undefined here)      */
+        .dd-t-enter { transition: opacity 0.15s ease-out, transform 0.15s ease-out; }
+        .dd-t-leave { transition: opacity 0.10s ease-in,  transform 0.10s ease-in;  }
+        .dd-t-from  { opacity: 0; transform: translateY(-6px) scale(0.97); }
+        .dd-t-to    { opacity: 1; transform: translateY(0px)  scale(1);    }
+
+        /* ── x-cloak: hide Alpine-controlled elements until initialised ─── */
+        [x-cloak] { display: none !important; }
+
+        /* ── Inline theme pills (inside user dropdown) ──────────────────── */
+        .central-theme-pill {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.28rem;
+            padding: 0.55rem 0.35rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.07);
+            background: rgba(255,255,255,0.04);
+            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+        }
+        .central-theme-pill:hover {
+            background: rgba(255,255,255,0.08);
+            color: #cbd5e1;
+            border-color: rgba(255,255,255,0.13);
+        }
+        .central-theme-pill.active {
+            background: rgba(124,58,237,0.22);
+            color: #c4b5fd;
+            border-color: rgba(124,58,237,0.45);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+        }
+        .central-theme-pill i { font-size: 0.88rem; }
 
         /* mobile hamburger */
         .central-nav-toggle {
@@ -230,42 +525,26 @@
             width: 36px; height: 36px;
             align-items: center; justify-content: center;
             background: none; border: none;
-            border-radius: 6px;
-            color: #94a3b8;
+            border-radius: 8px;
+            color: #64748b;
             cursor: pointer;
-            transition: background 0.2s ease-in-out;
+            transition: background 0.15s, color 0.15s;
             flex-shrink: 0;
         }
-        .central-nav-toggle:hover { background: rgba(255,255,255,0.07); color: #f1f5f9; }
+        .central-nav-toggle:hover { background: rgba(255,255,255,0.07); color: #e2e8f0; }
 
         /* collapsible nav on mobile */
         .central-nav-links {
             display: flex;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.15rem;
         }
 
         @media (max-width: 767px) {
             .central-nav-toggle { display: flex; }
-            .central-nav-links {
-                display: none;
-                position: absolute;
-                top: 60px; left: 0; right: 0;
-                background: #0f172a;
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 0.75rem 1rem;
-                gap: 0.15rem;
-                border-top: 1px solid rgba(255,255,255,0.07);
-                box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-                z-index: 99;
-            }
-            .central-nav-links.open { display: flex; }
-            .central-nav-link { width: 100%; padding: 0.55rem 0.75rem; }
+            .central-nav-links { display: none; }
             .central-nav-divider { display: none; }
             .brand-badge { display: none; }
-            .central-nav-user .u-name,
-            .central-nav-user .u-role { display: none; }
         }
 
         /* ── Page Content ───────────────────────────────────────────────── */
@@ -390,59 +669,6 @@
         /* Breadcrumb in dark */
         html.dark .breadcrumb-item.active { color: #94a3b8; }
 
-        /* ── Theme Switcher Tailwind Shims for Central ──────────────────── */
-        .t-switcher-container p { margin-bottom: 0.5rem; }
-        .t-switcher-container .flex { display: flex; }
-        .t-switcher-container .flex-col { flex-direction: column; }
-        .t-switcher-container .items-center { align-items: center; }
-        .t-switcher-container .justify-center { justify-content: center; }
-        .t-switcher-container .w-full { width: 100%; }
-        .t-switcher-container .grid { display: grid; }
-        .t-switcher-container .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        .t-switcher-container .gap-1 { gap: 0.25rem; }
-        .t-switcher-container .gap-1\.5 { gap: 0.375rem; }
-        .t-switcher-container .p-1 { padding: 0.25rem; }
-        .t-switcher-container .p-2 { padding: 0.5rem; }
-        .t-switcher-container .px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
-        .t-switcher-container .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
-        .t-switcher-container .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
-        .t-switcher-container .rounded-lg { border-radius: 0.5rem; }
-        .t-switcher-container .rounded-md { border-radius: 0.375rem; }
-        .t-switcher-container .text-\[0\.62rem\] { font-size: 0.62rem; }
-        .t-switcher-container .text-\[0\.7rem\] { font-size: 0.7rem; }
-        .t-switcher-container .text-base { font-size: 1rem; }
-        .t-switcher-container .font-bold { font-weight: 700; }
-        .t-switcher-container .font-semibold { font-weight: 600; }
-        .t-switcher-container .uppercase { text-transform: uppercase; }
-        .t-switcher-container .tracking-widest { letter-spacing: 0.1em; }
-        .t-switcher-container .transition-all { transition-property: all; transition-duration: 150ms; }
-        .t-switcher-container .transition-transform { transition-property: transform; transition-duration: 150ms; }
-        .t-switcher-container .scale-110 { transform: scale(1.1); }
-        .t-switcher-container .-rotate-12 { transform: rotate(-12deg); }
-        .t-switcher-container .bg-slate-100 { background-color: #f1f5f9; }
-        .t-switcher-container .text-slate-400 { color: #94a3b8; }
-        .t-switcher-container .text-slate-500 { color: #64748b; }
-        .t-switcher-container button {
-            border: 1px solid transparent;
-            background: transparent;
-            cursor: pointer;
-        }
-        .t-switcher-container button:hover { background-color: rgba(0,0,0,0.03); color: #334155; }
-        .t-switcher-container button.bg-white {
-            background-color: #fff !important;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            color: #4f46e5 !important;
-        }
-        .t-switcher-container button.pointer-events-none { pointer-events: none; }
-
-        html.dark .t-switcher-container .bg-slate-800 { background-color: #1e293b; }
-        html.dark .t-switcher-container .bg-slate-100 { background-color: #1e293b; }
-        html.dark .t-switcher-container .text-slate-500 { color: #64748b; }
-        html.dark .t-switcher-container button:hover { background-color: rgba(255,255,255,0.05); color: #e2e8f0; }
-        html.dark .t-switcher-container button.bg-white {
-            background-color: #334155 !important;
-            color: #818cf8 !important;
-        }
 
         /* ── Footer ─────────────────────────────────────────────────────── */
         .central-footer {
@@ -498,164 +724,329 @@
 <body>
 
 {{-- ── Navbar ───────────────────────────────────────────────────────────── --}}
-<nav class="central-nav" x-data="{ open: false }" @click.outside="open = false">
+<nav class="central-nav">
 
     {{-- Brand --}}
-    <a href="{{ route('tenants.index') }}" class="central-nav-brand" aria-label="Ostrich Admin — go to tenants">
+    <a href="{{ route('tenants.index') }}" class="central-nav-brand" aria-label="Ostrich Admin — home">
         <img src="/img/fayiloli-icon.svg"
              alt=""
              aria-hidden="true"
-             width="32" height="32"
-             style="border-radius:8px;flex-shrink:0">
+             width="30" height="30"
+             style="border-radius:7px;flex-shrink:0">
         <span class="brand-name">Ostrich</span>
         <span class="brand-badge" aria-label="Central Admin">Admin</span>
     </a>
 
-    <div class="central-nav-divider"></div>
+    <div class="central-nav-divider" aria-hidden="true"></div>
 
-    {{-- Desktop nav links (hidden on mobile) --}}
-    <div class="central-nav-links d-none d-md-flex" id="centralNavLinks" role="navigation" aria-label="Main navigation">
+    {{-- Primary nav links --}}
+    <div class="central-nav-links d-none d-md-flex" role="navigation" aria-label="Main navigation">
         <a href="{{ route('tenants.index') }}"
            class="central-nav-link {{ request()->routeIs('tenants.*') ? 'active' : '' }}"
-           {{ request()->routeIs('tenants.*') ? 'aria-current=page' : '' }}>
+           @if(request()->routeIs('tenants.*')) aria-current="page" @endif>
             <i class="fas fa-building-user" aria-hidden="true"></i> Tenants
         </a>
     </div>
 
     <div class="central-nav-spacer"></div>
 
-    {{-- User Menu & Actions (Permanent Desktop) --}}
+    {{-- Right-side actions --}}
     @auth
-    <div class="d-none d-md-flex align-items-center gap-2">
-        <div class="d-flex align-items-center gap-2 pe-3 me-1" style="border-right: 1px solid rgba(255,255,255,0.1);">
-            <div class="text-end" aria-hidden="true">
-                <div class="u-name" style="font-size: 0.875rem; font-weight: 600; color: #f1f5f9; line-height: 1.2;">
-                    {{ Auth::user()?->name }}
-                    @if(Auth::user()?->isSuperAdmin())
-                        <span style="font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(220,38,38,.18);color:#fca5a5;padding:.15rem .3rem;border-radius:3px;border:1px solid rgba(220,38,38,.3);vertical-align:middle;margin-left:.25rem">SUPER</span>
-                    @endif
-                </div>
-                <div class="u-role" style="font-size: 0.72rem; color: #94a3b8;">{{ Auth::user()?->email }}</div>
-            </div>
-            <div class="central-nav-avatar" aria-hidden="true"
-                 @if(Auth::user()?->isSuperAdmin()) style="background:linear-gradient(135deg,#dc2626,#7c3aed)" @endif>
-                {{ Auth::user()?->avatar_initials ?? 'SA' }}
-            </div>
-        </div>
+    <div class="d-none d-md-flex align-items-center gap-1">
 
-        <a href="{{ route('tenants.index') }}" class="central-nav-link" aria-label="Tenant Management">
-            <i class="fas fa-building-user" aria-hidden="true"></i> Tenant Management
-        </a>
-
-        {{-- Appearance Dropdown --}}
-        <div class="position-relative" x-data="{ openTheme: false }" @click.outside="openTheme = false" @close-theme-dropdown.window="openTheme = false">
-            <button type="button" class="central-nav-link" @click="openTheme = !openTheme" aria-label="Appearance options">
-                <i class="fas fa-circle-half-stroke" aria-hidden="true"></i> Appearance
-            </button>
-            <div class="central-dropdown"
-                 x-show="openTheme" x-cloak
-                 style="top: calc(100% + 12px); right: 0; min-width: 260px; z-index: 200;"
-                 x-transition:enter="transition ease-out duration-150"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 x-transition:leave="transition ease-in duration-100"
-                 x-transition:leave-start="opacity-100 scale-100"
-                 x-transition:leave-end="opacity-0 scale-95">
-                <div class="t-switcher-container p-1">
-                    <livewire:global-theme-switcher />
-                </div>
-            </div>
-        </div>
-
-        <button type="button"
-                onclick="document.getElementById('central-logout').submit()"
-                class="central-nav-link"
-                style="color: #fca5a5; background: none; border: none; cursor: pointer;"
-                aria-label="Sign out of {{ Auth::user()?->name ?? 'your account' }}">
-            <i class="fas fa-arrow-right-from-bracket" aria-hidden="true" style="color: #fca5a5;"></i> Sign out
+        {{-- Notification bell (ready for future wiring) --}}
+        <button type="button" class="central-icon-btn" aria-label="Notifications" title="Notifications (coming soon)">
+            <i class="fas fa-bell" aria-hidden="true"></i>
+            {{-- Uncomment dot when there are unread notifications:
+            <span class="notif-dot" aria-hidden="true"></span>
+            --}}
         </button>
 
-        <form id="central-logout"
-              action="{{ route('logout') }}"
-              method="POST"
-              class="d-none"
-              aria-hidden="true">
-            @csrf
-        </form>
-    </div>
+        {{-- User avatar dropdown --}}
+        <div class="position-relative"
+             x-data="{ userOpen: false }"
+             @click.outside="userOpen = false"
+             @close-theme-dropdown.window="userOpen = false"
+             @keydown.escape.window="userOpen = false">
+            <button type="button"
+                    class="central-user-btn"
+                    @click="userOpen = !userOpen"
+                    :aria-expanded="userOpen.toString()"
+                    aria-haspopup="true"
+                    aria-label="Account menu for {{ Auth::user()?->name ?? 'user' }}">
+                <div class="central-nav-avatar"
+                     aria-hidden="true"
+                     @if(Auth::user()?->isSuperAdmin()) style="background:linear-gradient(135deg,#dc2626,#7c3aed)" @endif>
+                    {{ Auth::user()?->avatar_initials ?? 'SA' }}
+                </div>
+                <div class="central-user-info d-none d-lg-block">
+                    <div class="central-user-name">
+                        {{ Str::limit(Auth::user()?->name ?? '', 22) }}
+                        @if(Auth::user()?->isSuperAdmin())
+                            <span class="central-super-badge">SUPER</span>
+                        @endif
+                    </div>
+                    <div class="central-user-role">{{ Auth::user()?->roleLabel() }}</div>
+                </div>
+                <i class="fas fa-chevron-down central-user-chevron"
+                   :class="{ 'rotated': userOpen }"
+                   aria-hidden="true"></i>
+            </button>
+
+            {{-- Dropdown panel --}}
+            <div class="central-dropdown"
+                 x-show="userOpen"
+                 x-cloak
+                 x-transition:enter="dd-t-enter"
+                 x-transition:enter-start="dd-t-from"
+                 x-transition:enter-end="dd-t-to"
+                 x-transition:leave="dd-t-leave"
+                 x-transition:leave-start="dd-t-to"
+                 x-transition:leave-end="dd-t-from">
+
+                @php
+                    /* Lightweight aggregate — total, active, pending tenant counts */
+                    try {
+                        $ddStats = \App\Models\Tenant::selectRaw(
+                            "count(*) as total,
+                             sum(case when status = 'active'    then 1 else 0 end) as active_cnt,
+                             sum(case when status = 'pending'   then 1 else 0 end) as pending_cnt,
+                             sum(case when status = 'suspended' then 1 else 0 end) as suspended_cnt"
+                        )->first();
+                    } catch (\Throwable) {
+                        $ddStats = (object)['total'=>'—','active_cnt'=>'—','pending_cnt'=>0,'suspended_cnt'=>0];
+                    }
+                    $ddPending = (int)$ddStats->pending_cnt;
+                @endphp
+
+                {{-- ── Header ─────────────────────────────────────────────── --}}
+                <div class="central-dropdown-header">
+
+                    {{-- Context badge --}}
+                    <div class="dd-ctx-badge">
+                        <i class="fas fa-shield-halved" aria-hidden="true"></i>
+                        Central Admin Panel
+                    </div>
+
+                    {{-- User identity row --}}
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="dd-avatar {{ Auth::user()?->isSuperAdmin() ? 'dd-avatar--super' : '' }}"
+                             aria-hidden="true">
+                            {{ Auth::user()?->avatar_initials ?? 'SA' }}
+                        </div>
+                        <div style="min-width:0;flex:1">
+                            <div class="dd-name">
+                                {{ Str::limit(Auth::user()?->name ?? '', 26) }}
+                                @if(Auth::user()?->isSuperAdmin())
+                                    <span class="central-super-badge" aria-label="Super Administrator">SUPER</span>
+                                @endif
+                            </div>
+                            <div class="dd-email" title="{{ Auth::user()?->email }}">
+                                {{ Auth::user()?->email }}
+                            </div>
+                            <span class="dd-role-pill">{{ Auth::user()?->roleLabel() }}</span>
+                        </div>
+                    </div>
+
+                    {{-- Last sign-in timestamp --}}
+                    @if(Auth::user()?->last_login_at)
+                    <div class="dd-last-login">
+                        <i class="fas fa-clock" aria-hidden="true"></i>
+                        Last sign-in: {{ Auth::user()->last_login_at->diffForHumans() }}
+                    </div>
+                    @endif
+
+                </div>{{-- /header --}}
+
+                {{-- ── Tenant stats row ────────────────────────────────── --}}
+                <div class="dd-stats-row" role="group" aria-label="System overview">
+                    <a href="{{ route('tenants.index') }}"
+                       class="dd-stat"
+                       @click="userOpen = false"
+                       title="All tenants">
+                        <span class="dd-stat-num">{{ $ddStats->total }}</span>
+                        <span class="dd-stat-lbl">Total</span>
+                    </a>
+                    <a href="{{ route('tenants.index') }}"
+                       class="dd-stat dd-stat--active"
+                       @click="userOpen = false"
+                       title="Active tenants">
+                        <span class="dd-stat-num">{{ $ddStats->active_cnt }}</span>
+                        <span class="dd-stat-lbl">Active</span>
+                    </a>
+                    @if((int)$ddStats->suspended_cnt > 0)
+                    <a href="{{ route('tenants.index') }}"
+                       class="dd-stat"
+                       @click="userOpen = false"
+                       title="{{ $ddStats->suspended_cnt }} suspended"
+                       style="border-color:rgba(148,163,184,0.18)">
+                        <span class="dd-stat-num" style="color:#94a3b8">{{ $ddStats->suspended_cnt }}</span>
+                        <span class="dd-stat-lbl">Suspended</span>
+                    </a>
+                    @endif
+                    @if($ddPending > 0)
+                    <a href="{{ route('tenants.index') }}"
+                       class="dd-stat dd-stat--pending"
+                       @click="userOpen = false"
+                       title="{{ $ddPending }} awaiting approval">
+                        <span class="dd-stat-num">{{ $ddPending }}</span>
+                        <span class="dd-stat-lbl">Pending</span>
+                    </a>
+                    @endif
+                </div>
+
+                {{-- ── Management ───────────────────────────────────────── --}}
+                <div class="central-dropdown-section">
+                    <div class="central-dropdown-label">Management</div>
+
+                    <a href="{{ route('tenants.index') }}"
+                       class="central-dropdown-item"
+                       @click="userOpen = false"
+                       @if(request()->routeIs('tenants.*')) aria-current="page" @endif>
+                        <span class="di-icon"><i class="fas fa-building-user" aria-hidden="true"></i></span>
+                        <div class="di-body">
+                            <div class="di-title">Tenant Management</div>
+                            <div class="di-sub">Workspaces, domains &amp; billing plans</div>
+                        </div>
+                        @if($ddPending > 0)
+                            <span class="dd-pending-badge" aria-label="{{ $ddPending }} pending approval">{{ $ddPending }}</span>
+                        @elseif(request()->routeIs('tenants.*'))
+                            <i class="fas fa-check di-check" aria-hidden="true"></i>
+                        @endif
+                    </a>
+                </div>
+
+                <div class="central-dropdown-divider"></div>
+
+                {{-- ── Appearance ───────────────────────────────────────── --}}
+                <div class="central-dropdown-section">
+                    <div class="central-dropdown-label">Appearance</div>
+                    <div class="d-flex gap-2 px-3 pb-3 pt-1"
+                         x-data="{ cTheme: '{{ $theme }}' }"
+                         @theme-updated.window="cTheme = $event.detail.theme">
+                        @foreach([
+                            ['light',  'fa-sun',                'Light'],
+                            ['system', 'fa-circle-half-stroke', 'Auto'],
+                            ['dark',   'fa-moon',               'Dark'],
+                        ] as [$tv, $ti, $tl])
+                        <button type="button"
+                                class="central-theme-pill"
+                                :class="{ 'active': cTheme === '{{ $tv }}' }"
+                                @click="
+                                    cTheme = '{{ $tv }}';
+                                    $dispatch('theme-updated', { theme: '{{ $tv }}' });
+                                    $dispatch('cycle-theme', { nextTheme: '{{ $tv }}' });
+                                    userOpen = false;
+                                "
+                                :aria-pressed="cTheme === '{{ $tv }}' ? 'true' : 'false'"
+                                title="{{ $tl }} theme">
+                            <i class="fas {{ $ti }}" aria-hidden="true"></i>
+                            <span>{{ $tl }}</span>
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="central-dropdown-divider"></div>
+
+                {{-- ── Sign out ─────────────────────────────────────────── --}}
+                <div class="central-dropdown-section" style="padding-bottom:.45rem">
+                    <form x-ref="centralLogoutForm"
+                          id="central-logout"
+                          action="{{ route('logout') }}"
+                          method="POST"
+                          class="d-none"
+                          aria-hidden="true">
+                        @csrf
+                    </form>
+                    <button type="button"
+                            class="central-dropdown-item danger w-100 text-start"
+                            style="background:none;border:none;width:100%"
+                            @click="$refs.centralLogoutForm.submit()"
+                            aria-label="Sign out of Central Admin">
+                        <span class="di-icon">
+                            <i class="fas fa-arrow-right-from-bracket" aria-hidden="true"></i>
+                        </span>
+                        <div class="di-body">
+                            <div class="di-title">Sign out</div>
+                            <div class="di-sub">End your admin session</div>
+                        </div>
+                    </button>
+                </div>
+
+            </div>{{-- /dropdown --}}
+        </div>{{-- /position-relative --}}
+
+    </div>{{-- /d-md-flex --}}
     @endauth
 
-    {{-- Mobile toggle --}}
+    {{-- Mobile hamburger --}}
     <button type="button"
             class="central-nav-toggle d-md-none"
-            id="centralNavToggle"
             aria-label="Toggle navigation"
             aria-expanded="false"
             aria-controls="centralNavMobile"
             onclick="
-                var links = document.getElementById('centralNavMobile');
+                var m = document.getElementById('centralNavMobile');
                 var expanded = this.getAttribute('aria-expanded') === 'true';
-                links.style.display = expanded ? 'none' : 'flex';
-                this.setAttribute('aria-expanded', !expanded);
+                m.style.display = expanded ? 'none' : 'flex';
+                this.setAttribute('aria-expanded', String(!expanded));
             ">
-        <i class="fas fa-bars" aria-hidden="true" style="font-size:1rem"></i>
+        <i class="fas fa-bars" aria-hidden="true" style="font-size:0.95rem"></i>
     </button>
 
 </nav>
 
-{{-- Mobile nav links --}}
+{{-- Mobile nav panel --}}
 <nav id="centralNavMobile"
      aria-label="Mobile navigation"
-     style="
-    display:none;
-    background:#0f172a;
-    border-bottom:1px solid rgba(255,255,255,0.07);
-    padding:0.5rem 1rem 0.75rem;
-    flex-direction:column;
-    gap:0.15rem;
-    position:sticky;top:60px;z-index:99;
-    box-shadow:0 8px 20px rgba(0,0,0,0.25);
-">
+     style="display:none;background:#0f172a;border-bottom:1px solid rgba(255,255,255,0.07);
+            padding:0.6rem 1rem 0.8rem;flex-direction:column;gap:0.1rem;
+            position:sticky;top:60px;z-index:99;box-shadow:0 8px 20px rgba(0,0,0,0.3);">
+
     <a href="{{ route('tenants.index') }}"
        class="central-nav-link {{ request()->routeIs('tenants.*') ? 'active' : '' }}"
-       {{ request()->routeIs('tenants.*') ? 'aria-current=page' : '' }}>
-        <i class="fas fa-building-user" aria-hidden="true"></i> Tenant Management
+       @if(request()->routeIs('tenants.*')) aria-current="page" @endif>
+        <i class="fas fa-building-user" aria-hidden="true"></i> Tenants
     </a>
 
-    {{-- Divider --}}
-    <div style="height:1px;background:rgba(255,255,255,0.07);margin:.35rem 0;" aria-hidden="true"></div>
-
     @auth
-    {{-- Mobile User Info --}}
-    <div class="central-nav-link" style="opacity: 0.8; pointer-events: none;">
-        <div class="central-nav-avatar" aria-hidden="true" style="margin-right: 8px; width: 24px; height: 24px; font-size: 0.6rem; @if(Auth::user()?->isSuperAdmin()) background:linear-gradient(135deg,#dc2626,#7c3aed); @endif">
+    <div style="height:1px;background:rgba(255,255,255,0.07);margin:.4rem 0;" aria-hidden="true"></div>
+
+    {{-- Mobile user identity --}}
+    <div class="d-flex align-items-center gap-2 px-2 py-1" style="opacity:.85;pointer-events:none">
+        <div class="central-nav-avatar"
+             style="width:26px;height:26px;font-size:0.62rem;
+                    @if(Auth::user()?->isSuperAdmin()) background:linear-gradient(135deg,#dc2626,#7c3aed); @endif"
+             aria-hidden="true">
             {{ Auth::user()?->avatar_initials ?? 'SA' }}
         </div>
         <div>
-            <div style="font-size: 0.85rem; font-weight: 600; color: #f1f5f9; line-height: 1.2;">{{ Auth::user()?->name }}</div>
-            <div style="font-size: 0.7rem; color: #94a3b8;">{{ Auth::user()?->email }}</div>
+            <div style="font-size:0.82rem;font-weight:600;color:#f1f5f9;line-height:1.2">
+                {{ Auth::user()?->name }}
+                @if(Auth::user()?->isSuperAdmin())
+                    <span class="central-super-badge">SUPER</span>
+                @endif
+            </div>
+            <div style="font-size:0.68rem;color:#64748b">{{ Auth::user()?->email }}</div>
         </div>
     </div>
 
-    {{-- Divider --}}
-    <div style="height:1px;background:rgba(255,255,255,0.07);margin:.35rem 0;" aria-hidden="true"></div>
+    <div style="height:1px;background:rgba(255,255,255,0.07);margin:.4rem 0;" aria-hidden="true"></div>
 
-    {{-- Mobile Sign Out --}}
-    <form id="central-mobile-logout"
-          action="{{ route('logout') }}"
-          method="POST"
-          class="d-none"
-          aria-hidden="true">
-        @csrf
-    </form>
-    <button type="button"
-            class="central-nav-link w-full text-left"
-            style="color:#fca5a5;background:none;border:none;cursor:pointer;width:100%;"
-            onclick="document.getElementById('central-mobile-logout').submit()"
-            aria-label="Sign out">
-        <i class="fas fa-arrow-right-from-bracket" aria-hidden="true" style="color:#f87171;"></i>
-        Sign out
-    </button>
+    <div x-data="{}">
+        <form x-ref="mobileLogoutForm" action="{{ route('logout') }}" method="POST" class="d-none" aria-hidden="true">
+            @csrf
+        </form>
+        <button type="button"
+                class="central-nav-link"
+                style="color:#fca5a5;background:none;border:none;cursor:pointer;width:100%;text-align:left;"
+                @click="$refs.mobileLogoutForm.submit()"
+                aria-label="Sign out">
+            <i class="fas fa-arrow-right-from-bracket" aria-hidden="true" style="color:#f87171"></i>
+            Sign out
+        </button>
+    </div>
     @endauth
 </nav>
 
@@ -720,5 +1111,123 @@ document.addEventListener('DOMContentLoaded', function () {
 @endif
 
 @stack('scripts')
+
+{{--
+    ╔══════════════════════════════════════════════════════════════════════╗
+    ║  themeManager Alpine registration — CENTRAL LAYOUT ONLY             ║
+    ╠══════════════════════════════════════════════════════════════════════╣
+    ║  WHY THIS EXISTS                                                     ║
+    ║  theme-manager.js (resources/js/) is a Vite-compiled module that is  ║
+    ║  only bundled in the TENANT stack (app.blade.php → app.js → Vite).   ║
+    ║  The central layout deliberately omits @vite() — it is a Bootstrap 5 ║
+    ║  CDN-only admin panel with no Tailwind dependency.                   ║
+    ║                                                                      ║
+    ║  Without this block, the hidden GlobalThemeSwitcher Livewire         ║
+    ║  component (below) fails with:                                       ║
+    ║    ReferenceError: themeManager is not defined                       ║
+    ║  because its blade view declares x-data="themeManager()" and Alpine  ║
+    ║  tries to resolve that function before Vite ever loads.              ║
+    ║                                                                      ║
+    ║  CONTRACT WITH theme-manager.js                                      ║
+    ║  Exposes the identical public surface (applyTheme, cycleTheme,       ║
+    ║  saveToLocalStorage, getStorageKey, getConfig) so the               ║
+    ║  GlobalThemeSwitcher blade works identically in both stacks.         ║
+    ║  If Vite IS ever loaded on this page, theme-manager.js re-registers  ║
+    ║  via its own alpine:init listener and overwrites this one —          ║
+    ║  intentional, canonical version always wins.                         ║
+    ╚══════════════════════════════════════════════════════════════════════╝
+--}}
+<script>
+document.addEventListener('alpine:init', function () {
+    if (typeof Alpine === 'undefined') return;
+
+    Alpine.data('themeManager', function () {
+        return {
+            currentTheme:         window.__themePreference     || 'system',
+            isDarkMode:           window.__isDarkMode           || false,
+            prefersReducedMotion: window.__prefersReducedMotion || false,
+            isTransitioning:      false,
+            tenantId:             null,   /* central context — no tenant */
+            isTenantContext:      false,
+
+            init: function () {
+                var self = this;
+                this.applyTheme(this.currentTheme);
+                /* Re-evaluate when OS colour scheme changes */
+                window.matchMedia('(prefers-color-scheme: dark)')
+                    .addEventListener('change', function () {
+                        if (self.currentTheme === 'system') self.applyTheme('system');
+                    });
+            },
+
+            applyTheme: function (theme) {
+                var isDark = theme === 'dark' ||
+                    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                var html   = document.documentElement;
+
+                /* Bootstrap dark mode */
+                html.setAttribute('data-bs-theme',        isDark ? 'dark' : 'light');
+                /* Generic theme attributes */
+                html.setAttribute('data-theme',           theme);
+                html.setAttribute('data-tenancy-context', 'central');
+                /* Tailwind / app.css dark-mode class toggles */
+                html.classList.toggle('dark',      isDark);
+                html.classList.toggle('dark-mode', isDark);
+                document.body.classList.toggle('dark-mode', isDark);
+
+                /* Update globals so other components stay in sync */
+                window.__themePreference = theme;
+                window.__isDarkMode      = isDark;
+                this.isDarkMode          = isDark;
+
+                /* Persist to localStorage (central namespace key) */
+                try { localStorage.setItem('theme_preference_central', theme); } catch (_) {}
+
+                /* Broadcast for any listeners outside this component */
+                window.dispatchEvent(new CustomEvent('theme-applied', {
+                    detail: { theme: theme, isDark: isDark, isTenantContext: false }
+                }));
+            },
+
+            cycleTheme: function () {
+                var themes = ['system', 'light', 'dark'];
+                var next   = themes[(themes.indexOf(this.currentTheme) + 1) % themes.length];
+                this.currentTheme = next;
+                this.applyTheme(next);
+                window.dispatchEvent(new CustomEvent('cycle-theme', { detail: { nextTheme: next } }));
+            },
+
+            saveToLocalStorage: function (theme) {
+                try { localStorage.setItem('theme_preference_central', theme || this.currentTheme); } catch (_) {}
+            },
+
+            getStorageKey: function () { return 'theme_preference_central'; },
+
+            getConfig: function (key) {
+                var defaults = {
+                    keyboard_shortcuts:          true,
+                    smooth_transitions:          true,
+                    system_preference_detection: true,
+                    local_storage_sync:          true,
+                };
+                var cfg = window.__themeConfig;
+                return (cfg && key in cfg) ? cfg[key] : (key in defaults ? defaults[key] : true);
+            }
+        };
+    });
+});
+</script>
+
+{{-- ── Theme persistence bridge (hidden, zero-size) ─────────────────────────
+     GlobalThemeSwitcher Livewire component: its @cycle-theme.window listener
+     calls $wire.updateTheme() → ThemeService::setThemePreference() → writes
+     users.theme in the central DB.  Visually inert; Alpine initialises it via
+     the themeManager registration above so no ReferenceError occurs. --}}
+@auth
+<div style="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none"
+     aria-hidden="true">
+    <livewire:global-theme-switcher />
+</div>
+@endauth
 </body>
 </html>

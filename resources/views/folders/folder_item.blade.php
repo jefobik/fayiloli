@@ -3,8 +3,8 @@
 @endphp
 
 <li class="folder-item" data-folder-id="{{ $folder->id }}">
-    <a href="#" data-url="{{ route('getFiles', $folder) }}"
-        onclick="fetchFiles('{{ route('getFiles', $folder) }}', 'folder')">
+    <a href="#" data-url="{{ route('folders.show', $folder) }}"
+        onclick="fetchFiles('{{ route('folders.show', $folder) }}', 'folder')">
         <span class="folder-content">
             <i class="fas fa-folder folder-icon"></i>
             <span class="folder-name">{{ $folder->name }}</span>

@@ -8,18 +8,14 @@ return new class extends Migration {
     /**
      * Run the migrations.
      *
-     * Creates the user_preferences table in each tenant database to support
-     * user-level settings and preferences.
+     * Creates the user_preferences table in the central database to support
+     * user-level settings and preferences for both central admins and tenant users
+     * that are synced across workspaces.
      *
-     * This table structure mirrors the central version for consistency.
-     * The unique(user_id, key) constraint guarantees one preference key per user.
+     * This table mirrors the tenant version and is managed by UserPreference model.
      */
     public function up(): void
     {
-        if (Schema::hasTable('user_preferences')) {
-            return;
-        }
-
         Schema::create('user_preferences', function (Blueprint $table) {
             $table->id();
             $table->uuid('user_id')->index();
@@ -27,7 +23,7 @@ return new class extends Migration {
             $table->text('value')->nullable();
             $table->timestamps();
 
-            // Foreign key constraint with cascade delete for data integrity
+            // Foreign key constraint
             $table->foreign('user_id')
                 ->references('id')
                 ->on('users')

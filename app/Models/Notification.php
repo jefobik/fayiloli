@@ -105,9 +105,17 @@ class Notification extends MongoModel
         }
 
         $modelClass = $this->model_type;
-        if (class_exists($modelClass)) {
-            return $modelClass::find($this->model_id);
+        if (!class_exists($modelClass)) {
+            return null;
         }
+
+        // Guard: model_id must be a valid UUID before passing to a UUID-keyed
+        // PostgreSQL table — non-UUID values cause SQLSTATE[22P02].
+        if (!\Illuminate\Support\Str::isUuid((string) $this->model_id)) {
+            return null;
+        }
+
+        return $modelClass::find($this->model_id);
 
         return null;
     }

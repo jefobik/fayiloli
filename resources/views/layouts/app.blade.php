@@ -1,18 +1,18 @@
 @php
     // ── ThemeService — single source of truth for theme preference ──────────────
-    $themeService  = app(\App\Services\ThemeService::class);
-    $theme         = $themeService->getThemePreference();
+    $themeService = app(\App\Services\ThemeService::class);
+    $theme = $themeService->getThemePreference();
 
     // ── Tenant branding ──────────────────────────────────────────────────────────
     $currentTenant = tenancy()->initialized ? tenancy()->tenant : null;
-    $tenantName    = $currentTenant?->organization_name ?? config('app.name', 'Fayiloli');
+    $tenantName = $currentTenant?->organization_name ?? config('app.name', 'Fayiloli');
 
     // Brand colours (per-tenant override; falls back to design-system defaults)
-    $primaryColor  = $currentTenant?->settings['brand_color']  ?? 'var(--primary-600)';
-    $primaryHover  = $currentTenant?->settings['brand_hover']  ?? 'var(--primary-700)';
+    $primaryColor = $currentTenant?->settings['brand_color'] ?? 'var(--primary-600)';
+    $primaryHover = $currentTenant?->settings['brand_hover'] ?? 'var(--primary-700)';
 
     // Per-tenant logo / favicon (optional — gracefully degrades to platform defaults)
-    $tenantLogoUrl    = $currentTenant?->settings['logo_url']    ?? null;
+    $tenantLogoUrl = $currentTenant?->settings['logo_url'] ?? null;
     $tenantFaviconUrl = $currentTenant?->settings['favicon_url'] ?? null;
 
     // View density: user preference → tenant default → 'comfortable'
@@ -29,15 +29,14 @@
     // color-scheme meta: tells browser native chrome (scrollbar, inputs) which mode
     // to render BEFORE the JS theme script runs — eliminates any chrome-level FOUC.
     $colorScheme = match ($theme) {
-        'dark'  => 'dark',
+        'dark' => 'dark',
         'light' => 'light',
         default => 'light dark',
     };
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full"
-      data-theme="{{ $theme }}"
-      data-density="{{ $density }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full" data-theme="{{ $theme }}"
+    data-density="{{ $density }}">
 
 <head>
     <meta charset="utf-8">
@@ -46,7 +45,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- colour-scheme: native chrome (scrollbar, date inputs) honours this
-         BEFORE any JS runs, eliminating browser-chrome FOUC. --}}
+    BEFORE any JS runs, eliminating browser-chrome FOUC. --}}
     <meta name="color-scheme" content="{{ $colorScheme }}">
 
     {{-- Authenticated tenant workspaces must never be indexed by search engines --}}
@@ -62,25 +61,29 @@
         <link rel="icon" href="{{ $tenantFaviconUrl }}">
     @else
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-        <link rel="icon" type="image/x-icon"  href="/favicon.ico">
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
     @endif
     <link rel="apple-touch-icon" href="{{ $tenantFaviconUrl ?? '/img/fayiloli-icon.svg' }}">
 
     {{-- ── Theme bootstrap script (FIRST script tag — MUST precede all CSS) ─────
-         Seeds window.__themeConfig, window.__tenantContext, window.__themePreference,
-         applies dark/light classes and data-theme / data-bs-theme attributes
-         SYNCHRONOUSLY before the browser paints a single pixel. --}}
+    Seeds window.__themeConfig, window.__tenantContext, window.__themePreference,
+    applies dark/light classes and data-theme / data-bs-theme attributes
+    SYNCHRONOUSLY before the browser paints a single pixel. --}}
     {!! $themeService->generateThemeBootstrapScript($theme) !!}
 
     {{-- ── Per-tenant CSS variable overrides (inline :root) ──────────────────────
-         Placed BEFORE @vite so downstream CSS calc()s and color-mix()s that reference
-         --tenant-primary already see the correct value from first parse. --}}
+    Placed BEFORE @vite so downstream CSS calc()s and color-mix()s that reference
+    --tenant-primary already see the correct value from first parse. --}}
     <style>
         :root {
-            --tenant-primary:       {{ $primaryColor }};
-            --tenant-primary-hover: {{ $primaryHover }};
+            --tenant-primary:
+                {{ $primaryColor }}
+            ;
+            --tenant-primary-hover:
+                {{ $primaryHover }}
+            ;
             @if($tenantLogoUrl)
-            --tenant-logo-url:      url('{{ $tenantLogoUrl }}');
+                --tenant-logo-url: url('{{ $tenantLogoUrl }}');
             @endif
         }
     </style>
@@ -101,8 +104,7 @@
 
 <body class="h-full bg-[var(--app-bg)] text-[var(--text-main)] font-sans antialiased
              selection:bg-[var(--gw-blue-50)] selection:text-[var(--gw-blue-700)]
-             {{ auth()->check() ? 'overflow-hidden' : '' }}"
-      data-user-theme="{{ $theme }}">
+             {{ auth()->check() ? 'overflow-hidden' : '' }}" data-user-theme="{{ $theme }}">
 
     {{-- Skip navigation link — WCAG 2.4.1. Must be the first focusable element. --}}
     @auth
@@ -121,8 +123,8 @@
     {{-- ── Authenticated page scripts ────────────────────────────────────────── --}}
     @auth
         {{-- Legacy EDMS helpers (jQuery-dependent utilities). jQuery is now bundled
-             via Vite (app.js → window.$ = window.jQuery = jQuery) so this deferred
-             script will find $ already available on the window object. --}}
+        via Vite (app.js → window.$ = window.jQuery = jQuery) so this deferred
+        script will find $ already available on the window object. --}}
         <script src="/custom-js/legacy-edms-helpers.js" defer></script>
 
         <script>
@@ -153,13 +155,23 @@
 
             /**
              * ⌘Shift+Q / Ctrl+Shift+Q — keyboard shortcut to sign out.
-             * Submits the CSRF-protected logout form already present in header.blade.php.
+             *
+             * Targets the canonical #logout-form rendered by sidebar.blade.php.
+             * Uses optional chaining so a missing form (e.g. after a Livewire full-page
+             * re-render) logs a warning instead of throwing a silent TypeError.
+             *
+             * Fix #5: graceful fallback with a visible console warning.
              */
             document.addEventListener('keydown', function (e) {
                 if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'Q') {
                     e.preventDefault();
                     const form = document.getElementById('logout-form');
-                    if (form) form.submit();
+                    if (form) {
+                        form.submit();
+                    } else {
+                        console.warn('[EDMS] ⌘⇧Q pressed but #logout-form was not found in the DOM. ' +
+                            'Ensure sidebar.blade.php is rendered on this page.');
+                    }
                 }
             });
         </script>
@@ -169,11 +181,11 @@
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
                     if (typeof window.edmsToast !== 'function') return;
-                    @if(session('success')) window.edmsToast(@json(session('success')), 'success'); @endif
-                    @if(session('error'))   window.edmsToast(@json(session('error')),   'error');   @endif
+                            @if(session('success')) window.edmsToast(@json(session('success')), 'success'); @endif
+                    @if(session('error'))   window.edmsToast(@json(session('error')), 'error'); @endif
                     @if(session('warning')) window.edmsToast(@json(session('warning')), 'warning'); @endif
-                    @if(session('info'))    window.edmsToast(@json(session('info')),    'info');    @endif
-                });
+                    @if(session('info'))    window.edmsToast(@json(session('info')), 'info'); @endif
+                        });
             </script>
         @endif
     @endauth

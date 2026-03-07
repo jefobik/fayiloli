@@ -8,6 +8,7 @@ use App\Enums\TenantModule;
 use App\Enums\TenantStatus;
 use App\Enums\TenantType;
 use App\Observers\TenantObserver;
+use App\Traits\ProtectsUuidRouteBindings;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
@@ -17,7 +18,7 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 #[ObservedBy(TenantObserver::class)]
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
-    use HasDatabase, HasDomains;
+    use HasDatabase, HasDomains, ProtectsUuidRouteBindings;
 
     /**
      * Columns stored directly in the tenants table (not in the JSONB data column).
@@ -182,45 +183,5 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         return $this->tenant_type?->label()
             ?? ucfirst((string) ($this->tenant_type ?? '—'));
-    }
-
-    /**
-     * Surgically prevent Postgres 22P02 "invalid input syntax for type uuid"
-     * when a non-UUID string (like "admin") is passed in a route parameter.
-     *
-     * This method is called FIRST before the database query is executed,
-     * preventing invalid UUIDs from ever reaching PostgreSQL.
-     */
-    public function resolveRouteBinding($value, $field = null)
-    {
-        if ($field === null && !\Illuminate\Support\Str::isUuid($value)) {
-            return null;
-        }
-
-        return parent::resolveRouteBinding($value, $field);
-    }
-
-    /**
-     * Override the route binding query to validate UUID format before querying the database.
-     *
-     * This prevents PostgreSQL from throwing SQLSTATE[22P02] errors when invalid
-     * UUID values are passed to the WHERE clause. The validation happens at the
-     * query builder level, before any database round-trip.
-     */
-    public function resolveRouteBindingQuery($query = null, $value, $field = null)
-    {
-        // If no query builder provided, create one from the model
-        if (is_null($query)) {
-            $query = $this->newQuery();
-        }
-
-        // Validate UUID format before adding to WHERE clause
-        // This prevents "invalid input syntax for type uuid" errors from PostgreSQL
-        if (is_null($field) && !\Illuminate\Support\Str::isUuid($value)) {
-            // Return a query that will never match anything
-            return $query->whereRaw('1 = 0');
-        }
-
-        return parent::resolveRouteBindingQuery($query, $value, $field);
     }
 }

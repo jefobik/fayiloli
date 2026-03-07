@@ -43,10 +43,10 @@
                 @click="wsOpen = !wsOpen; $nextTick(() => { items = Array.from($el.parentElement.parentElement.querySelectorAll('[data-ws-item]')); focusedIndex = -1; })"
                 :aria-expanded="wsOpen.toString()" aria-haspopup="true"
                 aria-label="Switch workspace — {{ $currentTenant->organization_name }}" class="gw-header-action-btn flex items-center justify-center w-10 h-10 rounded-full
-                               text-[var(--text-muted)]
-                               hover:bg-[var(--gw-surface-hover)]
-                               transition-colors focus:outline-none
-                               focus-visible:ring-2 focus-visible:ring-[var(--gw-blue-600)]">
+                                   text-[var(--text-muted)]
+                                   hover:bg-[var(--gw-surface-hover)]
+                                   transition-colors focus:outline-none
+                                   focus-visible:ring-2 focus-visible:ring-[var(--gw-blue-600)]">
                 {{-- 3×3 GW Waffle SVG --}}
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 192 192" aria-hidden="true"
                     focusable="false" fill="currentColor">
@@ -64,8 +64,8 @@
 
             {{-- Active workspace indicator dot --}}
             <span class="absolute bottom-1 right-1 block w-2 h-2 rounded-full
-                             bg-[var(--gw-blue-600)] dark:bg-[var(--gw-blue-400)]
-                             ring-2 ring-[var(--panel-bg)]" aria-hidden="true"
+                                 bg-[var(--gw-blue-600)] dark:bg-[var(--gw-blue-400)]
+                                 ring-2 ring-[var(--panel-bg)]" aria-hidden="true"
                 title="You are in: {{ $currentTenant->organization_name }}">
             </span>
         </div>
@@ -77,9 +77,9 @@
             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
             x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95 translate-y-1" class="absolute top-[calc(100%+12px)] right-0 w-80
-                        bg-[var(--panel-bg)] border border-[var(--panel-border)]
-                        rounded-[var(--radius-lg)] shadow-[var(--elevation-3)]
-                        overflow-hidden z-[var(--z-popover)]">
+                            bg-[var(--panel-bg)] border border-[var(--panel-border)]
+                            rounded-[var(--radius-lg)] shadow-[var(--elevation-3)]
+                            overflow-hidden z-[var(--z-popover)]">
 
             {{-- Panel header — current workspace --}}
             <div class="px-4 py-3 border-b border-[var(--panel-border)] flex items-center justify-between gap-3">
@@ -97,19 +97,19 @@
                     $chipInitials = strtoupper(substr($words[0] ?? '', 0, 1) . substr($words[1] ?? '', 0, 1));
                 @endphp
                 <div class="w-10 h-10 rounded-[var(--radius-sm)] shrink-0 flex items-center
-                                justify-center text-white text-sm font-extrabold shadow-sm"
+                                    justify-center text-white text-sm font-extrabold shadow-sm"
                     style="background: linear-gradient(135deg, {{ $chipGc[0] }}, {{ $chipGc[1] }});" aria-hidden="true">
                     {{ $chipInitials }}
                 </div>
             </div>
 
             {{-- Central portal link --}}
-            <a href="{{ route('portal.dashboard') }}" data-ws-item class="flex items-center gap-3 px-4 py-3 no-underline
-                          hover:bg-[var(--gw-surface-hover)] transition-colors
-                          border-b border-[var(--panel-border)]
-                          focus-visible:outline-none focus-visible:bg-[var(--gw-surface-hover)]" role="menuitem">
+            <a href="{{ route('portal.discover') }}" data-ws-item class="flex items-center gap-3 px-4 py-3 no-underline
+                              hover:bg-[var(--gw-surface-hover)] transition-colors
+                              border-b border-[var(--panel-border)]
+                              focus-visible:outline-none focus-visible:bg-[var(--gw-surface-hover)]" role="menuitem">
                 <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0
-                                bg-[var(--tenant-primary-muted)] text-[var(--tenant-primary)]">
+                                    bg-[var(--tenant-primary-muted)] text-[var(--tenant-primary)]">
                     <i class="fas fa-th-large text-sm" aria-hidden="true"></i>
                 </div>
                 <div class="flex-1 min-w-0">
@@ -139,19 +139,18 @@
                             $switchUrl = route('switch.workspace', $t->id);
                             $isCurrent = $t->id === $currentTenant->id;
                         @endphp
-                        <a href="{{ $switchUrl }}" data-ws-item
-                            class="group flex items-center gap-3 px-4 py-2.5 no-underline
-                                              transition-colors
-                                              focus-visible:outline-none
-                                              {{ $isCurrent
+                        <a href="{{ $switchUrl }}" data-ws-item class="group flex items-center gap-3 px-4 py-2.5 no-underline
+                                                          transition-colors
+                                                          focus-visible:outline-none
+                                                          {{ $isCurrent
                             ? 'bg-[var(--gw-surface-active)]'
-                            : 'hover:bg-[var(--gw-surface-hover)] focus-visible:bg-[var(--gw-surface-hover)]' }}" role="option"
-                            aria-selected="{{ $isCurrent ? 'true' : 'false' }}" aria-label="Switch to {{ $t->organization_name }}"
-                            @if($isCurrent) aria-current="true" @endif>
+                            : 'hover:bg-[var(--gw-surface-hover)] focus-visible:bg-[var(--gw-surface-hover)]' }}"
+                            role="option" aria-selected="{{ $isCurrent ? 'true' : 'false' }}"
+                            aria-label="Switch to {{ $t->organization_name }}" @if($isCurrent) aria-current="true" @endif>
 
                             <div class="w-8 h-8 rounded-[var(--radius-sm)] shrink-0 flex items-center justify-center
-                                                    text-white text-[0.6rem] font-extrabold shadow-sm
-                                                    transition-transform group-hover:scale-105"
+                                                                text-white text-[0.6rem] font-extrabold shadow-sm
+                                                                transition-transform group-hover:scale-105"
                                 style="background: linear-gradient(135deg, {{ $wsColors[0] }}, {{ $wsColors[1] }});"
                                 aria-hidden="true">
                                 {{ $wsInit }}
@@ -160,7 +159,7 @@
                             <div class="flex-1 min-w-0">
                                 <p
                                     class="text-sm font-medium truncate transition-colors
-                                                      {{ $isCurrent
+                                                                  {{ $isCurrent
                             ? 'text-[var(--gw-blue-600)] dark:text-[var(--gw-blue-400)] font-semibold'
                             : 'text-[var(--text-main)] group-hover:text-[var(--gw-blue-600)] dark:group-hover:text-[var(--gw-blue-400)]' }}">
                                     {{ $t->organization_name }}
@@ -175,7 +174,7 @@
                                     aria-label="Current workspace" aria-hidden="true"></i>
                             @else
                                 <i class="fas fa-arrow-right text-[0.65rem] text-[var(--text-ghost)]
-                                                          opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                                                                          opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                                     aria-hidden="true"></i>
                             @endif
                         </a>

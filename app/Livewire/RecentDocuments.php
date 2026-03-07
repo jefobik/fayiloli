@@ -71,11 +71,36 @@ class RecentDocuments extends Component
     #[Computed]
     public function recentFiles(): Collection
     {
-        return Document::withoutGlobalScopes()   // skip the position sort scope
-            ->with(['folder', 'ownerUser'])
+        $docs = Document::withoutGlobalScopes()  // skip the position sort scope
+            ->with('folder')
             ->latest('updated_at')
             ->limit(12)
             ->get();
+
+        // Pre-resolve ownerUser in a single UUID-validated batch query.
+        // Avoids passing legacy non-UUID owner values (e.g. 'admin') into a
+        // PostgreSQL UUID column comparison → SQLSTATE[22P02].
+        // Uses getRawOriginal() to bypass the getOwnerAttribute accessor so
+        // we can collect the raw FK values for the batch lookup.
+        $validOwnerIds = $docs
+            ->map(fn($d) => $d->getRawOriginal('owner'))
+            ->filter(fn($id) => $id && Str::isUuid((string) $id))
+            ->unique()
+            ->values();
+
+        $owners = $validOwnerIds->isNotEmpty()
+            ? User::whereIn('id', $validOwnerIds)->get()->keyBy('id')
+            : collect();
+
+        foreach ($docs as $doc) {
+            $rawId = $doc->getRawOriginal('owner');
+            $doc->setRelation(
+                'ownerUser',
+                ($rawId && Str::isUuid((string) $rawId)) ? ($owners->get($rawId) ?? null) : null
+            );
+        }
+
+        return $docs;
     }
 
     /** Latest 20 MongoActivity records (all logs, newest first). */

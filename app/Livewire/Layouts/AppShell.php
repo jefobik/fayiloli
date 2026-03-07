@@ -23,13 +23,18 @@ class AppShell extends Component
         // DB preference is cross-device persistent.  If user_preferences table
         // doesn't exist (central context) getPreference() catches and returns null.
         if (Auth::check()) {
-            $user   = Auth::user();
-            $dbPref = $user->getPreference(self::SIDEBAR_PREF);
+            try {
+                $user   = Auth::user();
+                $dbPref = $user->getPreference(self::SIDEBAR_PREF);
 
-            if ($dbPref !== null) {
-                $this->sidebarCollapsed = filter_var($dbPref, FILTER_VALIDATE_BOOLEAN);
-            } else {
-                // First login or no stored pref: fall back to session (same-device)
+                if ($dbPref !== null) {
+                    $this->sidebarCollapsed = filter_var($dbPref, FILTER_VALIDATE_BOOLEAN);
+                } else {
+                    // First login or no stored pref: fall back to session (same-device)
+                    $this->sidebarCollapsed = (bool) session(self::SIDEBAR_PREF, false);
+                }
+            } catch (\Throwable) {
+                // user_preferences table not yet migrated — fall back to session.
                 $this->sidebarCollapsed = (bool) session(self::SIDEBAR_PREF, false);
             }
         }

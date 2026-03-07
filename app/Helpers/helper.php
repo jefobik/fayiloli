@@ -102,7 +102,9 @@ if (!function_exists('generateSidebarMenu')) {
 
 function renderTagsWithCategories($folderId)
 {
-    $folder = Folder::find($folderId);
+    $folder = ($folderId && \Illuminate\Support\Str::isUuid((string) $folderId))
+        ? Folder::find($folderId)
+        : null;
     $output = '';
 
     if ($folder?->categories?->isNotEmpty()) {

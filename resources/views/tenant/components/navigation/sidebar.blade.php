@@ -5,7 +5,7 @@
 ║ Architecture:                                                         ║
 ║  • 72px collapsed  ↔  240px expanded (CSS token: --gw-rail-width-*)  ║
 ║  • Vertical 3px bar active indicator — not a filled chip             ║
-║  • 5 sections: Workspace · Documents · Administration · Settings     ║
+║  • 4 sections: Workspace · Documents · Administration · Settings     ║
 ║  • localStorage persists collapse state across sessions              ║
 ║  • Arrow-key navigation (↑↓) across all nav items                    ║
 ║  • Tooltip on every item when collapsed (via x-tooltip)              ║
@@ -150,7 +150,7 @@
                 {{-- Dashboard --}}
                 @php $isHome = Route::is('home'); @endphp
                 <li role="none">
-                    @include('layouts._sidebar-item', [
+                    @include('tenant.components.navigation.sidebar-item', [
                         'href'     => route('home'),
                         'icon'     => 'fa-house-chimney',
                         'label'    => 'Dashboard',
@@ -333,7 +333,10 @@
     </div>
 
     {{-- ══════════════════════════════════════════════════════════════════════
-         SIDEBAR FOOTER — Sign out · Settings · Collapse toggle
+         SIDEBAR FOOTER — Settings · Collapse toggle
+         Enterprise UX pattern: sign-out lives ONLY in the header avatar dropdown
+         (Google Workspace, M365, Linear, Notion). The canonical hidden logout
+         form is kept here so the header @click and ⌘⇧Q keyboard shortcut work.
     ══════════════════════════════════════════════════════════════════════════ --}}
     <div class="gw-sidebar-footer shrink-0 pb-2
                 border-t border-[var(--divider)]"
@@ -357,29 +360,10 @@
             </ul>
         @endif
 
-        {{-- Sign out --}}
-        <div class="px-2 pt-1">
-            <button type="button"
-                    data-nav-item
-                    @click="$refs.sidebarLogoutForm.submit()"
-                    x-tooltip.placement.right="!railExpanded ? 'Sign out' : false"
-                    class="gw-sidebar-item group flex items-center w-full
-                           rounded-[var(--radius-sm)]
-                           text-[0.8125rem] font-medium
-                           text-[var(--danger-500)] hover:bg-[var(--danger-50)]
-                           transition-colors duration-150 overflow-hidden
-                           focus-visible:outline-none focus-visible:ring-2
-                           focus-visible:ring-[var(--danger-500)] focus-visible:ring-offset-1"
-                    :class="railExpanded ? 'gap-3 px-3 min-h-[36px]' : 'justify-center px-0 min-h-[40px]'"
-                    aria-label="Sign out of {{ $authUser?->name ?? 'your account' }}">
-                <i class="fas fa-arrow-right-from-bracket shrink-0 w-5 text-center text-[0.875rem]"
-                   aria-hidden="true"></i>
-                <span x-show="railExpanded" x-cloak class="whitespace-nowrap">Sign out</span>
-            </button>
-        </div>
-
-        {{-- Hidden logout form --}}
-        <form x-ref="sidebarLogoutForm"
+        {{-- Canonical hidden logout form — consumed by the header avatar dropdown
+             button and the global ⌘⇧Q keyboard shortcut in app.blade.php.
+             The form itself is never shown; sign-out UI is in the header only. --}}
+        <form id="logout-form"
               action="{{ route('logout') }}"
               method="POST"
               class="hidden"

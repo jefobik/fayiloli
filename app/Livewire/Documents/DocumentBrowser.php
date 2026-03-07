@@ -59,9 +59,17 @@ class DocumentBrowser extends Component
         $this->sidebarCollapsed = (bool) session('sidebarCollapsed', false);
 
         if (Auth::check()) {
-            $viewMode = Auth::user()->getPreference('docViewMode');
-            if ($viewMode) {
-                $this->viewMode = $viewMode;
+            try {
+                // Guard: getPreference() calls User::preferences() HasMany.
+                // Fails if (a) user_preferences table not yet migrated on this
+                // tenant, (b) central-DB context (no tenant table), or (c) the
+                // User class is a stale hydrated object missing the relationship.
+                $viewMode = Auth::user()->getPreference('docViewMode');
+                if ($viewMode) {
+                    $this->viewMode = $viewMode;
+                }
+            } catch (\Throwable) {
+                // Preferences unavailable — keep default viewMode ('grid').
             }
         }
     }
@@ -196,13 +204,15 @@ class DocumentBrowser extends Component
 
     public function openShareModal()
     {
-        if ($this->selectedDocumentId) {
+        if ($this->selectedDocumentId && Str::isUuid($this->selectedDocumentId)) {
             $doc = Document::find($this->selectedDocumentId);
+            if (!$doc) return;
             $this->shareName = $doc->name;
             $this->shareVisibility = $doc->visibility;
             $this->shareUrl = url("/document/share/{$doc->id}/" . Str::random(32));
-        } elseif ($this->currentFolderId) {
+        } elseif ($this->currentFolderId && Str::isUuid($this->currentFolderId)) {
             $folder = Folder::find($this->currentFolderId);
+            if (!$folder) return;
             $this->shareName = $folder->name;
             $this->shareVisibility = 'public';
             $this->shareUrl = url("/folder/share/{$this->currentFolderId}/" . Str::random(32));
@@ -227,7 +237,7 @@ class DocumentBrowser extends Component
             'share_type' => $this->selectedDocumentId ? Document::class : Folder::class,
             'share_id' => $sharedId,
             'user_type' => User::class,
-            'user_id' => Auth::id() ?: 1,
+            'user_id' => Auth::id(),
         ]);
 
         $this->showShareModal = false;
@@ -273,9 +283,35 @@ class DocumentBrowser extends Component
 
             $this->reset('requestName', 'requestTo', 'requestNote', 'requestDueDate', 'showRequestModal');
             $this->dispatch('ts-toast', type: 'success', text: 'File request sent');
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             DB::rollBack();
             $this->dispatch('ts-toast', type: 'error', text: 'Failed to send request');
+        }
+    }
+
+    /**
+     * Batch-resolve ownerUser relations on a Document collection using only
+     * UUID-validated FK values, preventing SQLSTATE[22P02] from legacy
+     * non-UUID owner strings (e.g. 'admin') hitting a PostgreSQL UUID column.
+     */
+    private function resolveOwnerUsers(\Illuminate\Support\Collection $docs): void
+    {
+        $validOwnerIds = $docs
+            ->map(fn($d) => $d->getRawOriginal('owner'))
+            ->filter(fn($id) => $id && Str::isUuid((string) $id))
+            ->unique()
+            ->values();
+
+        $owners = $validOwnerIds->isNotEmpty()
+            ? User::whereIn('id', $validOwnerIds)->get()->keyBy('id')
+            : collect();
+
+        foreach ($docs as $doc) {
+            $rawId = $doc->getRawOriginal('owner');
+            $doc->setRelation(
+                'ownerUser',
+                ($rawId && Str::isUuid((string) $rawId)) ? ($owners->get($rawId) ?? null) : null
+            );
         }
     }
 
@@ -311,12 +347,17 @@ class DocumentBrowser extends Component
         $documents = Document::query()
             ->when($validFolderId, fn($q) => $q->where('folder_id', $validFolderId))
             ->when($this->search, fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
-            ->with(['tags', 'ownerUser'])
+            ->with('tags')
             ->latest()
             ->get();
 
+        $this->resolveOwnerUsers($documents);
+
         $currentFolder = $validFolderId ? Folder::with('categories.tags')->find($validFolderId) : null;
-        $selectedDoc = $validDocId ? Document::with(['tags', 'ownerUser'])->find($validDocId) : null;
+        $selectedDoc = $validDocId ? Document::with('tags')->find($validDocId) : null;
+        if ($selectedDoc) {
+            $this->resolveOwnerUsers(collect([$selectedDoc]));
+        }
 
         $owners = User::get(['id', 'name', 'email']);
 

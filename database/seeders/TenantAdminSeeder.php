@@ -71,7 +71,11 @@ class TenantAdminSeeder extends Seeder
 
         $password = env('TENANT_ADMIN_DEFAULT_PASSWORD', 'P@ssword123!');
 
-        $user = User::updateOrCreate(
+        // withoutEvents() prevents LogsActivity from writing to MongoDB during
+        // seeding.  MongoDB may not be reachable on first provision; a failed
+        // write would silently discard the admin account creation.
+        /** @var User $user */
+        $user = User::withoutEvents(fn () => User::updateOrCreate(
             ['email' => $adminEmail],
             [
                 'name'              => 'Workspace Administrator',
@@ -84,7 +88,7 @@ class TenantAdminSeeder extends Seeder
                 'is_locked'         => false,
                 'is_2fa_enabled'    => false,
             ]
-        );
+        ));
 
         // Explicitly assign the 'admin' Spatie role so all workspace permissions
         // are granted immediately — without needing a second RolesPermissionsSeeder pass.

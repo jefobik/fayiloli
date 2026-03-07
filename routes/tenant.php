@@ -13,7 +13,6 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\RoleController;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 /*
 |--------------------------------------------------------------------------
 | Tenant Routes
@@ -28,8 +27,7 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 | super-admin side.  On tenant domains it switches the DB connection
 | before any controller or auth guard runs.
 |
-| Auth::routes() is also NOT repeated here; the single r
-egistration in
+| Auth::routes() is also NOT repeated here; the single registration in
 | routes/web.php covers both central and tenant auth.  On a tenant domain,
 | the global InitializeTenancyByDomain switches the DB connection before
 | the auth guard runs, so credentials are validated against the correct
@@ -68,6 +66,24 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
         return \Stancl\Tenancy\Features\UserImpersonation::makeResponse($token);
     })->name('impersonate');
 
+    // ─── SSO Landing — central-admin impersonation back-tracking ──────────
+    // After TenantImpersonationController redirects the admin through
+    // /impersonate/{token}, the user lands here with ?ib={sourceTenantId}.
+    // This route stores that ID in the *tenant* session so LoginController::
+    // logout() can redirect the admin back to the tenant detail page.
+    //
+    // SESSION_DOMAIN is blank (host-only cookies), so the central admin's
+    // session cannot be read from a tenant subdomain.  Threading the source
+    // tenant ID through the redirect URL and capturing it here is the
+    // correct pattern for this isolated-session architecture.
+    Route::get('/sso-landing', function (\Illuminate\Http\Request $request) {
+        $ib = $request->query('ib');
+        if ($ib && \Illuminate\Support\Str::isUuid($ib)) {
+            $request->session()->put('impersonated_by', $ib);
+        }
+        return redirect()->route('home');
+    })->middleware('auth')->name('sso.landing');
+
     // ─── Cross-workspace SSO switch ────────────────────────────────────────
     // Tenant admins can switch to another active workspace where they have a
     // matching account (same email).  Issues an impersonation token via the
@@ -91,7 +107,7 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
 
         // ── Documents ──────────────────────────────────────────────────────
         Route::middleware('tenant.module:documents')->group(function () {
-            Route::get('/', [DocumentController::class, 'index'])->name('documents.index');
+            Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
             Route::post('/send-email-document', [DocumentController::class, 'sendDocumentEmail'])->name('send.email');
             Route::get('/getDocumentComments', [DocumentController::class, 'getDocumentComments'])->name('getDocumentComments');
         });
@@ -103,7 +119,8 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
 
         // ── Folders ────────────────────────────────────────────────────────
         Route::middleware('tenant.module:folders')->group(function () {
-            Route::resource('folders', FolderController::class);
+            // edit/update/destroy are handled by custom AJAX routes below.
+            Route::resource('folders', FolderController::class)->only(['index', 'create', 'store', 'show']);
             Route::post('/update-folder-positions', [FolderController::class, 'updateFolderPositions'])->name('folders.updatePositions');
             Route::post('/update-folder-child-positions', [FolderController::class, 'updateFolderChildPositions'])->name('folders.updateChildPositions');
             Route::post('/folders/details', [FolderController::class, 'fetchDetails'])->name('folders.fetchDetails');
@@ -149,6 +166,8 @@ Route::middleware(['web', PreventAccessFromCentralDomains::class])->group(functi
 
     // ─── Document Sharing (public — auth not required, shares module gated) ──
     Route::middleware('tenant.module:shares')->group(function () {
+        // Fix: add shares.index so sidebar route('shares.index') resolves
+        Route::get('/shares', [ShareDocumentController::class, 'index'])->name('shares.index');
         Route::get('/{slug?}/share/{id?}/{token?}', [ShareDocumentController::class, 'getSharedDocuments'])->name('getSharedDocuments');
         Route::post('/share-document', [ShareDocumentController::class, 'sharedDocuments'])->name('sharedDocuments');
     });

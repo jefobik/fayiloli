@@ -18,12 +18,12 @@ class ViewToggle extends Component
                 ->first();
 
             if ($pref) {
-                $this->viewMode = $pref->value;
+                $this->viewMode = $pref->value ?? 'grid';
             }
         }
     }
 
-    public function setViewMode($mode)
+    public function setViewMode(string $mode = 'grid')
     {
         $this->viewMode = $mode;
 

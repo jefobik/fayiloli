@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\ProtectsUuidRouteBindings;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,7 +20,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class User extends Authenticatable
 {
-    use HasFactory, HasUuids, Notifiable, HasRoles, LogsActivity, SoftDeletes;
+    use HasFactory, HasUuids, Notifiable, HasRoles, LogsActivity, SoftDeletes, ProtectsUuidRouteBindings;
 
     /**
      * The attributes that are mass assignable.
@@ -29,6 +30,13 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'user_name',
+        'email',
+        'phone',
+        'password',
+        'supervisor_id',        // tenant-context only (foreign key within tenant DB)
+        'is_super_admin',       // central-context: bypasses all Gate checks
+        'is_admin',             // central-context: central admin portal access
+        'is_active',
         'email',
         'phone',
         'password',
@@ -136,6 +144,8 @@ class User extends Authenticatable
 
     // ── Computed attributes ───────────────────────────────────────────────────
 
+    //
+
     public function getAvatarInitialsAttribute(): string
     {
         $words = explode(' ', $this->name);
@@ -156,7 +166,7 @@ class User extends Authenticatable
      * is resolved to its UUID before being used in a WHERE IN clause.
      * This prevents SQLSTATE[22P02] errors with PostgreSQL.
      */
-    public function scopeRole(Builder $query, string|array $roles = [], string $guard = null): Builder
+    public function scopeRole(Builder $query, string|array $roles = [], ?string $guard = null): Builder
     {
         $roleGuard = $guard ?? $this->getDefaultGuardName();
         $rolesParam = (array) $roles;
@@ -179,13 +189,36 @@ class User extends Authenticatable
     }
 
     /**
+     * Get an enterprise-grade UserPreferenceService instance for this user.
+     *
+     * Provides typed methods, caching, and proper error handling for preference management.
+     *
+     * @return \App\Services\UserPreferenceService
+     */
+    public function preferenceService(): \App\Services\UserPreferenceService
+    {
+        return new \App\Services\UserPreferenceService($this);
+    }
+
+    /**
      * Safely retrieve a single preference value.
      * Returns $default if the table does not exist (central DB context) or the key is not found.
+     *
+     * @deprecated Use preferenceService()->get() instead for better type safety and caching.
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
      */
     public function getPreference(string $key, mixed $default = null): mixed
     {
         try {
-            return $this->preferences()->where('key', $key)->value('value') ?? $default;
+            // Query UserPreference directly rather than through the preferences()
+            // HasMany relationship to avoid Eloquent's dynamic dispatch chain
+            // triggering BadMethodCallException on stale opcache class maps.
+            return UserPreference::where('user_id', $this->id)
+                ->where('key', $key)
+                ->value('value') ?? $default;
         } catch (\Throwable) {
             return $default;
         }
@@ -194,6 +227,8 @@ class User extends Authenticatable
     /**
      * Persist (upsert) a single preference key → value.
      *
+     * @deprecated Use preferenceService()->set() instead for better type safety and logging.
+     *
      * Silently swallows errors when:
      *   - The user_preferences table does not exist (central DB — tenant migration
      *     has not run there).
@@ -201,12 +236,18 @@ class User extends Authenticatable
      *
      * The unique(user_id, key) constraint in the migration guarantees a clean
      * upsert with no duplicate rows regardless of request concurrency.
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return void
      */
     public function setPreference(string $key, mixed $value): void
     {
         try {
-            $this->preferences()->updateOrCreate(
-                ['key'   => $key],
+            // Direct query — same reason as getPreference(): avoids dynamic
+            // dispatch through preferences() HasMany on stale opcache builds.
+            UserPreference::updateOrCreate(
+                ['user_id' => $this->id, 'key' => $key],
                 ['value' => $value],
             );
         } catch (\Throwable) {
@@ -214,43 +255,4 @@ class User extends Authenticatable
         }
     }
 
-    /**
-     * Surgically prevent Postgres 22P02 "invalid input syntax for type uuid"
-     * when a non-UUID string (like "admin") is passed in a route parameter.
-     *
-     * This method is called FIRST before the database query is executed,
-     * preventing invalid UUIDs from ever reaching PostgreSQL.
-     */
-    public function resolveRouteBinding($value, $field = null)
-    {
-        if ($field === null && !\Illuminate\Support\Str::isUuid($value)) {
-            return null;
-        }
-
-        return parent::resolveRouteBinding($value, $field);
-    }
-
-    /**
-     * Override the route binding query to validate UUID format before querying the database.
-     *
-     * This prevents PostgreSQL from throwing SQLSTATE[22P02] errors when invalid
-     * UUID values are passed to the WHERE clause. The validation happens at the
-     * query builder level, before any database round-trip.
-     */
-    public function resolveRouteBindingQuery($query = null, $value, $field = null)
-    {
-        // If no query builder provided, create one from the model
-        if (is_null($query)) {
-            $query = $this->newQuery();
-        }
-
-        // Validate UUID format before adding to WHERE clause
-        // This prevents "invalid input syntax for type uuid" errors from PostgreSQL
-        if (is_null($field) && !\Illuminate\Support\Str::isUuid($value)) {
-            // Return a query that will never match anything
-            return $query->whereRaw('1 = 0');
-        }
-
-        return parent::resolveRouteBindingQuery($query, $value, $field);
-    }
 }

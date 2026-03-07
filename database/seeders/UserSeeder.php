@@ -53,7 +53,10 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         foreach (self::USERS as $data) {
-            $user = User::updateOrCreate(
+            // withoutEvents() prevents LogsActivity from writing to MongoDB
+            // during seeding (same fix as DatabaseSeeder / TenantAdminSeeder).
+            /** @var User $user */
+            $user = User::withoutEvents(fn () => User::updateOrCreate(
                 ['user_name' => $data['user_name']],
                 [
                     'name'              => $data['name'],
@@ -66,7 +69,7 @@ class UserSeeder extends Seeder
                     'is_active'         => true,
                     'is_admin'          => $data['is_admin'],
                 ]
-            );
+            ));
 
             // Explicitly assign Spatie role — RolesPermissionsSeeder runs before
             // UserSeeder and its user-iteration loop finds no users yet, so we
